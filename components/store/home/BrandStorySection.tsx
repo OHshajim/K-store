@@ -74,10 +74,12 @@ export function BrandStorySection() {
             <div className="pt-2">
               <Link
                 href="/about"
+                data-btn="dark"
+                style={{ color: "#FFFFFF", backgroundColor: "#1A1C18" }}
                 className="inline-flex items-center gap-2 px-7 py-3.5 bg-[#1A1C18] text-white hover:bg-[#32362F] text-sm font-semibold rounded-xl transition-all shadow-md hover:shadow-xl cursor-pointer"
               >
-                Read Our Story & Craft
-                <ArrowRight className="w-4 h-4" />
+                <span style={{ color: "#FFFFFF" }}>Read Our Story & Craft</span>
+                <ArrowRight className="w-4 h-4 text-white" style={{ color: "#FFFFFF" }} />
               </Link>
             </div>
           </div>

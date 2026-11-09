@@ -46,10 +46,12 @@ export function BestSellersSection({
       <div className="mt-14 pt-8 text-center">
         <Link
           href="/shop"
+          data-btn="dark"
+          style={{ color: "#FFFFFF", backgroundColor: "#1A1C18" }}
           className="inline-flex items-center gap-2 px-8 py-3.5 bg-[#1A1C18] text-white hover:bg-[#32362F] text-sm font-semibold rounded-xl shadow-md transition-all hover:shadow-xl cursor-pointer"
         >
-          View All Products ({products.length > 8 ? "30+" : products.length} Essentials)
-          <ArrowRight className="w-4 h-4" />
+          <span style={{ color: "#FFFFFF" }}>View All Products ({products.length > 8 ? "30+" : products.length} Essentials)</span>
+          <ArrowRight className="w-4 h-4 text-white" style={{ color: "#FFFFFF" }} />
         </Link>
       </div>
     </section>

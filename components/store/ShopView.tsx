@@ -310,19 +310,26 @@ export function ShopView({
         <button
           type="button"
           onClick={() => setSelectedCategory("all")}
-          className={`px-5 py-2.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all cursor-pointer flex items-center gap-2 ${
+          data-btn={selectedCategory === "all" ? "dark" : undefined}
+          style={{
+            color: selectedCategory === "all" ? "#FFFFFF" : "#1A1C18",
+            backgroundColor: selectedCategory === "all" ? "#1A1C18" : "#FFFFFF",
+          }}
+          className={`px-5 py-2.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all cursor-pointer flex items-center gap-2 border ${
             selectedCategory === "all"
-              ? "bg-[#1A1C18] text-white border border-[#1A1C18] shadow-sm"
-              : "bg-white text-[#1A1C18] border border-[#1A1C18]/15 hover:border-[#1A1C18]/40 hover:bg-[#F4F0E8]"
+              ? "border-[#1A1C18] shadow-sm"
+              : "border-[#1A1C18]/15 hover:border-[#1A1C18]/40 hover:bg-[#F4F0E8]"
           }`}
         >
-          <span>All Collections</span>
+          <span style={{ color: selectedCategory === "all" ? "#FFFFFF" : "#1A1C18" }}>
+            All Collections
+          </span>
           <span
-            className={`text-[11px] font-mono px-2 py-0.5 rounded-full ${
-              selectedCategory === "all"
-                ? "bg-white/20 text-white"
-                : "bg-[#F4F0E8] text-[#4A483E]"
-            }`}
+            style={{
+              color: selectedCategory === "all" ? "#FFFFFF" : "#4A483E",
+              backgroundColor: selectedCategory === "all" ? "rgba(255,255,255,0.2)" : "#F4F0E8",
+            }}
+            className="text-[11px] font-mono px-2 py-0.5 rounded-full"
           >
             {initialProducts.length}
           </span>
@@ -339,19 +346,24 @@ export function ShopView({
               key={cat.id || cat.slug}
               type="button"
               onClick={() => setSelectedCategory(cat.slug)}
-              className={`px-5 py-2.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all cursor-pointer flex items-center gap-2 ${
+              data-btn={isSelected ? "dark" : undefined}
+              style={{
+                color: isSelected ? "#FFFFFF" : "#1A1C18",
+                backgroundColor: isSelected ? "#1A1C18" : "#FFFFFF",
+              }}
+              className={`px-5 py-2.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all cursor-pointer flex items-center gap-2 border ${
                 isSelected
-                  ? "bg-[#1A1C18] text-white border border-[#1A1C18] shadow-sm"
-                  : "bg-white text-[#1A1C18] border border-[#1A1C18]/15 hover:border-[#1A1C18]/40 hover:bg-[#F4F0E8]"
+                  ? "border-[#1A1C18] shadow-sm"
+                  : "border-[#1A1C18]/15 hover:border-[#1A1C18]/40 hover:bg-[#F4F0E8]"
               }`}
             >
-              <span>{cat.name}</span>
+              <span style={{ color: isSelected ? "#FFFFFF" : "#1A1C18" }}>{cat.name}</span>
               <span
-                className={`text-[11px] font-mono px-2 py-0.5 rounded-full ${
-                  isSelected
-                    ? "bg-white/20 text-white"
-                    : "bg-[#F4F0E8] text-[#4A483E]"
-                }`}
+                style={{
+                  color: isSelected ? "#FFFFFF" : "#4A483E",
+                  backgroundColor: isSelected ? "rgba(255,255,255,0.2)" : "#F4F0E8",
+                }}
+                className="text-[11px] font-mono px-2 py-0.5 rounded-full"
               >
                 {count}
               </span>
@@ -389,30 +401,43 @@ export function ShopView({
               <button
                 type="button"
                 onClick={() => setSelectedRoom("all")}
+                data-btn={selectedRoom === "all" ? "dark" : undefined}
+                style={{
+                  color: selectedRoom === "all" ? "#FFFFFF" : "#1A1C18",
+                  backgroundColor: selectedRoom === "all" ? "#1A1C18" : "transparent",
+                }}
                 className={`w-full flex items-center justify-between px-3.5 py-2 rounded-xl text-xs font-medium transition-all cursor-pointer ${
                   selectedRoom === "all"
-                    ? "bg-[#1A1C18] text-white font-semibold shadow-xs"
-                    : "text-[#1A1C18] hover:bg-[#F4F0E8]"
+                    ? "font-semibold shadow-xs"
+                    : "hover:bg-[#F4F0E8]"
                 }`}
               >
-                <span>All Rooms</span>
-                {selectedRoom === "all" && <Check className="w-3.5 h-3.5" />}
+                <span style={{ color: selectedRoom === "all" ? "#FFFFFF" : "#1A1C18" }}>All Rooms</span>
+                {selectedRoom === "all" && <Check className="w-3.5 h-3.5 text-white" style={{ color: "#FFFFFF" }} />}
               </button>
-              {ROOM_OPTIONS.map((room) => (
-                <button
-                  key={room.id}
-                  type="button"
-                  onClick={() => setSelectedRoom(room.id)}
-                  className={`w-full flex items-center justify-between px-3.5 py-2 rounded-xl text-xs font-medium transition-all cursor-pointer ${
-                    selectedRoom === room.id
-                      ? "bg-[#1A1C18] text-white font-semibold shadow-xs"
-                      : "text-[#1A1C18] hover:bg-[#F4F0E8]"
-                  }`}
-                >
-                  <span>{room.label}</span>
-                  {selectedRoom === room.id && <Check className="w-3.5 h-3.5" />}
-                </button>
-              ))}
+              {ROOM_OPTIONS.map((room) => {
+                const isSelected = selectedRoom === room.id;
+                return (
+                  <button
+                    key={room.id}
+                    type="button"
+                    onClick={() => setSelectedRoom(room.id)}
+                    data-btn={isSelected ? "dark" : undefined}
+                    style={{
+                      color: isSelected ? "#FFFFFF" : "#1A1C18",
+                      backgroundColor: isSelected ? "#1A1C18" : "transparent",
+                    }}
+                    className={`w-full flex items-center justify-between px-3.5 py-2 rounded-xl text-xs font-medium transition-all cursor-pointer ${
+                      isSelected
+                        ? "font-semibold shadow-xs"
+                        : "hover:bg-[#F4F0E8]"
+                    }`}
+                  >
+                    <span style={{ color: isSelected ? "#FFFFFF" : "#1A1C18" }}>{room.label}</span>
+                    {isSelected && <Check className="w-3.5 h-3.5 text-white" style={{ color: "#FFFFFF" }} />}
+                  </button>
+                );
+              })}
             </div>
           </div>
 
@@ -425,30 +450,43 @@ export function ShopView({
               <button
                 type="button"
                 onClick={() => setSelectedMaterial("all")}
+                data-btn={selectedMaterial === "all" ? "dark" : undefined}
+                style={{
+                  color: selectedMaterial === "all" ? "#FFFFFF" : "#1A1C18",
+                  backgroundColor: selectedMaterial === "all" ? "#1A1C18" : "transparent",
+                }}
                 className={`w-full flex items-center justify-between px-3.5 py-2 rounded-xl text-xs font-medium transition-all cursor-pointer ${
                   selectedMaterial === "all"
-                    ? "bg-[#1A1C18] text-white font-semibold shadow-xs"
-                    : "text-[#1A1C18] hover:bg-[#F4F0E8]"
+                    ? "font-semibold shadow-xs"
+                    : "hover:bg-[#F4F0E8]"
                 }`}
               >
-                <span>All Materials</span>
-                {selectedMaterial === "all" && <Check className="w-3.5 h-3.5" />}
+                <span style={{ color: selectedMaterial === "all" ? "#FFFFFF" : "#1A1C18" }}>All Materials</span>
+                {selectedMaterial === "all" && <Check className="w-3.5 h-3.5 text-white" style={{ color: "#FFFFFF" }} />}
               </button>
-              {MATERIAL_OPTIONS.map((mat) => (
-                <button
-                  key={mat}
-                  type="button"
-                  onClick={() => setSelectedMaterial(mat)}
-                  className={`w-full flex items-center justify-between px-3.5 py-2 rounded-xl text-xs font-medium transition-all cursor-pointer ${
-                    selectedMaterial === mat
-                      ? "bg-[#1A1C18] text-white font-semibold shadow-xs"
-                      : "text-[#1A1C18] hover:bg-[#F4F0E8]"
-                  }`}
-                >
-                  <span>{mat}</span>
-                  {selectedMaterial === mat && <Check className="w-3.5 h-3.5" />}
-                </button>
-              ))}
+              {MATERIAL_OPTIONS.map((mat) => {
+                const isSelected = selectedMaterial === mat;
+                return (
+                  <button
+                    key={mat}
+                    type="button"
+                    onClick={() => setSelectedMaterial(mat)}
+                    data-btn={isSelected ? "dark" : undefined}
+                    style={{
+                      color: isSelected ? "#FFFFFF" : "#1A1C18",
+                      backgroundColor: isSelected ? "#1A1C18" : "transparent",
+                    }}
+                    className={`w-full flex items-center justify-between px-3.5 py-2 rounded-xl text-xs font-medium transition-all cursor-pointer ${
+                      isSelected
+                        ? "font-semibold shadow-xs"
+                        : "hover:bg-[#F4F0E8]"
+                    }`}
+                  >
+                    <span style={{ color: isSelected ? "#FFFFFF" : "#1A1C18" }}>{mat}</span>
+                    {isSelected && <Check className="w-3.5 h-3.5 text-white" style={{ color: "#FFFFFF" }} />}
+                  </button>
+                );
+              })}
             </div>
           </div>
 
@@ -461,10 +499,15 @@ export function ShopView({
               <button
                 type="button"
                 onClick={() => setSelectedColor("all")}
+                data-btn={selectedColor === "all" ? "dark" : undefined}
+                style={{
+                  color: selectedColor === "all" ? "#FFFFFF" : "#4A483E",
+                  backgroundColor: selectedColor === "all" ? "#1A1C18" : "#FFFFFF",
+                }}
                 className={`px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
                   selectedColor === "all"
-                    ? "bg-[#1A1C18] text-white border-transparent shadow-xs"
-                    : "bg-white text-[#4A483E] border-[#1A1C18]/20 hover:bg-[#F4F0E8]"
+                    ? "border-transparent shadow-xs"
+                    : "border-[#1A1C18]/20 hover:bg-[#F4F0E8]"
                 }`}
               >
                 All
@@ -656,20 +699,28 @@ export function ShopView({
                   Room
                 </label>
                 <div className="grid grid-cols-2 gap-2">
-                  {ROOM_OPTIONS.map((r) => (
-                    <button
-                      key={r.id}
-                      type="button"
-                      onClick={() => setSelectedRoom(r.id)}
-                      className={`p-2.5 text-xs rounded-xl border text-center transition-all ${
-                        selectedRoom === r.id
-                          ? "border-[#1A1C18] bg-[#1A1C18] text-white font-bold"
-                          : "border-[#1A1C18]/15 text-[#1A1C18] hover:bg-[#F4F0E8]"
-                      }`}
-                    >
-                      {r.label}
-                    </button>
-                  ))}
+                  {ROOM_OPTIONS.map((r) => {
+                    const isSelected = selectedRoom === r.id;
+                    return (
+                      <button
+                        key={r.id}
+                        type="button"
+                        onClick={() => setSelectedRoom(r.id)}
+                        data-btn={isSelected ? "dark" : undefined}
+                        style={{
+                          color: isSelected ? "#FFFFFF" : "#1A1C18",
+                          backgroundColor: isSelected ? "#1A1C18" : "#FFFFFF",
+                        }}
+                        className={`p-2.5 text-xs rounded-xl border text-center transition-all ${
+                          isSelected
+                            ? "border-[#1A1C18] font-bold"
+                            : "border-[#1A1C18]/15 hover:bg-[#F4F0E8]"
+                        }`}
+                      >
+                        {r.label}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 
@@ -713,9 +764,11 @@ export function ShopView({
               <button
                 type="button"
                 onClick={() => setIsMobileFilterOpen(false)}
+                data-btn="dark"
+                style={{ color: "#FFFFFF", backgroundColor: "#1A1C18" }}
                 className="flex-1 py-3 bg-[#1A1C18] text-white rounded-xl text-xs font-semibold shadow-sm hover:bg-[#32362F]"
               >
-                Apply ({filteredProducts.length})
+                <span style={{ color: "#FFFFFF" }}>Apply ({filteredProducts.length})</span>
               </button>
             </div>
           </div>

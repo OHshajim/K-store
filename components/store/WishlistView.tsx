@@ -37,9 +37,12 @@ export function WishlistView() {
             <button
               type="button"
               onClick={handleMoveAllToCart}
+              data-btn="dark"
+              style={{ color: "#FFFFFF", backgroundColor: "#1A1C18" }}
               className="px-5 py-2.5 bg-[#1A1C18] text-white text-xs font-semibold rounded-xl hover:bg-[#3d403a] transition-all flex items-center gap-2 shadow-xs cursor-pointer"
             >
-              <ShoppingBag className="w-4 h-4" /> Move All to Cart
+              <ShoppingBag className="w-4 h-4 text-white" style={{ color: "#FFFFFF" }} />
+              <span style={{ color: "#FFFFFF" }}>Move All to Cart</span>
             </button>
             <button
               type="button"
@@ -66,10 +69,12 @@ export function WishlistView() {
           </p>
           <Link
             href="/shop"
+            data-btn="dark"
+            style={{ color: "#FFFFFF", backgroundColor: "#1A1C18" }}
             className="inline-flex items-center gap-2 px-8 py-3.5 bg-[#1A1C18] text-white text-sm font-semibold rounded-xl hover:bg-[#3d403a] transition-colors shadow-md"
           >
-            Explore Catalog
-            <ArrowRight className="w-4 h-4" />
+            <span style={{ color: "#FFFFFF" }}>Explore Catalog</span>
+            <ArrowRight className="w-4 h-4 text-white" style={{ color: "#FFFFFF" }} />
           </Link>
         </div>
       ) : (

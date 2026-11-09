@@ -107,6 +107,8 @@ export function ProductCard({ product }: { product: Product }) {
             type="button"
             disabled={product.stock <= 0}
             onClick={handleQuickAdd}
+            data-btn={justAdded ? "accent" : product.stock <= 0 ? undefined : "dark"}
+            style={{ color: product.stock <= 0 ? "#6B7280" : "#FFFFFF" }}
             className={`w-full py-2.5 px-4 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 shadow-lg transition-all cursor-pointer ${
               justAdded
                 ? "bg-[#8A927A] text-white"
@@ -116,15 +118,15 @@ export function ProductCard({ product }: { product: Product }) {
             }`}
           >
             {justAdded ? (
-              <>
-                <Check className="w-4 h-4" /> Added to Cart
-              </>
+              <span className="flex items-center gap-1.5" style={{ color: "#FFFFFF" }}>
+                <Check className="w-4 h-4 text-white" style={{ color: "#FFFFFF" }} /> Added to Cart
+              </span>
             ) : product.stock <= 0 ? (
-              "Sold Out"
+              <span>Sold Out</span>
             ) : (
-              <>
-                <ShoppingBag className="w-3.5 h-3.5" /> Quick Add
-              </>
+              <span className="flex items-center gap-1.5" style={{ color: "#FFFFFF" }}>
+                <ShoppingBag className="w-3.5 h-3.5 text-white" style={{ color: "#FFFFFF" }} /> Quick Add
+              </span>
             )}
           </button>
         </div>
@@ -209,6 +211,8 @@ export function ProductCard({ product }: { product: Product }) {
             type="button"
             disabled={product.stock <= 0}
             onClick={handleQuickAdd}
+            data-btn={justAdded ? "accent" : product.stock <= 0 ? undefined : "dark"}
+            style={{ color: product.stock <= 0 ? "#6B7280" : "#FFFFFF" }}
             className={`w-full py-2.5 px-3 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 cursor-pointer transition-all ${
               justAdded
                 ? "bg-[#8A927A] text-white"
@@ -218,13 +222,15 @@ export function ProductCard({ product }: { product: Product }) {
             }`}
           >
             {justAdded ? (
-              <>
-                <Check className="w-3.5 h-3.5" /> Added
-              </>
+              <span className="flex items-center gap-1.5" style={{ color: "#FFFFFF" }}>
+                <Check className="w-3.5 h-3.5 text-white" style={{ color: "#FFFFFF" }} /> Added
+              </span>
+            ) : product.stock <= 0 ? (
+              <span>Sold Out</span>
             ) : (
-              <>
-                <ShoppingBag className="w-3.5 h-3.5" /> Quick Add
-              </>
+              <span className="flex items-center gap-1.5" style={{ color: "#FFFFFF" }}>
+                <ShoppingBag className="w-3.5 h-3.5 text-white" style={{ color: "#FFFFFF" }} /> Quick Add
+              </span>
             )}
           </button>
         </div>

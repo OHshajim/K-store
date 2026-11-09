@@ -355,6 +355,8 @@ export function ProductDetailView({
               type="button"
               disabled={product.stock <= 0}
               onClick={handleAddToCart}
+              data-btn={addedFeedback ? "accent" : product.stock <= 0 ? undefined : "dark"}
+              style={{ color: product.stock <= 0 ? "#6B7280" : "#FFFFFF" }}
               className={`w-full py-4 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 shadow-lg transition-all cursor-pointer ${
                 addedFeedback
                   ? "bg-[#8A927A] text-white"
@@ -364,16 +366,16 @@ export function ProductDetailView({
               }`}
             >
               {addedFeedback ? (
-                <>
-                  <Check className="w-4 h-4" /> Added to Cart
-                </>
+                <span className="flex items-center gap-1.5" style={{ color: "#FFFFFF" }}>
+                  <Check className="w-4 h-4 text-white" style={{ color: "#FFFFFF" }} /> Added to Cart
+                </span>
               ) : product.stock <= 0 ? (
-                "Currently Sold Out"
+                <span>Currently Sold Out</span>
               ) : (
-                <>
-                  <ShoppingBag className="w-4 h-4" /> Add to Cart —{" "}
+                <span className="flex items-center gap-1.5" style={{ color: "#FFFFFF" }}>
+                  <ShoppingBag className="w-4 h-4 text-white" style={{ color: "#FFFFFF" }} /> Add to Cart —{" "}
                   {formatPrice(product.price_cents * quantity)}
-                </>
+                </span>
               )}
             </button>
 
@@ -641,17 +643,22 @@ export function ProductDetailView({
               type="button"
               disabled={product.stock <= 0}
               onClick={handleAddToCart}
+              data-btn="dark"
+              style={{ color: "#FFFFFF", backgroundColor: "#1A1C18" }}
               className="px-6 py-2.5 bg-[#1A1C18] text-white text-xs font-semibold rounded-xl hover:bg-[#3d403a] transition-all flex items-center gap-2 shadow-md cursor-pointer"
             >
-              <ShoppingBag className="w-4 h-4" /> Add to Cart
+              <ShoppingBag className="w-4 h-4 text-white" style={{ color: "#FFFFFF" }} />
+              <span style={{ color: "#FFFFFF" }}>Add to Cart</span>
             </button>
             <button
               type="button"
               disabled={product.stock <= 0}
               onClick={handleBuyNow}
+              data-btn="accent"
+              style={{ color: "#FFFFFF", backgroundColor: "#B78E69" }}
               className="px-5 py-2.5 bg-[#B78E69] text-white text-xs font-semibold rounded-xl hover:bg-[#a57d59] transition-all cursor-pointer shadow-md"
             >
-              Buy Now
+              <span style={{ color: "#FFFFFF" }}>Buy Now</span>
             </button>
           </div>
         </div>

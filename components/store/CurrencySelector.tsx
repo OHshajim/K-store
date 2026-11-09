@@ -40,10 +40,16 @@ export function CurrencySelector({ variant = "header" }: { variant?: "header" | 
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 bottom-full mb-2 sm:bottom-auto sm:top-full sm:mt-2 w-56 rounded-2xl bg-white shadow-2xl border border-[#1A1C18]/12 py-2 z-50 animate-in fade-in zoom-in-95 duration-150">
-          <div className="px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider text-[#4A483E] border-b border-[#1A1C18]/10 flex items-center gap-1.5">
-            <Globe className="w-3 h-3 text-[#8A927A]" />
-            Market & Currency
+        <div
+          style={{ color: "#1A1C18" }}
+          className="absolute right-0 bottom-full mb-2 sm:bottom-auto sm:top-full sm:mt-2 w-56 rounded-2xl bg-white shadow-2xl border border-[#1A1C18]/12 py-2 z-50 animate-in fade-in zoom-in-95 duration-150"
+        >
+          <div
+            style={{ color: "#4A483E" }}
+            className="px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider border-b border-[#1A1C18]/10 flex items-center gap-1.5"
+          >
+            <Globe className="w-3.5 h-3.5 text-[#8A927A]" />
+            <span>Market & Currency</span>
           </div>
 
           {(Object.keys(CURRENCIES) as SupportedCurrency[]).map((code) => {
@@ -57,6 +63,7 @@ export function CurrencySelector({ variant = "header" }: { variant?: "header" | 
                   setCurrency(code);
                   setIsOpen(false);
                 }}
+                style={{ color: "#1A1C18" }}
                 className={`w-full text-left px-3.5 py-2.5 text-xs flex items-center justify-between transition-colors cursor-pointer ${
                   isSelected
                     ? "bg-[#F4F0E8] font-bold text-[#1A1C18]"
@@ -64,12 +71,16 @@ export function CurrencySelector({ variant = "header" }: { variant?: "header" | 
                 }`}
               >
                 <span className="flex items-center gap-2.5">
-                  <span className="text-base">{config.flag}</span>
-                  <span className="font-medium">{config.label}</span>
+                  <span className="text-base leading-none">{config.flag}</span>
+                  <span className="font-semibold text-[#1A1C18]" style={{ color: "#1A1C18" }}>
+                    {config.label}
+                  </span>
                 </span>
                 <span className="flex items-center gap-1.5">
-                  <span className="font-mono text-[#4A483E] font-semibold">{config.symbol}</span>
-                  {isSelected && <Check className="w-3 h-3 text-[#1A1C18]" />}
+                  <span className="font-mono text-[#4A483E] font-bold" style={{ color: "#4A483E" }}>
+                    {config.symbol}
+                  </span>
+                  {isSelected && <Check className="w-3.5 h-3.5 text-[#1A1C18]" style={{ color: "#1A1C18" }} />}
                 </span>
               </button>
             );

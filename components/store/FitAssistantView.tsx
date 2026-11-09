@@ -581,10 +581,12 @@ export function FitAssistantView({ allProducts }: { allProducts: Product[] }) {
                     <div className="pt-3 flex flex-wrap gap-3">
                       <Link
                         href={`/product/${product.slug}`}
+                        data-btn="dark"
+                        style={{ color: "#FFFFFF", backgroundColor: "#1A1C18" }}
                         className="px-6 py-2.5 bg-[#1A1C18] text-white text-xs font-semibold rounded-xl hover:bg-[#32362F] transition-colors inline-flex items-center gap-1.5 shadow-xs"
                       >
-                        View Specifications
-                        <ArrowRight className="w-3.5 h-3.5" />
+                        <span style={{ color: "#FFFFFF" }}>View Specifications</span>
+                        <ArrowRight className="w-3.5 h-3.5 text-white" style={{ color: "#FFFFFF" }} />
                       </Link>
                       <button
                         type="button"

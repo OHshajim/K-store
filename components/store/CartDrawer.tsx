@@ -58,7 +58,11 @@ export function CartDrawer() {
               <h2 className="font-editorial text-2xl font-bold tracking-tight text-[#1A1C18]">
                 Shopping Cart
               </h2>
-              <span className="text-xs bg-[#1A1C18] text-white px-2 py-0.5 rounded-full font-mono">
+              <span
+                data-btn="dark"
+                style={{ color: "#FFFFFF", backgroundColor: "#1A1C18" }}
+                className="text-xs bg-[#1A1C18] text-white px-2 py-0.5 rounded-full font-mono"
+              >
                 {items.reduce((acc, i) => acc + i.quantity, 0)}
               </span>
             </div>
@@ -114,10 +118,12 @@ export function CartDrawer() {
                 <Link
                   href="/shop"
                   onClick={closeCart}
-                  className="inline-flex items-center gap-2 px-6 py-3 bg-[#1A1C18] text-white text-sm font-medium rounded-lg hover:bg-[#3d403a] transition-colors"
+                  data-btn="dark"
+                  style={{ color: "#FFFFFF", backgroundColor: "#1A1C18" }}
+                  className="inline-flex items-center gap-2 px-6 py-3 bg-[#1A1C18] text-white text-sm font-semibold rounded-xl hover:bg-[#3d403a] transition-colors shadow-sm"
                 >
-                  Explore Collection
-                  <ArrowRight className="w-4 h-4" />
+                  <span style={{ color: "#FFFFFF" }}>Explore Collection</span>
+                  <ArrowRight className="w-4 h-4 text-white" style={{ color: "#FFFFFF" }} />
                 </Link>
               </div>
             ) : (
@@ -232,9 +238,11 @@ export function CartDrawer() {
                     />
                     <button
                       type="submit"
-                      className="px-3 py-2 bg-[#1A1C18] text-white text-xs font-medium rounded-md hover:bg-[#3d403a] transition-colors cursor-pointer"
+                      data-btn="dark"
+                      style={{ color: "#FFFFFF", backgroundColor: "#1A1C18" }}
+                      className="px-4 py-2 bg-[#1A1C18] text-white text-xs font-semibold rounded-md hover:bg-[#3d403a] transition-colors cursor-pointer"
                     >
-                      Apply
+                      <span style={{ color: "#FFFFFF" }}>Apply</span>
                     </button>
                   </form>
                 )}
@@ -282,10 +290,12 @@ export function CartDrawer() {
                 <Link
                   href="/checkout"
                   onClick={closeCart}
-                  className="w-full flex items-center justify-center gap-2 py-3.5 bg-[#1A1C18] text-white text-sm font-semibold rounded-lg hover:bg-[#3d403a] transition-all shadow-md cursor-pointer"
+                  data-btn="dark"
+                  style={{ color: "#FFFFFF", backgroundColor: "#1A1C18" }}
+                  className="w-full flex items-center justify-center gap-2 py-3.5 bg-[#1A1C18] text-white text-sm font-semibold rounded-xl hover:bg-[#3d403a] transition-all shadow-md cursor-pointer"
                 >
-                  Proceed to Checkout
-                  <ArrowRight className="w-4 h-4" />
+                  <span style={{ color: "#FFFFFF" }}>Proceed to Checkout</span>
+                  <ArrowRight className="w-4 h-4 text-white" style={{ color: "#FFFFFF" }} />
                 </Link>
                 <Link
                   href="/cart"

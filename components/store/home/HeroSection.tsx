@@ -55,25 +55,29 @@ export function HeroSection({
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
           <Link
             href="/shop"
-            className="w-full sm:w-auto px-8 py-4 bg-[#F4F0E8] text-[#292B27] hover:bg-white text-sm font-semibold rounded-xl transition-all duration-200 flex items-center justify-center gap-2 shadow-xl hover:shadow-2xl hover:-translate-y-0.5 cursor-pointer"
+            data-btn="light"
+            style={{ color: "#1A1C18", backgroundColor: "#F4F0E8" }}
+            className="w-full sm:w-auto px-8 py-4 bg-[#F4F0E8] text-[#1A1C18] hover:bg-white text-sm font-bold rounded-xl transition-all duration-200 flex items-center justify-center gap-2 shadow-xl hover:shadow-2xl hover:-translate-y-0.5 cursor-pointer"
           >
-            {primaryCta}
-            <ArrowRight className="w-4 h-4 text-[#292B27]" />
+            <span style={{ color: "#1A1C18" }}>{primaryCta}</span>
+            <ArrowRight className="w-4 h-4 text-[#1A1C18]" style={{ color: "#1A1C18" }} />
           </Link>
 
           <Link
             href="/about"
+            style={{ color: "#FFFFFF" }}
             className="w-full sm:w-auto px-8 py-4 bg-white/10 hover:bg-white/20 text-white text-sm font-semibold rounded-xl backdrop-blur-md border border-white/30 transition-all duration-200 flex items-center justify-center gap-2 hover:-translate-y-0.5 cursor-pointer"
           >
-            {secondaryCta}
+            <span style={{ color: "#FFFFFF" }}>{secondaryCta}</span>
           </Link>
 
           <Link
             href="/fit-assistant"
-            className="w-full sm:w-auto px-6 py-4 bg-[#8A927A]/80 hover:bg-[#8A927A] text-white text-sm font-semibold rounded-xl backdrop-blur-md border border-white/20 transition-all duration-200 flex items-center justify-center gap-2 hover:-translate-y-0.5 cursor-pointer"
+            style={{ color: "#FFFFFF" }}
+            className="w-full sm:w-auto px-6 py-4 bg-[#8A927A]/85 hover:bg-[#8A927A] text-white text-sm font-semibold rounded-xl backdrop-blur-md border border-white/20 transition-all duration-200 flex items-center justify-center gap-2 hover:-translate-y-0.5 cursor-pointer"
           >
-            <Compass className="w-4 h-4" />
-            Fit Assistant
+            <Compass className="w-4 h-4 text-white" style={{ color: "#FFFFFF" }} />
+            <span style={{ color: "#FFFFFF" }}>Fit Assistant</span>
           </Link>
         </div>
 

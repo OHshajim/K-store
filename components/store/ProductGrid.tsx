@@ -28,10 +28,12 @@ export function ProductGrid({
         </p>
         <Link
           href="/shop"
+          data-btn="dark"
+          style={{ color: "#FFFFFF", backgroundColor: "#1A1C18" }}
           className="inline-flex items-center gap-2 px-6 py-3 bg-[#1A1C18] text-white text-sm font-semibold rounded-xl hover:bg-[#32362F] transition-colors shadow-sm"
         >
-          View All Products
-          <ArrowRight className="w-4 h-4" />
+          <span style={{ color: "#FFFFFF" }}>View All Products</span>
+          <ArrowRight className="w-4 h-4 text-white" style={{ color: "#FFFFFF" }} />
         </Link>
       </div>
     );

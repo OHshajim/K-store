@@ -249,15 +249,20 @@ export function StoreTopNav({ storeName = "Kstore" }: { storeName?: string }) {
               <button
                 type="button"
                 onClick={openCart}
+                data-btn="dark"
+                style={{ color: "#FFFFFF", backgroundColor: "#1A1C18" }}
                 className="relative flex items-center gap-2 px-3.5 py-2 bg-[#1A1C18] text-white rounded-xl hover:bg-[#32362F] transition-all shadow-xs cursor-pointer"
                 aria-label="Shopping Cart"
               >
-                <ShoppingBag className="w-4 h-4" />
-                <span className="hidden sm:inline text-xs font-semibold tracking-wide">
+                <ShoppingBag className="w-4 h-4 text-white" style={{ color: "#FFFFFF" }} />
+                <span className="hidden sm:inline text-xs font-semibold tracking-wide" style={{ color: "#FFFFFF" }}>
                   Cart
                 </span>
                 {cartCount > 0 && (
-                  <span className="w-4 h-4 bg-[#B78E69] text-white text-[10px] font-bold rounded-full flex items-center justify-center font-mono">
+                  <span
+                    style={{ color: "#FFFFFF", backgroundColor: "#B78E69" }}
+                    className="w-4 h-4 bg-[#B78E69] text-white text-[10px] font-bold rounded-full flex items-center justify-center font-mono"
+                  >
                     {cartCount}
                   </span>
                 )}
