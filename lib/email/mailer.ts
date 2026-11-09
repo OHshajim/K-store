@@ -53,44 +53,36 @@ export async function sendEmail(input: {
   return { demo: false as const };
 }
 
-export async function sendOtpEmail(email: string, code: string) {
-  const subject = `${code} is your ${APP_NAME} sign-in code`;
-  const text = `Your one-time code is ${code}. It expires in 10 minutes.`;
-  const html = `
-    <div style="font-family:system-ui,sans-serif;line-height:1.5">
-      <h1 style="font-size:20px;margin:0 0 12px">${APP_NAME}</h1>
-      <p style="margin:0 0 12px">Your one-time sign-in code:</p>
-      <p style="font-size:28px;letter-spacing:4px;font-weight:700;margin:0 0 12px">${code}</p>
-      <p style="color:#666;margin:0">Expires in 10 minutes. If you did not request this, ignore this email.</p>
-    </div>
-  `;
-  return sendEmail({ to: email, subject, html, text });
+// Logged-in customers track in-app; guests follow the token link.
+export function orderTrackingUrl(order: Order): string {
+  const site = getSiteUrl();
+  return order.user_id
+    ? `${site}/orders/${order.id}`
+    : `${site}/track/${order.order_number}?t=${order.tracking_token}`;
 }
 
 export async function sendOrderPlacedEmail(
   order: Order,
   settings: StoreSettings,
 ) {
-  const site = getSiteUrl();
   const total = formatMoney(
     order.total_cents,
     settings.currency_symbol,
     settings.currency,
   );
+  const trackUrl = orderTrackingUrl(order);
   const subject = `Order ${order.order_number} received`;
   const text = [
     `Thanks ${order.customer_name}!`,
     `We received order ${order.order_number} for ${total}.`,
-    settings.payment_instructions,
-    `Track it: ${site}/orders/${order.id}`,
+    `Track your order any time: ${trackUrl}`,
   ].join("\n\n");
 
   const html = `
     <div style="font-family:system-ui,sans-serif;line-height:1.5">
       <h1 style="font-size:20px;margin:0 0 12px">Order ${order.order_number}</h1>
-      <p>Thanks ${order.customer_name}. Total due: <strong>${total}</strong>.</p>
-      <p>${settings.payment_instructions}</p>
-      <p><a href="${site}/orders/${order.id}">View order</a></p>
+      <p>Thanks ${order.customer_name}. Total: <strong>${total}</strong>.</p>
+      <p><a href="${trackUrl}">Track your order</a></p>
     </div>
   `;
 
@@ -111,14 +103,14 @@ export async function sendOrderStatusEmail(
   settings: StoreSettings,
   note: string,
 ) {
-  const site = getSiteUrl();
+  const trackUrl = orderTrackingUrl(order);
   const subject = `Update on order ${order.order_number}`;
-  const text = `${note}\n\nView order: ${site}/orders/${order.id}`;
+  const text = `${note}\n\nTrack your order: ${trackUrl}`;
   const html = `
     <div style="font-family:system-ui,sans-serif;line-height:1.5">
       <h1 style="font-size:20px;margin:0 0 12px">${settings.store_name}</h1>
       <p>${note}</p>
-      <p><a href="${site}/orders/${order.id}">View order</a></p>
+      <p><a href="${trackUrl}">Track your order</a></p>
     </div>
   `;
   return sendEmail({ to: order.customer_email, subject, html, text });

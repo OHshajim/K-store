@@ -20,7 +20,3 @@ export function getSiteUrl() {
     "http://localhost:3000"
   );
 }
-
-export function isDemoMode() {
-  return process.env.DEMO_MODE === "true" || !hasSupabaseEnv();
-}

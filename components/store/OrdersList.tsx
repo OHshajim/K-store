@@ -6,7 +6,7 @@ import { List, ListItem } from "@astryxdesign/core/List";
 import { HStack } from "@astryxdesign/core/HStack";
 import { Text } from "@astryxdesign/core/Text";
 import type { Order, StoreSettings } from "@/lib/types";
-import { formatMoney } from "@/lib/format";
+import { formatDate, formatMoney } from "@/lib/format";
 import {
   DeliveryStatusLabel,
   PaymentStatusBadge,
@@ -39,7 +39,7 @@ export function OrdersList({
           description={
             <HStack gap={2} wrap="wrap" vAlign="center">
               <Text type="supporting" color="secondary">
-                {new Date(order.created_at).toLocaleDateString()}
+                {formatDate(order.created_at)}
               </Text>
               <PaymentStatusBadge status={order.payment_status} />
               <DeliveryStatusLabel status={order.delivery_status} />

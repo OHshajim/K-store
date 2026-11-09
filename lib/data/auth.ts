@@ -1,16 +1,7 @@
-import { getDemoProfile } from "@/lib/auth/demo-session";
-import { DEMO_ADMIN, DEMO_PROFILE } from "@/lib/data/demo";
-import { isDemoMode } from "@/lib/env";
 import { createClient } from "@/lib/supabase/server";
 import type { Profile } from "@/lib/types";
 
 export async function getCurrentUser() {
-  if (isDemoMode()) {
-    const profile = await getDemoProfile();
-    if (!profile) return null;
-    return { id: profile.id, email: profile.email };
-  }
-
   const supabase = await createClient();
   const {
     data: { user },
@@ -19,8 +10,6 @@ export async function getCurrentUser() {
 }
 
 export async function getCurrentProfile(): Promise<Profile | null> {
-  if (isDemoMode()) return getDemoProfile();
-
   const supabase = await createClient();
   const {
     data: { user },
@@ -42,8 +31,4 @@ export async function requireAdminProfile(): Promise<Profile> {
     throw new Error("Admin access required");
   }
   return profile;
-}
-
-export function getDemoIdentities() {
-  return { customer: DEMO_PROFILE, admin: DEMO_ADMIN };
 }

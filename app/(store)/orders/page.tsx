@@ -3,7 +3,7 @@ import { VStack } from "@astryxdesign/core/VStack";
 import { Divider } from "@astryxdesign/core/Divider";
 import { Text } from "@astryxdesign/core/Text";
 import { getCurrentUser } from "@/lib/data/auth";
-import { getStoreSettings } from "@/lib/data/catalog";
+import { requireStoreSettings } from "@/lib/data/catalog";
 import { getOrdersForUser } from "@/lib/data/orders";
 import { OrdersList } from "@/components/store/OrdersList";
 
@@ -12,7 +12,7 @@ export default async function OrdersPage() {
   if (!user) redirect("/login?next=/orders");
 
   const [settings, orders] = await Promise.all([
-    getStoreSettings(),
+    requireStoreSettings(),
     getOrdersForUser(user.id),
   ]);
 

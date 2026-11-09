@@ -1,17 +1,16 @@
-import { VStack } from "@astryxdesign/core/VStack";
-import { Divider } from "@astryxdesign/core/Divider";
-import { Text } from "@astryxdesign/core/Text";
-import { CategoryChips } from "@/components/store/CategoryChips";
-import { ProductGrid } from "@/components/store/ProductGrid";
-import {
-  getCategories,
-  getProducts,
-  getStoreSettings,
-} from "@/lib/data/catalog";
+import type { Metadata } from "next";
+import { getCategories, getProducts, requireStoreSettings } from "@/lib/data/catalog";
+import { ShopView } from "@/components/store/ShopView";
 
 export const revalidate = 60;
 
-type SearchParams = Promise<{ category?: string; q?: string }>;
+export const metadata: Metadata = {
+  title: "Shop All Home & Living Essentials",
+  description:
+    "Explore our complete Scandinavian catalog of modular storage, architectural side tables, task luminaires, and kitchen stoneware.",
+};
+
+type SearchParams = Promise<{ category?: string; room?: string; q?: string }>;
 
 export default async function ShopPage({
   searchParams,
@@ -20,28 +19,19 @@ export default async function ShopPage({
 }) {
   const params = await searchParams;
   const [settings, categories, products] = await Promise.all([
-    getStoreSettings(),
+    requireStoreSettings(),
     getCategories(),
-    getProducts({
-      categorySlug: params.category,
-      query: params.q,
-    }),
+    getProducts(),
   ]);
 
   return (
-    <VStack gap={5}>
-      <VStack gap={1}>
-        <Text type="display-1" as="h1">
-          Shop
-        </Text>
-        <Text type="body" color="secondary">
-          Every piece is made in small batches — checkout with transfer,
-          mobile money, or cash on delivery.
-        </Text>
-      </VStack>
-      <CategoryChips categories={categories} activeSlug={params.category} />
-      <Divider />
-      <ProductGrid products={products} settings={settings} />
-    </VStack>
+    <ShopView
+      initialProducts={products}
+      categories={categories}
+      settings={settings}
+      initialCategory={params.category}
+      initialRoom={params.room}
+      initialQuery={params.q}
+    />
   );
 }

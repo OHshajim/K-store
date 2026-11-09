@@ -1,6 +1,6 @@
 import { notFound, redirect } from "next/navigation";
 import { getCurrentProfile, getCurrentUser } from "@/lib/data/auth";
-import { getStoreSettings } from "@/lib/data/catalog";
+import { requireStoreSettings } from "@/lib/data/catalog";
 import { getOrderById } from "@/lib/data/orders";
 import { OrderDetailView } from "@/components/store/OrderDetailView";
 
@@ -14,7 +14,7 @@ export default async function OrderPage({ params }: { params: Params }) {
   const profile = await getCurrentProfile();
   const isAdmin = profile?.role === "admin";
   const [settings, order] = await Promise.all([
-    getStoreSettings(),
+    requireStoreSettings(),
     getOrderById(id, user.id, isAdmin),
   ]);
 

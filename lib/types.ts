@@ -1,13 +1,9 @@
 export type UserRole = "customer" | "admin";
 
-export type PaymentMethod =
-  | "bank_transfer"
-  | "mobile_money"
-  | "cash_on_delivery";
+export type PaymentMethod = "stripe" | "cash_on_delivery";
 
 export type PaymentStatus =
-  | "awaiting_payment"
-  | "proof_submitted"
+  | "pending"
   | "paid"
   | "cod_pending"
   | "refunded"
@@ -20,6 +16,8 @@ export type DeliveryStatus =
   | "out_for_delivery"
   | "delivered"
   | "cancelled";
+
+export type BannerPlacement = "hero" | "promo";
 
 export type Profile = {
   id: string;
@@ -38,6 +36,19 @@ export type Category = {
   sort_order: number;
 };
 
+export type ColorVariant = {
+  name: string;
+  hex: string;
+  in_stock: boolean;
+};
+
+export type ProductDimensions = {
+  width_cm: number;
+  depth_cm: number;
+  height_cm: number;
+  text: string;
+};
+
 export type Product = {
   id: string;
   category_id: string | null;
@@ -51,8 +62,20 @@ export type Product = {
   images: string[];
   is_active: boolean;
   is_featured: boolean;
+  is_bestseller?: boolean;
   created_at: string;
   category?: Category | null;
+  sku?: string;
+  material?: string;
+  room?: "living" | "workspace" | "kitchen" | "bedroom" | "bathroom" | "lighting";
+  dimensions?: ProductDimensions;
+  weight_kg?: number;
+  color_variants?: ColorVariant[];
+  material_variants?: string[];
+  specifications?: Record<string, string>;
+  care_instructions?: string;
+  rating?: number;
+  review_count?: number;
 };
 
 export type StoreSettings = {
@@ -64,14 +87,21 @@ export type StoreSettings = {
   currency_symbol: string;
   shipping_flat_cents: number;
   free_shipping_over_cents: number | null;
-  payment_instructions: string;
-  bank_name: string | null;
-  bank_account_name: string | null;
-  bank_account_number: string | null;
-  mobile_money_number: string | null;
-  mobile_money_name: string | null;
   delivery_notes: string;
   about_html: string | null;
+  terms_html: string | null;
+};
+
+export type Banner = {
+  id: string;
+  placement: BannerPlacement;
+  title: string;
+  subtitle: string | null;
+  image_url: string | null;
+  cta_label: string | null;
+  cta_href: string | null;
+  sort_order: number;
+  is_active: boolean;
 };
 
 export type OrderItem = {
@@ -96,7 +126,8 @@ export type OrderEvent = {
 export type Order = {
   id: string;
   order_number: string;
-  user_id: string;
+  user_id: string | null;
+  tracking_token: string;
   customer_name: string;
   customer_email: string;
   customer_phone: string;
@@ -105,9 +136,8 @@ export type Order = {
   shipping_notes: string | null;
   payment_method: PaymentMethod;
   payment_status: PaymentStatus;
+  stripe_session_id: string | null;
   delivery_status: DeliveryStatus;
-  payment_proof_url: string | null;
-  payment_reference: string | null;
   subtotal_cents: number;
   shipping_cents: number;
   total_cents: number;
@@ -118,6 +148,20 @@ export type Order = {
   events?: OrderEvent[];
 };
 
+export type Review = {
+  id: string;
+  product_id: string;
+  order_id: string;
+  user_id: string;
+  rating: number;
+  comment: string | null;
+  is_published: boolean;
+  created_at: string;
+  updated_at: string;
+  reviewer_name?: string | null;
+  product?: { name: string; slug: string } | null;
+};
+
 export type CartItem = {
   productId: string;
   slug: string;
@@ -126,4 +170,44 @@ export type CartItem = {
   image: string | null;
   quantity: number;
   stock: number;
+  selectedColor?: string;
+  selectedMaterial?: string;
+};
+
+export type SupportedCurrency = "USD" | "CAD" | "GBP";
+
+export type CurrencyConfig = {
+  code: SupportedCurrency;
+  symbol: string;
+  rate: number;
+  label: string;
+  flag: string;
+};
+
+export type Coupon = {
+  id: string;
+  code: string;
+  discount_percent: number;
+  min_spend_cents: number;
+  is_active: boolean;
+  expires_at?: string | null;
+};
+
+export type NordenFitQuery = {
+  roomType: string;
+  availableWidthCm: number;
+  availableHeightCm: number;
+  preferredMaterial: string;
+  preferredColor: string;
+  budgetUsd: number;
+};
+
+export type FitRecommendation = {
+  product: Product;
+  matchScore: number;
+  fitReasons: string[];
+  dimensionsFit: boolean;
+  materialMatch: boolean;
+  colorMatch: boolean;
+  budgetMatch: boolean;
 };

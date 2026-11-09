@@ -16,7 +16,7 @@ function paymentVariant(
   switch (status) {
     case "paid":
       return "success";
-    case "proof_submitted":
+    case "pending":
     case "cod_pending":
       return "warning";
     case "cancelled":

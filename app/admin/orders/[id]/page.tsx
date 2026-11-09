@@ -4,7 +4,7 @@ import { VStack } from "@astryxdesign/core/Layout";
 import { Heading } from "@astryxdesign/core/Text";
 import { OrderAdminActions } from "@/components/admin/OrderAdminActions";
 import { OrderDetailView } from "@/components/store/OrderDetailView";
-import { getStoreSettings } from "@/lib/data/catalog";
+import { requireStoreSettings } from "@/lib/data/catalog";
 import { getOrderById } from "@/lib/data/orders";
 
 type Params = Promise<{ id: string }>;
@@ -12,7 +12,7 @@ type Params = Promise<{ id: string }>;
 export default async function AdminOrderPage({ params }: { params: Params }) {
   const { id } = await params;
   const [settings, order] = await Promise.all([
-    getStoreSettings(),
+    requireStoreSettings(),
     getOrderById(id, undefined, true),
   ]);
   if (!order) notFound();

@@ -1,11 +1,8 @@
 "use client";
 
-import { useState } from "react";
 import { Banner } from "@astryxdesign/core/Banner";
-import { Button } from "@astryxdesign/core/Button";
 import { Card } from "@astryxdesign/core/Card";
 import { Divider } from "@astryxdesign/core/Divider";
-import { FileInput } from "@astryxdesign/core/FileInput";
 import { Grid } from "@astryxdesign/core/Grid";
 import { HStack } from "@astryxdesign/core/HStack";
 import { Icon } from "@astryxdesign/core/Icon";
@@ -13,69 +10,66 @@ import { List, ListItem } from "@astryxdesign/core/List";
 import { MetadataList, MetadataListItem } from "@astryxdesign/core/MetadataList";
 import { StackItem } from "@astryxdesign/core/Stack";
 import { Text } from "@astryxdesign/core/Text";
-import { TextInput } from "@astryxdesign/core/TextInput";
 import { Thumbnail } from "@astryxdesign/core/Thumbnail";
 import { VStack } from "@astryxdesign/core/VStack";
-import {
-  CheckCircleIcon,
-  CreditCardIcon,
-  TruckIcon,
-} from "@heroicons/react/24/outline";
+import { CheckCircleIcon, TruckIcon } from "@heroicons/react/24/outline";
 import type { Order, StoreSettings } from "@/lib/types";
 import { PAYMENT_METHOD_LABELS } from "@/lib/constants";
-import { formatMoney } from "@/lib/format";
+import { formatDateTime, formatMoney } from "@/lib/format";
 import {
-  DeliveryStatusLabel,
+  DeliveryStatusText,
   PaymentStatusBadge,
 } from "@/components/shared/StatusBadge";
+import { StripePayButton } from "@/components/store/StripePayButton";
+
+function PaymentBanner({
+  order,
+  trackingToken,
+}: {
+  order: Order;
+  trackingToken?: string;
+}) {
+  if (order.payment_status === "paid") {
+    return (
+      <Banner
+        status="success"
+        title="Payment confirmed"
+        description="We are preparing your order for hand delivery."
+      />
+    );
+  }
+  if (order.payment_method === "cash_on_delivery") {
+    return (
+      <Banner
+        status="info"
+        title="Cash on delivery"
+        description="Have the exact amount ready — we collect payment at your door."
+      />
+    );
+  }
+  return (
+    <Banner
+      status="warning"
+      title="Awaiting payment"
+      description="Complete card payment to start processing your order."
+      endContent={
+        <StripePayButton orderId={order.id} trackingToken={trackingToken} />
+      }
+    />
+  );
+}
 
 export function OrderDetailView({
   order,
   settings,
   isAdmin = false,
+  trackingToken,
 }: {
   order: Order;
   settings: StoreSettings;
   isAdmin?: boolean;
+  trackingToken?: string;
 }) {
-  const [proof, setProof] = useState<File | null>(null);
-  const [reference, setReference] = useState(order.payment_reference ?? "");
-  const [error, setError] = useState<string | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const canSubmitProof =
-    order.payment_status === "awaiting_payment" &&
-    order.payment_method !== "cash_on_delivery";
-
-  async function submitProof() {
-    if (!proof) {
-      setError("Select your payment proof before submitting.");
-      return;
-    }
-    setError(null);
-    setIsSubmitting(true);
-    try {
-      const formData = new FormData();
-      formData.append("proof", proof);
-      formData.append("reference", reference);
-      const response = await fetch(`/api/orders/${order.id}/payment`, {
-        method: "POST",
-        body: formData,
-      });
-      const data = await response.json();
-      if (!response.ok)
-        throw new Error(data.error || "Unable to submit payment proof.");
-      window.location.reload();
-    } catch (reason) {
-      setError(
-        reason instanceof Error
-          ? reason.message
-          : "Unable to submit payment proof.",
-      );
-    } finally {
-      setIsSubmitting(false);
-    }
-  }
-
   return (
     <VStack gap={5}>
       <VStack gap={2}>
@@ -85,7 +79,7 @@ export function OrderDetailView({
           </Text>
           <PaymentStatusBadge status={order.payment_status} />
         </HStack>
-        <DeliveryStatusLabel status={order.delivery_status} />
+        <DeliveryStatusText status={order.delivery_status} />
         {isAdmin && (
           <Text type="supporting" color="secondary">
             Admin view
@@ -93,13 +87,7 @@ export function OrderDetailView({
         )}
       </VStack>
 
-      {error && (
-        <Banner
-          status="error"
-          title="Payment proof not submitted"
-          description={error}
-        />
-      )}
+      <PaymentBanner order={order} trackingToken={trackingToken} />
 
       <Grid columns={{ minWidth: 300, repeat: "fit" }} gap={4}>
         <Card padding={4}>
@@ -186,50 +174,6 @@ export function OrderDetailView({
         </Card>
       </Grid>
 
-      {canSubmitProof && (
-        <Card padding={4} variant="muted">
-          <VStack gap={3}>
-            <HStack gap={2} vAlign="center">
-              <Icon icon={CreditCardIcon} size="sm" />
-              <Text type="large" weight="bold">
-                Submit payment proof
-              </Text>
-            </HStack>
-            <Text type="body">{settings.payment_instructions}</Text>
-            <FileInput
-              label="Payment proof"
-              value={proof}
-              onChange={(file) =>
-                setProof(Array.isArray(file) ? (file[0] ?? null) : file)
-              }
-              accept="image/*,application/pdf"
-              maxSize={4 * 1024 * 1024}
-              isRequired
-            />
-            <TextInput
-              label="Payment reference"
-              value={reference}
-              onChange={setReference}
-              isOptional
-            />
-            <Button
-              label="Submit proof"
-              variant="primary"
-              isLoading={isSubmitting}
-              onClick={submitProof}
-            />
-          </VStack>
-        </Card>
-      )}
-
-      {order.payment_status === "paid" && (
-        <Banner
-          status="success"
-          title="Payment confirmed"
-          description="We are preparing your order for hand delivery."
-        />
-      )}
-
       <Card padding={4}>
         <VStack gap={3}>
           <Text type="large" weight="bold">
@@ -242,7 +186,7 @@ export function OrderDetailView({
                 <VStack gap={1}>
                   <Text type="body">{event.message}</Text>
                   <Text type="supporting" color="secondary">
-                    {new Date(event.created_at).toLocaleString()}
+                    {formatDateTime(event.created_at)}
                   </Text>
                 </VStack>
               </StackItem>

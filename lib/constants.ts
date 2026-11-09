@@ -2,19 +2,17 @@ import type { DeliveryStatus, PaymentMethod, PaymentStatus } from "./types";
 
 export const APP_NAME = "KStore";
 export const APP_DESCRIPTION =
-  "A single-vendor store with manual payment confirmation and hand delivery.";
+  "A single-vendor shop with hand delivery — pay by card or cash at the door.";
 
 export const PAYMENT_METHOD_LABELS: Record<PaymentMethod, string> = {
-  bank_transfer: "Bank transfer",
-  mobile_money: "Mobile money",
+  stripe: "Card (secure checkout)",
   cash_on_delivery: "Cash on delivery",
 };
 
 export const PAYMENT_STATUS_LABELS: Record<PaymentStatus, string> = {
-  awaiting_payment: "Awaiting payment",
-  proof_submitted: "Proof submitted",
+  pending: "Awaiting payment",
   paid: "Paid",
-  cod_pending: "COD pending",
+  cod_pending: "Cash on delivery",
   refunded: "Refunded",
   cancelled: "Cancelled",
 };
@@ -36,6 +34,4 @@ export const DELIVERY_FLOW: DeliveryStatus[] = [
   "delivered",
 ];
 
-export const OTP_TTL_MINUTES = 10;
-export const OTP_MAX_ATTEMPTS = 5;
 export const PRODUCTS_REVALIDATE_SECONDS = 60;

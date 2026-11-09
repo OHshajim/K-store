@@ -3,17 +3,12 @@ import { VStack } from "@astryxdesign/core/Layout";
 import { Heading } from "@astryxdesign/core/Text";
 import { ProductForm } from "@/components/admin/ProductForm";
 import { getCategories } from "@/lib/data/catalog";
-import { DEMO_PRODUCTS } from "@/lib/data/demo";
-import { isDemoMode } from "@/lib/env";
 import { createClient } from "@/lib/supabase/server";
 import type { Product } from "@/lib/types";
 
 type Params = Promise<{ id: string }>;
 
 async function getProduct(id: string): Promise<Product | null> {
-  if (isDemoMode()) {
-    return DEMO_PRODUCTS.find((product) => product.id === id) ?? null;
-  }
   const supabase = await createClient();
   const { data } = await supabase
     .from("products")

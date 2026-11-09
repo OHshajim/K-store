@@ -10,19 +10,12 @@ import { Divider } from "@astryxdesign/core/Divider";
 import { Icon } from "@astryxdesign/core/Icon";
 import { TextInput } from "@astryxdesign/core/TextInput";
 import { Heading, Text } from "@astryxdesign/core/Text";
+import { HStack } from "@astryxdesign/core/HStack";
 import { VStack } from "@astryxdesign/core/VStack";
 import { CubeIcon } from "@heroicons/react/24/outline";
 import { APP_NAME } from "@/lib/constants";
 
-type OtpResponse = {
-  error?: string;
-  demoCode?: string;
-  demo?: boolean;
-  hashedToken?: string;
-  role?: string;
-};
-
-const hasSupabase = Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL);
+type Mode = "signin" | "register" | "forgot";
 
 const GoogleIcon = (props: React.SVGProps<SVGSVGElement>) => (
   <svg
@@ -56,23 +49,31 @@ export function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const next = searchParams.get("next") || "/account";
+  const [mode, setMode] = useState<Mode>("signin");
   const [email, setEmail] = useState("");
-  const [code, setCode] = useState("");
-  const [demoCode, setDemoCode] = useState<string | null>(null);
+  const [password, setPassword] = useState("");
+  const [fullName, setFullName] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [isSending, setIsSending] = useState(false);
-  const [isVerifying, setIsVerifying] = useState(false);
-  const [step, setStep] = useState<"email" | "code">("email");
+  const [notice, setNotice] = useState<string | null>(null);
+  const [isBusy, setIsBusy] = useState(false);
 
-  async function signInWithGoogle() {
+  async function run(action: () => Promise<void>) {
     setError(null);
-    if (!hasSupabase) {
-      setError(
-        "Google sign-in needs Supabase. In demo mode use email OTP (try admin@kstore.local).",
-      );
-      return;
-    }
+    setNotice(null);
+    setIsBusy(true);
     try {
+      await action();
+    } catch (reason) {
+      setError(
+        reason instanceof Error ? reason.message : "Something went wrong.",
+      );
+    } finally {
+      setIsBusy(false);
+    }
+  }
+
+  function signInWithGoogle() {
+    void run(async () => {
       const { createClient } = await import("@/lib/supabase/client");
       const supabase = createClient();
       const redirectTo = `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`;
@@ -81,70 +82,61 @@ export function LoginForm() {
         options: { redirectTo },
       });
       if (oauthError) throw oauthError;
-    } catch (reason) {
-      setError(
-        reason instanceof Error
-          ? reason.message
-          : "Unable to start Google sign in.",
-      );
-    }
+    });
   }
 
-  async function sendCode() {
-    setError(null);
-    setDemoCode(null);
-    setIsSending(true);
-    try {
-      const response = await fetch("/api/auth/otp/send", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
+  function signInWithPassword() {
+    void run(async () => {
+      const { createClient } = await import("@/lib/supabase/client");
+      const supabase = createClient();
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
       });
-      const data: OtpResponse = await response.json();
-      if (!response.ok) throw new Error(data.error || "Unable to send code.");
-      setDemoCode(data.demoCode ?? null);
-      setStep("code");
-    } catch (reason) {
-      setError(
-        reason instanceof Error ? reason.message : "Unable to send code.",
-      );
-    } finally {
-      setIsSending(false);
-    }
-  }
-
-  async function verifyCode() {
-    setError(null);
-    setIsVerifying(true);
-    try {
-      const response = await fetch("/api/auth/otp/verify", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, code }),
-      });
-      const data: OtpResponse = await response.json();
-      if (!response.ok) throw new Error(data.error || "Unable to verify code.");
-
-      if (!data.demo && data.hashedToken && hasSupabase) {
-        const { createClient } = await import("@/lib/supabase/client");
-        const supabase = createClient();
-        const { error: otpError } = await supabase.auth.verifyOtp({
-          token_hash: data.hashedToken,
-          type: "email",
-        });
-        if (otpError) throw otpError;
-      }
-
-      router.push(data.role === "admin" ? "/admin" : next);
+      if (signInError) throw signInError;
+      router.push(next);
       router.refresh();
-    } catch (reason) {
-      setError(
-        reason instanceof Error ? reason.message : "Unable to verify code.",
-      );
-    } finally {
-      setIsVerifying(false);
-    }
+    });
   }
+
+  function register() {
+    void run(async () => {
+      const { createClient } = await import("@/lib/supabase/client");
+      const supabase = createClient();
+      const { data, error: signUpError } = await supabase.auth.signUp({
+        email,
+        password,
+        options: { data: { full_name: fullName } },
+      });
+      if (signUpError) throw signUpError;
+      if (data.session) {
+        router.push(next);
+        router.refresh();
+        return;
+      }
+      setNotice("Check your inbox to confirm your email, then sign in.");
+      setMode("signin");
+    });
+  }
+
+  function sendResetLink() {
+    void run(async () => {
+      const { createClient } = await import("@/lib/supabase/client");
+      const supabase = createClient();
+      const { error: resetError } = await supabase.auth.resetPasswordForEmail(
+        email,
+        { redirectTo: `${window.location.origin}/auth/reset` },
+      );
+      if (resetError) throw resetError;
+      setNotice("If that email exists, a reset link is on its way.");
+    });
+  }
+
+  const modeCopy: Record<Mode, { title: string; hint: string }> = {
+    signin: { title: "Sign in", hint: "Welcome back." },
+    register: { title: "Create account", hint: "Track orders and save reviews." },
+    forgot: { title: "Reset password", hint: "We'll email you a reset link." },
+  };
 
   return (
     <Card padding={5}>
@@ -155,27 +147,14 @@ export function LoginForm() {
           </Center>
           <Heading level={2}>Welcome to {APP_NAME}</Heading>
           <Text type="body" color="secondary">
-            Google One Tap, Google OAuth, or email + one-time code.
+            {modeCopy[mode].hint}
           </Text>
         </VStack>
 
         {error && (
-          <Banner status="error" title="Sign in failed" description={error} />
+          <Banner status="error" title="Something went wrong" description={error} />
         )}
-        {demoCode && (
-          <Banner
-            status="info"
-            title="Demo verification code"
-            description={`Use ${demoCode} to complete sign in. Admin: admin@kstore.local`}
-          />
-        )}
-        {!hasSupabase && (
-          <Banner
-            status="info"
-            title="Demo mode"
-            description="Supabase is not configured. Email OTP works locally; codes print in the server log and appear above."
-          />
-        )}
+        {notice && <Banner status="info" title="Check your email" description={notice} />}
 
         <Button
           label="Continue with Google"
@@ -184,9 +163,9 @@ export function LoginForm() {
           icon={<GoogleIcon />}
           onClick={signInWithGoogle}
         />
-        <Divider label="or" />
+        <Divider label="or use email" />
 
-        {step === "email" ? (
+        {mode === "forgot" ? (
           <VStack gap={3}>
             <TextInput
               label="Email"
@@ -197,37 +176,70 @@ export function LoginForm() {
               placeholder="you@example.com"
             />
             <Button
-              label="Send one-time code"
+              label="Send reset link"
               variant="primary"
               size="lg"
-              isLoading={isSending}
-              onClick={sendCode}
+              isLoading={isBusy}
+              onClick={sendResetLink}
+            />
+            <Button
+              label="Back to sign in"
+              variant="ghost"
+              onClick={() => setMode("signin")}
             />
           </VStack>
         ) : (
           <VStack gap={3}>
-            <Text type="supporting" color="secondary">
-              We sent a 6-digit code to {email}
-            </Text>
+            {mode === "register" && (
+              <TextInput
+                label="Full name"
+                size="lg"
+                value={fullName}
+                onChange={setFullName}
+                placeholder="Jane Doe"
+              />
+            )}
             <TextInput
-              label="One-time code"
+              label="Email"
+              type="email"
               size="lg"
-              value={code}
-              onChange={setCode}
-              placeholder="123456"
+              value={email}
+              onChange={setEmail}
+              placeholder="you@example.com"
+            />
+            <TextInput
+              label="Password"
+              type="password"
+              size="lg"
+              value={password}
+              onChange={setPassword}
+              placeholder="••••••••"
             />
             <Button
-              label="Verify and continue"
+              label={mode === "signin" ? "Sign in" : "Create account"}
               variant="primary"
               size="lg"
-              isLoading={isVerifying}
-              onClick={verifyCode}
+              isLoading={isBusy}
+              onClick={mode === "signin" ? signInWithPassword : register}
             />
-            <Button
-              label="Use a different email"
-              variant="ghost"
-              onClick={() => setStep("email")}
-            />
+            <HStack gap={2} hAlign="between">
+              <Button
+                label={
+                  mode === "signin" ? "Create an account" : "Have an account?"
+                }
+                variant="ghost"
+                onClick={() =>
+                  setMode(mode === "signin" ? "register" : "signin")
+                }
+              />
+              {mode === "signin" && (
+                <Button
+                  label="Forgot password?"
+                  variant="ghost"
+                  onClick={() => setMode("forgot")}
+                />
+              )}
+            </HStack>
           </VStack>
         )}
       </VStack>

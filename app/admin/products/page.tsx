@@ -4,15 +4,12 @@ import { Heading, Text } from "@astryxdesign/core/Text";
 import { List, ListItem } from "@astryxdesign/core/List";
 import { Badge } from "@astryxdesign/core/Badge";
 import Link from "next/link";
-import { getStoreSettings } from "@/lib/data/catalog";
+import { requireStoreSettings } from "@/lib/data/catalog";
 import { formatMoney } from "@/lib/format";
-import { isDemoMode } from "@/lib/env";
 import { createClient } from "@/lib/supabase/server";
-import { DEMO_PRODUCTS } from "@/lib/data/demo";
 import type { Product } from "@/lib/types";
 
 async function getAdminProducts(): Promise<Product[]> {
-  if (isDemoMode()) return DEMO_PRODUCTS;
   const supabase = await createClient();
   const { data } = await supabase
     .from("products")
@@ -24,7 +21,7 @@ async function getAdminProducts(): Promise<Product[]> {
 export default async function AdminProductsPage() {
   const [products, settings] = await Promise.all([
     getAdminProducts(),
-    getStoreSettings(),
+    requireStoreSettings(),
   ]);
 
   return (

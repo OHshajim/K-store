@@ -1,18 +1,16 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { getCurrentUser } from "@/lib/data/auth";
+import { getCurrentProfile } from "@/lib/data/auth";
 import { getStoreSettings } from "@/lib/data/catalog";
 import { createOrder } from "@/lib/data/orders";
+import { resolvePricedItems, subtotalOfCents } from "@/lib/data/pricing";
 import { sendOrderPlacedEmail } from "@/lib/email/mailer";
 
+// The client only declares *what* it wants to buy. Prices, names, stock and
+// images are re-resolved from the catalog server-side (lib/data/pricing.ts).
 const itemSchema = z.object({
   productId: z.string(),
-  slug: z.string(),
-  name: z.string(),
-  priceCents: z.number().int().nonnegative(),
-  image: z.string().nullable(),
   quantity: z.number().int().positive(),
-  stock: z.number().int().nonnegative(),
 });
 
 const bodySchema = z.object({
@@ -22,30 +20,21 @@ const bodySchema = z.object({
   shipping_address: z.string().min(5),
   shipping_city: z.string().min(2),
   shipping_notes: z.string().nullable().optional(),
-  payment_method: z.enum([
-    "bank_transfer",
-    "mobile_money",
-    "cash_on_delivery",
-  ]),
+  payment_method: z.enum(["stripe", "cash_on_delivery"]),
   items: z.array(itemSchema).min(1),
 });
 
 export async function POST(request: Request) {
   try {
-    const user = await getCurrentUser();
-    if (!user) {
-      return NextResponse.json(
-        { error: "Sign in to place an order" },
-        { status: 401 },
-      );
-    }
-
+    const profile = await getCurrentProfile();
     const body = bodySchema.parse(await request.json());
     const settings = await getStoreSettings();
-    const subtotal = body.items.reduce(
-      (sum, item) => sum + item.priceCents * item.quantity,
-      0,
-    );
+    if (!settings) {
+      throw new Error("Store is not configured yet");
+    }
+
+    const items = await resolvePricedItems(body.items);
+    const subtotal = subtotalOfCents(items);
     const shippingCents =
       settings.free_shipping_over_cents !== null &&
       subtotal >= settings.free_shipping_over_cents
@@ -53,7 +42,7 @@ export async function POST(request: Request) {
         : settings.shipping_flat_cents;
 
     const order = await createOrder({
-      userId: user.id,
+      userId: profile?.id ?? null,
       customerName: body.customer_name,
       customerEmail: body.customer_email,
       customerPhone: body.customer_phone,
@@ -61,7 +50,7 @@ export async function POST(request: Request) {
       shippingCity: body.shipping_city,
       shippingNotes: body.shipping_notes ?? undefined,
       paymentMethod: body.payment_method,
-      items: body.items,
+      items,
       shippingCents,
     });
 

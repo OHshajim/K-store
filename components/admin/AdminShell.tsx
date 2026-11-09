@@ -8,7 +8,11 @@ import {
   Cog6ToothIcon,
   CubeIcon,
   HomeIcon,
+  MegaphoneIcon,
+  Squares2X2Icon,
+  StarIcon,
   TruckIcon,
+  UsersIcon,
 } from "@heroicons/react/24/outline";
 import type { ReactNode } from "react";
 
@@ -37,10 +41,34 @@ export function AdminShell({ children }: { children: ReactNode }) {
             isSelected={pathname.startsWith("/admin/products")}
           />
           <SideNavItem
+            label="Categories"
+            href="/admin/categories"
+            icon={Squares2X2Icon}
+            isSelected={pathname.startsWith("/admin/categories")}
+          />
+          <SideNavItem
+            label="Banners"
+            href="/admin/banners"
+            icon={MegaphoneIcon}
+            isSelected={pathname.startsWith("/admin/banners")}
+          />
+          <SideNavItem
             label="Orders"
             href="/admin/orders"
             icon={TruckIcon}
             isSelected={pathname.startsWith("/admin/orders")}
+          />
+          <SideNavItem
+            label="Reviews"
+            href="/admin/reviews"
+            icon={StarIcon}
+            isSelected={pathname.startsWith("/admin/reviews")}
+          />
+          <SideNavItem
+            label="Users"
+            href="/admin/users"
+            icon={UsersIcon}
+            isSelected={pathname.startsWith("/admin/users")}
           />
           <SideNavItem
             label="Settings"

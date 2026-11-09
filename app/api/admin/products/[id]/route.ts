@@ -1,8 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { requireAdminProfile } from "@/lib/data/auth";
-import { DEMO_PRODUCTS } from "@/lib/data/demo";
-import { isDemoMode } from "@/lib/env";
 import { slugify } from "@/lib/format";
 import { createClient } from "@/lib/supabase/server";
 
@@ -32,21 +30,6 @@ export async function PATCH(request: Request, { params }: Params) {
       slug: body.slug?.trim() || (body.name ? slugify(body.name) : undefined),
     };
 
-    if (isDemoMode()) {
-      const index = DEMO_PRODUCTS.findIndex((product) => product.id === id);
-      if (index < 0) throw new Error("Product not found");
-      DEMO_PRODUCTS[index] = {
-        ...DEMO_PRODUCTS[index],
-        ...Object.fromEntries(
-          Object.entries(patch).filter(([, value]) => value !== undefined),
-        ),
-      };
-      return NextResponse.json({
-        product: DEMO_PRODUCTS[index],
-        id,
-      });
-    }
-
     const supabase = await createClient();
     const { data, error } = await supabase
       .from("products")
@@ -69,12 +52,6 @@ export async function DELETE(_request: Request, { params }: Params) {
   try {
     await requireAdminProfile();
     const { id } = await params;
-
-    if (isDemoMode()) {
-      const index = DEMO_PRODUCTS.findIndex((product) => product.id === id);
-      if (index >= 0) DEMO_PRODUCTS.splice(index, 1);
-      return NextResponse.json({ ok: true });
-    }
 
     const supabase = await createClient();
     const { error } = await supabase

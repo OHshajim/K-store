@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { requireAdminProfile } from "@/lib/data/auth";
-import { getStoreSettings } from "@/lib/data/catalog";
-import { updateOrderStatus } from "@/lib/data/orders";
+import { requireStoreSettings } from "@/lib/data/catalog";
+import { updateOrderStatus } from "@/lib/data/orderAdmin";
 import { sendOrderStatusEmail } from "@/lib/email/mailer";
 import {
   DELIVERY_STATUS_LABELS,
@@ -13,14 +13,7 @@ type Params = { params: Promise<{ id: string }> };
 
 const bodySchema = z.object({
   payment_status: z
-    .enum([
-      "awaiting_payment",
-      "proof_submitted",
-      "paid",
-      "cod_pending",
-      "refunded",
-      "cancelled",
-    ])
+    .enum(["pending", "paid", "cod_pending", "refunded", "cancelled"])
     .optional(),
   delivery_status: z
     .enum([
@@ -50,7 +43,7 @@ export async function PATCH(request: Request, { params }: Params) {
     });
 
     try {
-      const settings = await getStoreSettings();
+      const settings = await requireStoreSettings();
       const note = [
         body.payment_status
           ? `Payment is now ${PAYMENT_STATUS_LABELS[body.payment_status]}.`
