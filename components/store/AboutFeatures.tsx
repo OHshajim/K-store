@@ -1,31 +1,28 @@
-"use client";
-
-import { Grid } from "@astryxdesign/core/Grid";
 import {
-  CreditCardIcon,
-  ShieldCheckIcon,
-  TruckIcon,
-} from "@heroicons/react/24/outline";
+  CreditCard,
+  ShieldCheck,
+  Truck,
+} from "lucide-react";
 import { FeatureCard } from "@/components/shared/FeatureCard";
 
 export function AboutFeatures() {
   return (
-    <Grid columns={{ minWidth: 240, repeat: "fit" }} gap={4}>
+    <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
       <FeatureCard
-        icon={ShieldCheckIcon}
-        title="Manual payment"
-        description="Pay by bank transfer, mobile money, or cash on delivery. Upload proof after checkout and we confirm before packing."
+        icon={ShieldCheck}
+        title="Manual payment & Verification"
+        description="Pay by bank transfer or card with instant verification before hand-packaging."
       />
       <FeatureCard
-        icon={TruckIcon}
-        title="Hand delivery"
-        description="We deliver each order personally and update status in your order history as it moves."
+        icon={Truck}
+        title="White-Glove Delivery"
+        description="We dispatch each essential in protective crates with real-time status milestones."
       />
       <FeatureCard
-        icon={CreditCardIcon}
-        title="Secure checkout"
-        description="We never collect card numbers. Your details stay between you and the vendor."
+        icon={CreditCard}
+        title="Encrypted Checkout"
+        description="Industry-standard TLS encryption ensures your details remain private."
       />
-    </Grid>
+    </div>
   );
 }

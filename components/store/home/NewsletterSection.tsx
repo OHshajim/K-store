@@ -68,10 +68,12 @@ export function NewsletterSection() {
 
               <button
                 type="submit"
+                data-btn="accent"
+                style={{ color: "#FFFFFF", backgroundColor: "#B78E69" }}
                 className="px-8 py-3.5 bg-[#B78E69] hover:bg-[#a67c57] text-white text-sm font-semibold rounded-2xl transition-all shadow-lg flex items-center justify-center gap-2 cursor-pointer shrink-0"
               >
-                Subscribe
-                <ArrowRight className="w-4 h-4" />
+                <span style={{ color: "#FFFFFF" }}>Subscribe</span>
+                <ArrowRight className="w-4 h-4 text-white" style={{ color: "#FFFFFF" }} />
               </button>
             </div>
 

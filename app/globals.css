@@ -3,9 +3,9 @@
 /* Pre-declare CSS Cascade Layers so that reset and astryx themes have lower priority than Tailwind utilities */
 @layer reset, astryx-base, astryx-theme, theme, base, components, utilities;
 
-@import "@astryxdesign/core/reset.css";
-@import "@astryxdesign/core/astryx.css";
-@import "@astryxdesign/theme-stone/theme.css";
+@import "@astryxdesign/core/reset.css" layer(reset);
+@import "@astryxdesign/core/astryx.css" layer(astryx-base);
+@import "@astryxdesign/theme-stone/theme.css" layer(astryx-theme);
 @import "tailwindcss";
 
 @theme {
@@ -23,184 +23,307 @@
 
 :root,
 html,
-html[data-theme="light"] {
-  color-scheme: light;
 
-  /* Kstore Scandinavian Design System Colors */
-  --kstore-ivory: #F4F0E8;
-  --kstore-sand: #D8C9B5;
-  --kstore-charcoal: #1A1C18;
-  --kstore-sage: #8A927A;
-  --kstore-bronze: #B78E69;
-  --kstore-white: #FFFFFF;
-  --kstore-muted: #4A483E;
-  --kstore-border: rgba(26, 28, 24, 0.12);
+  body,
+  html[data-theme="light"],
+  html[data-theme="dark"] {
+    color-scheme: light !important;
 
-  /* Astryx Theme Tokens (mapped statically to Kstore palette) */
-  --color-accent: #B78E69;
-  --color-accent-muted: rgba(183, 142, 105, 0.15);
-  --color-text-accent: #966E4A;
-  --color-on-accent: #FFFFFF;
-  --color-background-body: #F4F0E8;
-  --color-background-surface: #FFFFFF;
-  --color-background-muted: #E8E2D7;
-  --color-text-primary: #1A1C18;
-  --color-text-secondary: #4A483E;
-  --color-border: rgba(26, 28, 24, 0.12);
-  --color-border-subtle: rgba(26, 28, 24, 0.08);
-  --color-on-success: #D0E9CE;
-  --color-on-error: #F9DCD7;
-  --color-on-warning: #F4E1B7;
+    /* Kstore Scandinavian Design System Colors */
+    --kstore-ivory: #F4F0E8;
+    --kstore-sand: #D8C9B5;
+    --kstore-charcoal: #1A1C18;
+    --kstore-sage: #8A927A;
+    --kstore-bronze: #B78E69;
+    --kstore-white: #FFFFFF;
+    --kstore-muted: #4A483E;
+    --kstore-border: rgba(26, 28, 24, 0.12);
 
-  /* Typography */
-  --font-editorial: 'Cormorant Garamond', Georgia, serif;
-  --font-sans: 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --font-mono: 'Inter', -apple-system, monospace;
-}
+    /* Astryx Theme Tokens (strictly mapped to Kstore warm Scandinavian palette) */
+    --color-accent: #B78E69 !important;
+    --color-accent-muted: rgba(183, 142, 105, 0.15) !important;
+    --color-text-accent: #966E4A !important;
+    --color-on-accent: #FFFFFF !important;
+    --color-background-body: #F4F0E8 !important;
+    --color-background-surface: #FFFFFF !important;
+    --color-background-muted: #E8E2D7 !important;
+    --color-text-primary: #1A1C18 !important;
+    --color-text-secondary: #4A483E !important;
+    --color-border: rgba(26, 28, 24, 0.12) !important;
+    --color-border-subtle: rgba(26, 28, 24, 0.08) !important;
+    --color-on-success: #D0E9CE !important;
+    --color-on-error: #F9DCD7 !important;
+    --color-on-warning: #F4E1B7 !important;
 
-html,
-body {
-  min-height: 100%;
-  font-family: var(--font-sans);
-  background-color: #F4F0E8;
-  color: #1A1C18;
-  -webkit-font-smoothing: antialiased;
-}
+    /* Typography */
+    --font-editorial: 'Cormorant Garamond', Georgia, serif;
+    --font-sans: 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --font-mono: 'Inter', -apple-system, monospace;
+  }
 
-.font-editorial {
-  font-family: var(--font-editorial);
-}
+  html,
+  body {
+    min-height: 100%;
+    font-family: var(--font-sans);
+    background-color: #F4F0E8;
+    color: #1A1C18;
+    -webkit-font-smoothing: antialiased;
+  }
 
-.font-sans {
-  font-family: var(--font-sans);
-}
+  .font-editorial {
+    font-family: var(--font-editorial);
+  }
 
-.font-mono {
-  font-family: var(--font-mono);
-}
+  .font-sans {
+    font-family: var(--font-sans);
+  }
 
-/* Background & Text utilities */
-.bg-ivory { background-color: var(--kstore-ivory); }
-.bg-sand { background-color: var(--kstore-sand); }
-.bg-charcoal { background-color: var(--kstore-charcoal); }
-.bg-sage { background-color: var(--kstore-sage); }
-.bg-bronze { background-color: var(--kstore-bronze); }
-.text-charcoal { color: var(--kstore-charcoal); }
-.text-secondary { color: var(--kstore-muted); }
-.text-sage { color: var(--kstore-sage); }
-.text-bronze { color: var(--kstore-bronze); }
-.border-sand { border-color: var(--kstore-sand); }
-.border-charcoal-subtle { border-color: rgba(26, 28, 24, 0.12); }
+  .font-mono {
+    font-family: var(--font-mono);
+  }
 
-/* Ensure interactive elements keep their explicit styles */
-button, input, select, textarea {
-  font-family: inherit;
-}
+  /* Background & Text utilities */
+  .bg-ivory {
+    background-color: var(--kstore-ivory);
+  }
 
-/* Custom scrollbar for horizontal chip rows */
-.no-scrollbar::-webkit-scrollbar {
-  display: none;
-}
-.no-scrollbar {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
+  .bg-sand {
+    background-color: var(--kstore-sand);
+  }
 
-/* Sticky footer: the app shell spans the viewport and the main region grows
+  .bg-charcoal {
+    background-color: var(--kstore-charcoal);
+  }
+
+  .bg-sage {
+    background-color: var(--kstore-sage);
+  }
+
+  .bg-bronze {
+    background-color: var(--kstore-bronze);
+  }
+
+  .text-charcoal {
+    color: var(--kstore-charcoal);
+  }
+
+  .text-secondary {
+    color: var(--kstore-muted);
+  }
+
+  .text-sage {
+    color: var(--kstore-sage);
+  }
+
+  .text-bronze {
+    color: var(--kstore-bronze);
+  }
+
+  .border-sand {
+    border-color: var(--kstore-sand);
+  }
+
+  .border-charcoal-subtle {
+    border-color: rgba(26, 28, 24, 0.12);
+  }
+
+  /* Ensure interactive elements keep their explicit styles */
+  button,
+  input,
+  select,
+  textarea {
+    font-family: inherit;
+  }
+
+  /* Custom scrollbar for horizontal chip rows */
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  /* Sticky footer: the app shell spans the viewport and the main region grows
    to fill it, so the footer always sits at the bottom on short pages. */
-.astryx-app-shell {
-  min-height: 100vh;
-}
+  .astryx-app-shell {
+    min-height: 100vh;
+  }
 
-.astryx-app-shell-header {
-  position: sticky;
-  top: 0;
-  z-index: 40;
-}
+  .astryx-app-shell-header {
+    position: sticky;
+    top: 0;
+    z-index: 40;
+  }
 
-.astryx-app-shell .astryx-layout {
-  flex: 1 1 0%;
-  display: flex;
-  flex-direction: column;
-}
+  .astryx-app-shell .astryx-layout {
+    flex: 1 1 0%;
+    display: flex;
+    flex-direction: column;
+  }
 
-/* ==========================================================================
+  /* ==========================================================================
    UNBREAKABLE CONTRAST SYSTEM FOR BUTTONS & LINKS
    Guarantees that dark buttons always have pure white text and light buttons
    always have deep charcoal text regardless of CSS inheritance or reset rules.
    ========================================================================== */
 
-.btn-dark,
-[data-btn="dark"],
-a[data-btn="dark"],
-button[data-btn="dark"] {
-  background-color: #1A1C18 !important;
-  color: #FFFFFF !important;
-}
+  .btn-dark,
+  [data-btn="dark"],
+  a[data-btn="dark"],
+  button[data-btn="dark"] {
+    background-color: #1A1C18 !important;
+    color: #FFFFFF !important;
+  }
 
-.btn-dark *,
-[data-btn="dark"] *,
-a[data-btn="dark"] *,
-button[data-btn="dark"] * {
-  color: #FFFFFF !important;
-}
+  .btn-dark *,
+  [data-btn="dark"] *,
+  a[data-btn="dark"] *,
+  button[data-btn="dark"] * {
+    color: #FFFFFF !important;
+  }
 
-.btn-light,
-[data-btn="light"],
-a[data-btn="light"],
-button[data-btn="light"] {
-  background-color: #F4F0E8 !important;
-  color: #1A1C18 !important;
-}
+  .btn-light,
+  [data-btn="light"],
+  a[data-btn="light"],
+  button[data-btn="light"] {
+    background-color: #F4F0E8 !important;
+    color: #1A1C18 !important;
+  }
 
-.btn-light *,
-[data-btn="light"] *,
-a[data-btn="light"] *,
-button[data-btn="light"] * {
-  color: #1A1C18 !important;
-}
+  .btn-light *,
+  [data-btn="light"] *,
+  a[data-btn="light"] *,
+  button[data-btn="light"] * {
+    color: #1A1C18 !important;
+  }
 
-.btn-accent,
-[data-btn="accent"],
-a[data-btn="accent"],
-button[data-btn="accent"] {
-  background-color: #B78E69 !important;
-  color: #FFFFFF !important;
-}
+  .btn-accent,
+  [data-btn="accent"],
+  a[data-btn="accent"],
+  button[data-btn="accent"] {
+    background-color: #B78E69 !important;
+    color: #FFFFFF !important;
+  }
 
-.btn-accent *,
-[data-btn="accent"] *,
-a[data-btn="accent"] *,
-button[data-btn="accent"] * {
-  color: #FFFFFF !important;
-}
+  .btn-accent *,
+  [data-btn="accent"] *,
+  a[data-btn="accent"] *,
+  button[data-btn="accent"] * {
+    color: #FFFFFF !important;
+  }
 
-/* Automatic safeguard for Tailwind bg-[#1A1C18] interactive elements */
-a.bg-\[\#1A1C18\],
-button.bg-\[\#1A1C18\],
-a.bg-charcoal,
-button.bg-charcoal {
-  color: #FFFFFF !important;
-}
+  /* Automatic safeguard for Tailwind bg-[#1A1C18] interactive elements */
+  a.bg-\[\#1A1C18\],
+  button.bg-\[\#1A1C18\],
+  a.bg-charcoal,
+  button.bg-charcoal {
+    color: #FFFFFF !important;
+  }
 
-a.bg-\[\#1A1C18\] *,
-button.bg-\[\#1A1C18\] *,
-a.bg-charcoal *,
-button.bg-charcoal * {
-  color: #FFFFFF !important;
-}
+  a.bg-\[\#1A1C18\] *,
+  button.bg-\[\#1A1C18\] *,
+  a.bg-charcoal *,
+  button.bg-charcoal * {
+    color: #FFFFFF !important;
+  }
 
-/* Automatic safeguard for Tailwind bg-[#F4F0E8] interactive elements */
-a.bg-\[\#F4F0E8\],
-button.bg-\[\#F4F0E8\],
-a.bg-ivory,
-button.bg-ivory {
-  color: #1A1C18 !important;
-}
+  /* Automatic safeguard for Tailwind bg-[#F4F0E8] interactive elements */
+  a.bg-\[\#F4F0E8\],
+  button.bg-\[\#F4F0E8\],
+  a.bg-ivory,
+  button.bg-ivory {
+    color: #1A1C18 !important;
+  }
 
-a.bg-\[\#F4F0E8\] *,
-button.bg-\[\#F4F0E8\] *,
-a.bg-ivory *,
-button.bg-ivory * {
-  color: #1A1C18 !important;
-}
+  a.bg-\[\#F4F0E8\] *,
+  button.bg-\[\#F4F0E8\] *,
+  a.bg-ivory *,
+  button.bg-ivory * {
+    color: #1A1C18 !important;
+  }
+
+  /* ==========================================================================
+     ASTRYX ADMIN SIDENAV - LUXURY DARK SCANDINAVIAN THEME
+     Elevates the admin navigation from plain default styling to an executive,
+     high-contrast, editorial command center with custom state tokens.
+     ========================================================================== */
+
+  .astryx-side-nav {
+    background-color: #1A1C18 !important;
+    color: #F4F0E8 !important;
+    border-right: 1px solid rgba(255, 255, 255, 0.08) !important;
+    box-shadow: 2px 0 16px rgba(0, 0, 0, 0.15) !important;
+  }
+
+  .astryx-side-nav-heading {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+    padding: 1rem 0.75rem !important;
+  }
+
+  .astryx-side-nav-heading span {
+    color: #FFFFFF !important;
+  }
+
+  .astryx-side-nav-heading span span:last-child {
+    color: #B78E69 !important;
+    font-size: 11px !important;
+    font-family: var(--font-mono) !important;
+    letter-spacing: 0.06em !important;
+    text-transform: uppercase !important;
+  }
+
+  .astryx-side-nav-section {
+    margin-top: 1.25rem !important;
+  }
+
+  .astryx-side-nav-section span[id$="-title"],
+  .astryx-side-nav-section [role="group"] > div:first-child span {
+    color: #8A927A !important;
+    font-size: 10px !important;
+    font-weight: 800 !important;
+    letter-spacing: 0.12em !important;
+    text-transform: uppercase !important;
+    padding-left: 0.5rem !important;
+  }
+
+  .astryx-side-nav-item {
+    color: rgba(244, 240, 232, 0.75) !important;
+    border-radius: 12px !important;
+    padding: 0.625rem 0.75rem !important;
+    margin: 0.15rem 0 !important;
+    font-size: 13px !important;
+    font-weight: 500 !important;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  }
+
+  .astryx-side-nav-item svg {
+    color: rgba(244, 240, 232, 0.55) !important;
+    width: 1.125rem !important;
+    height: 1.125rem !important;
+    transition: color 0.2s ease !important;
+  }
+
+  .astryx-side-nav-item:hover {
+    background-color: rgba(255, 255, 255, 0.08) !important;
+    color: #FFFFFF !important;
+    transform: translateX(2px) !important;
+  }
+
+  .astryx-side-nav-item:hover svg {
+    color: #B78E69 !important;
+  }
+
+  .astryx-side-nav-item.selected,
+  .astryx-side-nav-item[data-selected="selected"] {
+    background-color: rgba(183, 142, 105, 0.22) !important;
+    color: #FFFFFF !important;
+    font-weight: 700 !important;
+    box-shadow: inset 3px 0 0 #B78E69, 0 1px 4px rgba(0, 0, 0, 0.2) !important;
+  }
+
+  .astryx-side-nav-item.selected svg,
+  .astryx-side-nav-item[data-selected="selected"] svg {
+    color: #B78E69 !important;
+  }

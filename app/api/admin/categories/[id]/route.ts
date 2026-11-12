@@ -11,6 +11,7 @@ const bodySchema = z.object({
   slug: z.string().optional(),
   description: z.string().nullable().optional(),
   sort_order: z.number().int().optional(),
+  image_url: z.string().nullable().optional(),
 });
 
 export async function PATCH(request: Request, { params }: Params) {

@@ -209,6 +209,28 @@ export async function getProducts(options?: {
   return filtered;
 }
 
+export async function getProductById(id: string): Promise<Product | null> {
+  try {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from("products")
+      .select("*, category:categories(*)")
+      .eq("id", id)
+      .maybeSingle();
+
+    if (!error && data) {
+      return data as Product;
+    }
+  } catch {
+    // Fall back
+  }
+
+  const found = MOCK_PRODUCTS.find((p) => p.id === id || p.slug === id);
+  if (!found) return null;
+  const cat = MOCK_CATEGORIES.find((c) => c.id === found.category_id);
+  return { ...found, category: cat ?? null };
+}
+
 export async function getProductBySlug(slug: string): Promise<Product | null> {
   try {
     const supabase = await createClient();

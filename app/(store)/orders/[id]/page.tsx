@@ -20,6 +20,8 @@ export default async function OrderPage({ params }: { params: Params }) {
 
   if (!order) notFound();
   return (
-    <OrderDetailView order={order} settings={settings} isAdmin={isAdmin} />
+    <div className="max-w-5xl mx-auto py-10 sm:py-16 px-4 sm:px-6 lg:px-8 space-y-8 min-h-[75vh]">
+      <OrderDetailView order={order} settings={settings} isAdmin={isAdmin} />
+    </div>
   );
 }

@@ -6,7 +6,6 @@ import { Button } from "@astryxdesign/core/Button";
 import { Text } from "@astryxdesign/core/Text";
 import { VStack } from "@astryxdesign/core/VStack";
 import { ArrowUpTrayIcon } from "@heroicons/react/24/outline";
-import { createClient } from "@/lib/supabase/client";
 
 /**
  * Uploads one image to a storage bucket (admin-only write) and reports back
@@ -30,16 +29,19 @@ export function ImageUploadInput({
     setError(null);
     setIsUploading(true);
     try {
-      const supabase = createClient();
-      const ext = file.name.split(".").pop() || "jpg";
-      const path = `uploads/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
-      const { error: uploadError } = await supabase.storage
-        .from(bucket)
-        .upload(path, file, { contentType: file.type });
-      if (uploadError) throw uploadError;
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("bucket", bucket);
 
-      const { data } = supabase.storage.from(bucket).getPublicUrl(path);
-      onChange(data.publicUrl);
+      const res = await fetch("/api/admin/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Upload failed");
+
+      onChange(data.url);
     } catch (reason) {
       setError(
         reason instanceof Error ? reason.message : "Upload failed",

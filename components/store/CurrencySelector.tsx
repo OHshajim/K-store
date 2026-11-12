@@ -27,15 +27,16 @@ export function CurrencySelector({ variant = "header" }: { variant?: "header" | 
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className={`flex items-center gap-1.5 text-xs font-medium cursor-pointer transition-all ${
+        suppressHydrationWarning
+        className={`flex items-center gap-1.5 text-xs font-medium cursor-pointer transition-all whitespace-nowrap shrink-0 ${
           variant === "header"
             ? "text-white/90 hover:text-white px-2.5 py-1 rounded-lg border border-white/20 bg-white/10 hover:bg-white/20 backdrop-blur-xs shadow-2xs"
             : "text-[#4A483E] hover:text-[#1A1C18] p-1.5 rounded-lg hover:bg-black/5"
         }`}
         aria-label="Select currency and shipping region"
       >
-        <span className="text-sm">{currentConfig.flag}</span>
-        <span className="font-semibold">{currentConfig.code} ({currentConfig.symbol})</span>
+        <span className="text-sm" suppressHydrationWarning>{currentConfig.flag}</span>
+        <span className="font-semibold" suppressHydrationWarning>{currentConfig.code} ({currentConfig.symbol})</span>
         <ChevronDown className="w-3.5 h-3.5 opacity-70" />
       </button>
 

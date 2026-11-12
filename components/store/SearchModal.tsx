@@ -190,7 +190,7 @@ export function SearchModal({
                       </p>
                     </div>
                     <div className="text-right">
-                      <div className="font-mono text-sm font-bold text-[#1A1C18]">
+                      <div className="font-mono text-sm font-bold text-[#1A1C18]" suppressHydrationWarning>
                         {formatPrice(p.price_cents)}
                       </div>
                       {p.is_bestseller && (

@@ -1,7 +1,4 @@
-import { HStack } from "@astryxdesign/core/HStack";
-import { Icon } from "@astryxdesign/core/Icon";
-import { Text } from "@astryxdesign/core/Text";
-import { FireIcon } from "@heroicons/react/24/outline";
+import { Flame } from "lucide-react";
 
 export const LOW_STOCK_THRESHOLD = 5;
 
@@ -13,11 +10,9 @@ export function StockHint({ stock }: { stock: number }) {
   if (stock <= 0 || stock > LOW_STOCK_THRESHOLD) return null;
 
   return (
-    <HStack gap={1} vAlign="center">
-      <Icon icon={FireIcon} size="sm" color="accent" />
-      <Text type="label" color="accent">
-        Only {stock} left
-      </Text>
-    </HStack>
+    <span className="inline-flex items-center gap-1 text-[11px] font-bold text-[#B78E69]">
+      <Flame className="w-3.5 h-3.5 text-[#B78E69]" />
+      <span>Only {stock} left in stock</span>
+    </span>
   );
 }

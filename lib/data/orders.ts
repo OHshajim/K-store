@@ -207,6 +207,19 @@ export async function getOrderById(
     if (userId && mem.user_id && mem.user_id !== userId) return null;
     return mem;
   }
+
+  // Fallback to DEMO_ADMIN_ORDERS
+  try {
+    const { DEMO_ADMIN_ORDERS } = await import("@/lib/data/orderAdmin");
+    const demoOrder = DEMO_ADMIN_ORDERS.find(
+      (o) => o.id === id || o.order_number === id
+    );
+    if (demoOrder) {
+      if (userId && demoOrder.user_id && demoOrder.user_id !== userId) return null;
+      return demoOrder;
+    }
+  } catch {}
+
   return null;
 }
 
@@ -231,6 +244,15 @@ export async function getOrderByTracking(
   if (mem && mem.tracking_token === token) {
     return mem;
   }
+
+  try {
+    const { DEMO_ADMIN_ORDERS } = await import("@/lib/data/orderAdmin");
+    const demoOrder = DEMO_ADMIN_ORDERS.find(
+      (o) => o.order_number === orderNumber && o.tracking_token === token
+    );
+    if (demoOrder) return demoOrder;
+  } catch {}
+
   return null;
 }
 

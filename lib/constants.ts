@@ -1,8 +1,9 @@
 import type { DeliveryStatus, PaymentMethod, PaymentStatus } from "./types";
 
-export const APP_NAME = "KStore";
+export const APP_NAME = "Kstore";
+export const APP_TAGLINE = "Modern Living, Simplified.";
 export const APP_DESCRIPTION =
-  "A single-vendor shop with hand delivery — pay by card or cash at the door.";
+  "Thoughtfully designed modern home organization, solid timber furniture, and architectural lighting essentials.";
 
 export const PAYMENT_METHOD_LABELS: Record<PaymentMethod, string> = {
   stripe: "Card (secure checkout)",

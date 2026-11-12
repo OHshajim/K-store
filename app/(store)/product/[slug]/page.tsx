@@ -44,11 +44,51 @@ export default async function ProductPage({ params }: { params: Params }) {
 
   const related = allRelated.filter((p) => p.id !== product.id).slice(0, 4);
 
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: product.name,
+    image: product.images,
+    description: product.description,
+    sku: product.sku || product.slug,
+    brand: {
+      "@type": "Brand",
+      name: "Kstore",
+    },
+    material: product.material,
+    offers: {
+      "@type": "Offer",
+      url: `${process.env.NEXT_PUBLIC_SITE_URL || "https://kstore.com"}/product/${product.slug}`,
+      priceCurrency: "USD",
+      price: (product.price_cents / 100).toFixed(2),
+      availability:
+        product.stock > 0
+          ? "https://schema.org/InStock"
+          : "https://schema.org/OutOfStock",
+      itemCondition: "https://schema.org/NewCondition",
+    },
+    ...(product.rating
+      ? {
+        aggregateRating: {
+          "@type": "AggregateRating",
+          ratingValue: product.rating.toFixed(1),
+          reviewCount: product.review_count || 18,
+        },
+      }
+      : {}),
+  };
+
   return (
-    <ProductDetailView
-      product={product}
-      settings={settings}
-      relatedProducts={related}
-    />
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <ProductDetailView
+        product={product}
+        settings={settings}
+        relatedProducts={related}
+      />
+    </>
   );
 }

@@ -12,7 +12,11 @@ export function PwaRegister() {
       return;
     }
 
-    void navigator.serviceWorker.register("/sw.js", { scope: "/" });
+    navigator.serviceWorker
+      .register("/sw.js", { scope: "/" })
+      .catch(() => {
+        // Silently catch registration failure when offline or unserved
+      });
   }, []);
 
   return null;

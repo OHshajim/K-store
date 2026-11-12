@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
 import { getCurrentProfile } from "@/lib/data/auth";
+import { requireStoreSettings } from "@/lib/data/catalog";
 import { AdminShell } from "@/components/admin/AdminShell";
 
 export default async function AdminLayout({
@@ -15,5 +16,11 @@ export default async function AdminLayout({
     redirect("/login?next=/admin");
   }
 
-  return <AdminShell>{children}</AdminShell>;
+  const settings = await requireStoreSettings();
+
+  return (
+    <AdminShell storeName={settings.store_name} logoUrl={settings.logo_url}>
+      {children}
+    </AdminShell>
+  );
 }

@@ -51,27 +51,33 @@ export function ProductCard({ product }: { product: Product }) {
       onMouseLeave={() => setIsHovered(false)}
     >
       {/* Image Container with Badges & Wishlist */}
-      <Link
-        href={`/product/${product.slug}`}
-        className="block relative aspect-square overflow-hidden bg-[#F7F5F0]"
-      >
-        <Image
-          src={displayImage}
-          alt={product.name}
-          fill
-          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-          className="object-cover object-center group-hover:scale-105 transition-transform duration-500 ease-out"
-        />
+      <div className="relative aspect-square overflow-hidden bg-[#F7F5F0]">
+        <Link
+          href={`/product/${product.slug}`}
+          className="block absolute inset-0 z-0"
+          aria-label={product.name}
+        >
+          <Image
+            src={displayImage}
+            alt={product.name}
+            fill
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+            className="object-cover object-center group-hover:scale-105 transition-transform duration-500 ease-out"
+          />
+        </Link>
 
         {/* Badges */}
-        <div className="absolute top-3 left-3 flex flex-col gap-1.5 z-10">
+        <div className="absolute top-3 left-3 flex flex-col gap-1.5 z-10 pointer-events-none">
           {product.is_bestseller && (
             <span className="px-2.5 py-1 bg-[#8A927A] text-white text-[10px] uppercase font-bold tracking-wider rounded-md shadow-xs">
               Bestseller
             </span>
           )}
           {hasDiscount && (
-            <span className="px-2.5 py-1 bg-[#B78E69] text-white text-[10px] uppercase font-bold tracking-wider rounded-md shadow-xs">
+            <span
+              suppressHydrationWarning
+              className="px-2.5 py-1 bg-[#B78E69] text-white text-[10px] uppercase font-bold tracking-wider rounded-md shadow-xs"
+            >
               Save {formatPrice(product.compare_at_cents! - product.price_cents)}
             </span>
           )}
@@ -130,7 +136,7 @@ export function ProductCard({ product }: { product: Product }) {
             )}
           </button>
         </div>
-      </Link>
+      </div>
 
       {/* Product Content Details */}
       <div className="p-4 sm:p-5 flex-1 flex flex-col justify-between">
@@ -194,11 +200,11 @@ export function ProductCard({ product }: { product: Product }) {
 
           {/* Price: Side-by-side with clear font weight */}
           <div className="flex items-baseline gap-2 shrink-0">
-            <span className="font-mono text-base sm:text-lg font-bold text-[#1A1C18]">
+            <span className="font-mono text-base sm:text-lg font-bold text-[#1A1C18]" suppressHydrationWarning>
               {formatPrice(product.price_cents)}
             </span>
             {hasDiscount && (
-              <span className="font-mono text-xs font-medium text-[#4A483E]/70 line-through">
+              <span className="font-mono text-xs font-medium text-[#4A483E]/70 line-through" suppressHydrationWarning>
                 {formatPrice(product.compare_at_cents!)}
               </span>
             )}

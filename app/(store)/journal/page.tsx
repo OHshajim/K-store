@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { BookOpen, ArrowRight, Sparkles } from "lucide-react";
+import { BookOpen, ArrowRight } from "lucide-react";
 import { EDITORIAL_ARTICLES } from "@/lib/data/editorial";
 
 export const metadata: Metadata = {

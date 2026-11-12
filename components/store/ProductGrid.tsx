@@ -7,7 +7,6 @@ import { ProductCard } from "@/components/store/ProductCard";
 
 export function ProductGrid({
   products,
-  settings,
   columns = 3,
 }: {
   products: Product[];

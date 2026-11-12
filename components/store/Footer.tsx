@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useState } from "react";
 import {
   ShieldCheck,
@@ -8,7 +9,6 @@ import {
   RotateCcw,
   Sparkles,
   ArrowRight,
-  Mail,
 } from "lucide-react";
 import { CurrencySelector } from "./CurrencySelector";
 
@@ -16,10 +16,12 @@ export function Footer({
   storeName = "Kstore",
   tagline = "Modern Living, Simplified.",
   supportEmail = "concierge@kstore.com",
+  logoUrl = null,
 }: {
   storeName?: string;
   tagline?: string;
   supportEmail?: string | null;
+  logoUrl?: string | null;
 }) {
   const [newsletterEmail, setNewsletterEmail] = useState("");
   const [subscribed, setSubscribed] = useState(false);
@@ -90,13 +92,26 @@ export function Footer({
           {/* Brand info */}
           <div className="lg:col-span-2 space-y-4">
             <div>
-              <Link href="/" className="inline-block">
-                <span className="font-editorial text-3xl font-bold tracking-tight text-white uppercase">
-                  {storeName}
-                </span>
-                <span className="block text-[10px] tracking-widest text-[#D8C9B5] uppercase font-sans mt-0.5">
-                  Modern Living, Simplified
-                </span>
+              <Link href="/" className="inline-flex items-center gap-3">
+                {logoUrl && (
+                  <div className="relative w-9 h-9 rounded-xl overflow-hidden bg-white/10 border border-white/15 shrink-0">
+                    <Image
+                      src={logoUrl}
+                      alt={storeName}
+                      fill
+                      sizes="36px"
+                      className="object-contain p-1"
+                    />
+                  </div>
+                )}
+                <div>
+                  <span className="font-editorial text-3xl font-bold tracking-tight text-white uppercase block leading-none">
+                    {storeName}
+                  </span>
+                  <span className="block text-[10px] tracking-widest text-[#D8C9B5] uppercase font-sans mt-1">
+                    {tagline}
+                  </span>
+                </div>
               </Link>
             </div>
             <p className="text-sm text-[#D8C9B5]/80 max-w-sm leading-relaxed">

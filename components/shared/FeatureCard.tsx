@@ -1,30 +1,21 @@
-"use client";
-
-import { Card } from "@astryxdesign/core/Card";
-import { Icon, type IconType } from "@astryxdesign/core/Icon";
-import { Text } from "@astryxdesign/core/Text";
-import { VStack } from "@astryxdesign/core/VStack";
+import type { ComponentType, SVGProps } from "react";
 
 export function FeatureCard({
-  icon,
+  icon: IconComponent,
   title,
   description,
 }: {
-  icon: IconType;
+  icon: ComponentType<SVGProps<SVGSVGElement>>;
   title: string;
   description: string;
 }) {
   return (
-    <Card padding={4} variant="muted">
-      <VStack gap={2}>
-        <Icon icon={icon} size="md" />
-        <Text type="large" weight="bold">
-          {title}
-        </Text>
-        <Text type="body" color="secondary">
-          {description}
-        </Text>
-      </VStack>
-    </Card>
+    <div className="p-6 rounded-2xl bg-white border border-[#1A1C18]/10 shadow-2xs space-y-3">
+      <div className="w-10 h-10 rounded-xl bg-[#F4F0E8] flex items-center justify-center text-[#B78E69]">
+        <IconComponent className="w-5 h-5" />
+      </div>
+      <h3 className="text-base font-bold text-[#1A1C18] font-editorial">{title}</h3>
+      <p className="text-xs text-[#4A483E]/70 leading-relaxed font-sans">{description}</p>
+    </div>
   );
 }

@@ -12,6 +12,8 @@ export const MOCK_STORE_SETTINGS: StoreSettings = {
   delivery_notes: "Complimentary white-glove packaging. Dispatched from our Vermont & Copenhagen fulfillment centers.",
   about_html: "<p>Kstore designs architectural furniture and living essentials built to endure generations.</p>",
   terms_html: "<p>30-day trial period on all home essentials with carbon-neutral complimentary returns.</p>",
+  logo_url: null,
+  favicon_url: "/icons/icon-192.png",
 };
 
 export const MOCK_CATEGORIES: Category[] = [
@@ -21,6 +23,7 @@ export const MOCK_CATEGORIES: Category[] = [
     slug: "living-room",
     description: "Architectural storage, low-profile seating, and solid timber tables designed for serene shared spaces.",
     sort_order: 1,
+    image_url: "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&w=1200&q=80",
   },
   {
     id: "cat-workspace",
@@ -28,6 +31,7 @@ export const MOCK_CATEGORIES: Category[] = [
     slug: "workspace",
     description: "Quiet focus tools, precision desk organizers, and cable architecture for calm productivity.",
     sort_order: 2,
+    image_url: "https://images.unsplash.com/photo-1518455027359-f3f8164ba6bd?auto=format&fit=crop&w=1200&q=80",
   },
   {
     id: "cat-kitchen",
@@ -35,6 +39,7 @@ export const MOCK_CATEGORIES: Category[] = [
     slug: "kitchen",
     description: "Modular pantry jars, tactile stoneware trays, and prep organization crafted for everyday ritual.",
     sort_order: 3,
+    image_url: "https://images.unsplash.com/photo-1556911220-e15b29be8c8f?auto=format&fit=crop&w=1200&q=80",
   },
   {
     id: "cat-bedroom",
@@ -42,6 +47,7 @@ export const MOCK_CATEGORIES: Category[] = [
     slug: "bedroom",
     description: "Minimalist nightstands, soft linen baskets, and bedside sanctuaries designed for restorative rest.",
     sort_order: 4,
+    image_url: "https://images.unsplash.com/photo-1540518614846-7ede433c4ef7?auto=format&fit=crop&w=1200&q=80",
   },
   {
     id: "cat-bathroom",
@@ -49,6 +55,7 @@ export const MOCK_CATEGORIES: Category[] = [
     slug: "bathroom",
     description: "Water-resistant timber shelving, matte stoneware canisters, and towel architecture for spa-like simplicity.",
     sort_order: 5,
+    image_url: "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?auto=format&fit=crop&w=1200&q=80",
   },
   {
     id: "cat-lighting",
@@ -56,6 +63,7 @@ export const MOCK_CATEGORIES: Category[] = [
     slug: "lighting",
     description: "Sculptural luminaires and dimmable ambient lamps that cast warm, glare-free atmospheres.",
     sort_order: 6,
+    image_url: "https://images.unsplash.com/photo-1507473885765-e6ed057f782c?auto=format&fit=crop&w=1200&q=80",
   },
 ];
 

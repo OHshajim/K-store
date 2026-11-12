@@ -542,7 +542,7 @@ export function FitAssistantView({ allProducts }: { allProducts: Product[] }) {
                       >
                         {product.name}
                       </Link>
-                      <div className="font-mono text-xl font-bold text-[#1A1C18]">
+                      <div className="font-mono text-xl font-bold text-[#1A1C18]" suppressHydrationWarning>
                         {formatPrice(product.price_cents)}
                       </div>
                     </div>

@@ -45,51 +45,59 @@ export async function getProductReviews(productId: string): Promise<Review[]> {
 // Products from the user's paid or delivered orders that they haven't
 // reviewed yet — the "To review" list on the account dashboard.
 export async function getReviewableProducts(userId: string) {
-  const supabase = await createClient();
-  const { data: orders } = await supabase
-    .from("orders")
-    .select("id, order_number, payment_status, delivery_status, items:order_items(product_id, product_name, product_slug)")
-    .eq("user_id", userId)
-    .or("payment_status.eq.paid,delivery_status.eq.delivered")
-    .order("created_at", { ascending: false })
-    .limit(50);
+  try {
+    const supabase = await createClient();
+    const { data: orders } = await supabase
+      .from("orders")
+      .select("id, order_number, payment_status, delivery_status, items:order_items(product_id, product_name, product_slug)")
+      .eq("user_id", userId)
+      .or("payment_status.eq.paid,delivery_status.eq.delivered")
+      .order("created_at", { ascending: false })
+      .limit(50);
 
-  const { data: reviewed } = await supabase
-    .from("reviews")
-    .select("order_id, product_id")
-    .eq("user_id", userId);
+    const { data: reviewed } = await supabase
+      .from("reviews")
+      .select("order_id, product_id")
+      .eq("user_id", userId);
 
-  const reviewedKeys = new Set(
-    (reviewed ?? []).map((r) => `${r.order_id}:${r.product_id}`),
-  );
+    const reviewedKeys = new Set(
+      (reviewed ?? []).map((r) => `${r.order_id}:${r.product_id}`),
+    );
 
-  return (orders ?? []).flatMap((order) =>
-    (order.items ?? [])
-      .filter(
-        (item) =>
-          item.product_id &&
-          !reviewedKeys.has(`${order.id}:${item.product_id}`),
-      )
-      .map((item) => ({
-        orderId: order.id,
-        orderNumber: order.order_number,
-        productId: item.product_id!,
-        productName: item.product_name,
-        productSlug: item.product_slug,
-      })),
-  );
+    return (orders ?? []).flatMap((order) =>
+      (order.items ?? [])
+        .filter(
+          (item) =>
+            item.product_id &&
+            !reviewedKeys.has(`${order.id}:${item.product_id}`),
+        )
+        .map((item) => ({
+          orderId: order.id,
+          orderNumber: order.order_number,
+          productId: item.product_id!,
+          productName: item.product_name,
+          productSlug: item.product_slug,
+        })),
+    );
+  } catch {
+    return [];
+  }
 }
 
 export async function getUserReviews(userId: string): Promise<Review[]> {
-  const supabase = await createClient();
-  const { data } = await supabase
-    .from("reviews")
-    .select("*, product:products(name, slug)")
-    .eq("user_id", userId)
-    .order("created_at", { ascending: false })
-    .limit(50);
+  try {
+    const supabase = await createClient();
+    const { data } = await supabase
+      .from("reviews")
+      .select("*, product:products(name, slug)")
+      .eq("user_id", userId)
+      .order("created_at", { ascending: false })
+      .limit(50);
 
-  return (data as Review[]) ?? [];
+    return (data as Review[]) ?? [];
+  } catch {
+    return [];
+  }
 }
 
 export async function createReview(input: {

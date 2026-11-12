@@ -1,9 +1,6 @@
 "use client";
 
-import { HStack } from "@astryxdesign/core/HStack";
-import { Text } from "@astryxdesign/core/Text";
-import { StarIcon } from "@heroicons/react/24/solid";
-import { StarIcon as StarOutlineIcon } from "@heroicons/react/24/outline";
+import { Star } from "lucide-react";
 
 const MAX_RATING = 5;
 
@@ -22,19 +19,19 @@ export function StarRating({
   showValue?: boolean;
 }) {
   return (
-    <HStack gap={1} vAlign="center">
+    <div className="inline-flex items-center gap-1">
       {Array.from({ length: MAX_RATING }, (_, index) => {
         const starValue = index + 1;
         const isFilled = starValue <= Math.round(value);
-        const Star = isFilled ? StarIcon : StarOutlineIcon;
         if (!onChange) {
           return (
             <Star
               key={starValue}
-              width={16}
-              height={16}
-              aria-hidden="true"
-              className={isFilled ? "text-[var(--color-text-accent)]" : undefined}
+              className={`w-3.5 h-3.5 ${
+                isFilled
+                  ? "text-[#B78E69] fill-[#B78E69]"
+                  : "text-[#1A1C18]/15 fill-transparent"
+              }`}
             />
           );
         }
@@ -43,22 +40,24 @@ export function StarRating({
             key={starValue}
             type="button"
             aria-label={`Rate ${starValue} star${starValue > 1 ? "s" : ""}`}
-            className="cursor-pointer leading-none p-0"
+            className="cursor-pointer leading-none p-0.5 hover:scale-110 transition-transform"
             onClick={() => onChange(starValue)}
           >
             <Star
-              width={20}
-              height={20}
-              className={isFilled ? "text-[var(--color-text-accent)]" : undefined}
+              className={`w-4 h-4 ${
+                isFilled
+                  ? "text-[#B78E69] fill-[#B78E69]"
+                  : "text-[#1A1C18]/20 fill-transparent"
+              }`}
             />
           </button>
         );
       })}
       {showValue && (
-        <Text type="supporting" color="secondary">
+        <span className="text-xs font-mono font-semibold text-[#4A483E] ml-1">
           {value > 0 ? value.toFixed(1) : "No ratings yet"}
-        </Text>
+        </span>
       )}
-    </HStack>
+    </div>
   );
 }

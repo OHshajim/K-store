@@ -217,11 +217,11 @@ export function ProductDetailView({
 
             {/* Price Box */}
             <div className="flex items-baseline gap-3 pt-1">
-              <span className="font-mono text-3xl font-bold text-[#1A1C18]">
+              <span className="font-mono text-3xl font-bold text-[#1A1C18]" suppressHydrationWarning>
                 {formatPrice(product.price_cents)}
               </span>
               {hasDiscount && (
-                <span className="font-mono text-lg text-[#4A483E] line-through">
+                <span className="font-mono text-lg text-[#4A483E] line-through" suppressHydrationWarning>
                   {formatPrice(product.compare_at_cents!)}
                 </span>
               )}

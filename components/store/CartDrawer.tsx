@@ -81,12 +81,12 @@ export function CartDrawer() {
               {qualified ? (
                 <span className="flex items-center gap-1.5 text-[#8A927A] font-semibold">
                   <Sparkles className="w-3.5 h-3.5" />
-                  You've unlocked Complimentary Express Shipping!
+                  You&apos;ve unlocked Complimentary Express Shipping!
                 </span>
               ) : (
                 <span>
                   Add{" "}
-                  <strong className="text-[#1A1C18] font-semibold">
+                  <strong className="text-[#1A1C18] font-semibold" suppressHydrationWarning>
                     {formatPrice(remainingCents)}
                   </strong>{" "}
                   more for complimentary shipping
@@ -261,27 +261,27 @@ export function CartDrawer() {
               <div className="space-y-1.5 text-xs text-[#4A483E]">
                 <div className="flex justify-between">
                   <span>Subtotal</span>
-                  <span className="font-mono text-[#1A1C18] font-medium">
+                  <span className="font-mono text-[#1A1C18] font-medium" suppressHydrationWarning>
                     {formatPrice(subtotal)}
                   </span>
                 </div>
                 {discountCents() > 0 && (
                   <div className="flex justify-between text-emerald-700">
                     <span>Discount</span>
-                    <span className="font-mono font-medium">
+                    <span className="font-mono font-medium" suppressHydrationWarning>
                       -{formatPrice(discountCents())}
                     </span>
                   </div>
                 )}
                 <div className="flex justify-between">
                   <span>Shipping</span>
-                  <span className="font-mono text-[#1A1C18] font-medium">
+                  <span className="font-mono text-[#1A1C18] font-medium" suppressHydrationWarning>
                     {shippingCents() === 0 ? "Complimentary" : formatPrice(shippingCents())}
                   </span>
                 </div>
                 <div className="flex justify-between text-sm font-semibold text-[#1A1C18] pt-2 border-t border-[#1A1C18]/10">
                   <span>Estimated Total</span>
-                  <span className="font-mono text-base">{formatPrice(totalCents())}</span>
+                  <span className="font-mono text-base" suppressHydrationWarning>{formatPrice(totalCents())}</span>
                 </div>
               </div>
 

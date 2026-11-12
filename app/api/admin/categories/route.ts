@@ -9,6 +9,7 @@ const bodySchema = z.object({
   slug: z.string().optional(),
   description: z.string().nullable().optional(),
   sort_order: z.number().int().optional(),
+  image_url: z.string().nullable().optional(),
 });
 
 export async function GET() {
@@ -41,6 +42,7 @@ export async function POST(request: Request) {
         slug,
         description: body.description ?? null,
         sort_order: body.sort_order ?? 0,
+        image_url: body.image_url ?? null,
       })
       .select("*")
       .single();

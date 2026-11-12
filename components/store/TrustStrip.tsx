@@ -1,62 +1,51 @@
 "use client";
 
-import { Card } from "@astryxdesign/core/Card";
-import { HStack, VStack } from "@astryxdesign/core/Layout";
-import { Icon } from "@astryxdesign/core/Icon";
-import { Text } from "@astryxdesign/core/Text";
-import { Grid } from "@astryxdesign/core/Grid";
-import {
-  EnvelopeIcon,
-  ShieldCheckIcon,
-  TruckIcon,
-} from "@heroicons/react/24/outline";
+import { Truck, ShieldCheck, Mail } from "lucide-react";
 
-/**
- * Trust signals under the hero: how delivery works, how payments are
- * verified, and where help comes from (a real inbox, not a bot).
- */
 export function TrustStrip({ supportEmail }: { supportEmail: string | null }) {
   const features = [
     {
-      icon: TruckIcon,
+      icon: Truck,
       title: "Delivered by hand",
-      description:
-        "In our local service area — no couriers, no lost parcels.",
+      description: "White-glove placement in our regional corridors — no damaged parcels.",
     },
     {
-      icon: ShieldCheckIcon,
-      title: "Confirmed by a human",
-      description:
-        "Every payment verified personally within 24 hours, with email updates at each step.",
+      icon: ShieldCheck,
+      title: "Verified by craftsman",
+      description: "Every timber essential and joinery assembly inspected before dispatch.",
     },
     {
-      icon: EnvelopeIcon,
-      title: "Talk to a person",
+      icon: Mail,
+      title: "Talk to our studio",
       description: supportEmail
-        ? `Questions about an order? Email ${supportEmail} — a person replies.`
-        : "Questions about an order? Email us — a person replies.",
+        ? `Questions regarding an essential? Email ${supportEmail} — our architects reply.`
+        : "Questions regarding an essential? Email our studio — our architects reply.",
     },
   ];
 
   return (
-    <Grid columns={{ minWidth: 280, repeat: "fit" }} gap={3}>
-      {features.map((feature) => (
-        <Card key={feature.title} padding={4}>
-          <HStack gap={3} vAlign="center">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[var(--color-accent-muted)]">
-              <Icon icon={feature.icon} size="sm" color="accent" />
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      {features.map((feature) => {
+        const IconComponent = feature.icon;
+        return (
+          <div
+            key={feature.title}
+            className="p-5 rounded-2xl bg-white border border-[#1A1C18]/10 shadow-2xs flex items-center gap-4"
+          >
+            <div className="w-10 h-10 rounded-xl bg-[#F4F0E8] flex items-center justify-center text-[#B78E69] shrink-0">
+              <IconComponent className="w-5 h-5" />
             </div>
-            <VStack gap={0}>
-              <Text type="label" weight="bold">
+            <div className="space-y-0.5">
+              <h4 className="text-xs font-bold text-[#1A1C18] uppercase tracking-wider font-sans">
                 {feature.title}
-              </Text>
-              <Text type="supporting" color="secondary">
+              </h4>
+              <p className="text-xs text-[#4A483E]/70 leading-relaxed font-sans">
                 {feature.description}
-              </Text>
-            </VStack>
-          </HStack>
-        </Card>
-      ))}
-    </Grid>
+              </p>
+            </div>
+          </div>
+        );
+      })}
+    </div>
   );
 }

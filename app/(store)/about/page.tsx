@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { Compass, ShieldCheck, Layers, Sparkles, ArrowRight } from "lucide-react";
+import { Compass, ShieldCheck, Layers, ArrowRight } from "lucide-react";
 
 export const metadata: Metadata = {
   title: "Our Story & Philosophy — Kstore",

@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useMemo, useRef, useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
 import {
   Search,
   SlidersHorizontal,
@@ -13,7 +12,6 @@ import {
 } from "lucide-react";
 import type { Category, Product, StoreSettings } from "@/lib/types";
 import { ProductGrid } from "@/components/store/ProductGrid";
-import { useCurrencyStore } from "@/lib/currency/store";
 
 const SORT_OPTIONS = [
   { id: "featured", label: "Featured Picks" },
@@ -66,10 +64,6 @@ export function ShopView({
   initialRoom?: string;
   initialQuery?: string;
 }) {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const { formatPrice } = useCurrencyStore();
-
   const [searchQuery, setSearchQuery] = useState(initialQuery || "");
   const [selectedCategory, setSelectedCategory] = useState<string>(initialCategory || "all");
   const [selectedRoom, setSelectedRoom] = useState<string>(initialRoom || "all");

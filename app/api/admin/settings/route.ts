@@ -14,6 +14,8 @@ const bodySchema = z.object({
   delivery_notes: z.string(),
   about_html: z.string().nullable().optional(),
   terms_html: z.string().nullable().optional(),
+  logo_url: z.string().nullable().optional(),
+  favicon_url: z.string().nullable().optional(),
 });
 
 export async function PATCH(request: Request) {
@@ -35,6 +37,8 @@ export async function PATCH(request: Request) {
         delivery_notes: body.delivery_notes,
         about_html: body.about_html ?? null,
         terms_html: body.terms_html ?? null,
+        logo_url: body.logo_url ?? null,
+        favicon_url: body.favicon_url ?? null,
       })
       .eq("id", 1);
 

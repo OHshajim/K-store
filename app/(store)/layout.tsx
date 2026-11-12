@@ -13,6 +13,7 @@ export default async function StoreLayout({
       storeName={settings.store_name}
       tagline={settings.tagline}
       supportEmail={settings.support_email}
+      logoUrl={settings.logo_url}
     >
       {children}
     </StoreShell>

@@ -10,14 +10,13 @@ import {
   Truck,
   Sparkles,
   ShoppingBag,
-  RotateCcw,
 } from "lucide-react";
 import type { StoreSettings } from "@/lib/types";
 import { useCartStore } from "@/lib/cart/store";
 import { useCurrencyStore } from "@/lib/currency/store";
 import { MOCK_PRODUCTS } from "@/lib/data/mockData";
 
-export function CartView({ settings }: { settings?: StoreSettings | null }) {
+export function CartView({}: { settings?: StoreSettings | null }) {
   const {
     items,
     setQuantity,
@@ -234,7 +233,7 @@ export function CartView({ settings }: { settings?: StoreSettings | null }) {
                         <h5 className="font-editorial text-sm font-bold text-[#292B27] truncate">
                           {rec.name}
                         </h5>
-                        <p className="font-mono text-xs text-[#77766E]">
+                        <p className="font-mono text-xs text-[#77766E]" suppressHydrationWarning>
                           {formatPrice(rec.price_cents)}
                         </p>
                       </div>
@@ -309,7 +308,7 @@ export function CartView({ settings }: { settings?: StoreSettings | null }) {
             <div className="space-y-3 text-xs sm:text-sm text-[#77766E] border-t border-[#292B27]/10 pt-4">
               <div className="flex justify-between">
                 <span>Items Subtotal</span>
-                <span className="font-mono text-[#292B27] font-semibold">
+                <span className="font-mono text-[#292B27] font-semibold" suppressHydrationWarning>
                   {formatPrice(subtotal)}
                 </span>
               </div>
@@ -317,20 +316,20 @@ export function CartView({ settings }: { settings?: StoreSettings | null }) {
               {discountCents() > 0 && (
                 <div className="flex justify-between text-emerald-700 font-medium">
                   <span>Promotional Discount</span>
-                  <span className="font-mono">-{formatPrice(discountCents())}</span>
+                  <span className="font-mono" suppressHydrationWarning>-{formatPrice(discountCents())}</span>
                 </div>
               )}
 
               <div className="flex justify-between">
                 <span>Shipping & White Glove Delivery</span>
-                <span className="font-mono text-[#292B27]">
+                <span className="font-mono text-[#292B27]" suppressHydrationWarning>
                   {shippingCents() === 0 ? "Complimentary" : formatPrice(shippingCents())}
                 </span>
               </div>
 
               <div className="flex justify-between text-base sm:text-lg font-bold text-[#292B27] pt-3 border-t border-[#292B27]/10">
                 <span>Estimated Total</span>
-                <span className="font-mono">{formatPrice(totalCents())}</span>
+                <span className="font-mono" suppressHydrationWarning>{formatPrice(totalCents())}</span>
               </div>
             </div>
 

@@ -1,74 +1,78 @@
 "use client";
 
-import { Badge } from "@astryxdesign/core/Badge";
-import { HStack } from "@astryxdesign/core/Layout";
-import { StatusDot } from "@astryxdesign/core/StatusDot";
-import { Text } from "@astryxdesign/core/Text";
 import {
   DELIVERY_STATUS_LABELS,
   PAYMENT_STATUS_LABELS,
 } from "@/lib/constants";
 import type { DeliveryStatus, PaymentStatus } from "@/lib/types";
 
-function paymentVariant(
-  status: PaymentStatus,
-): "neutral" | "info" | "success" | "warning" | "error" {
-  switch (status) {
-    case "paid":
-      return "success";
-    case "pending":
-    case "cod_pending":
-      return "warning";
-    case "cancelled":
-    case "refunded":
-      return "error";
-    default:
-      return "info";
-  }
-}
-
-function deliveryDot(
-  status: DeliveryStatus,
-): "neutral" | "accent" | "success" | "warning" | "error" {
-  switch (status) {
-    case "delivered":
-      return "success";
-    case "out_for_delivery":
-      return "accent";
-    case "cancelled":
-      return "error";
-    case "packed":
-    case "confirmed":
-      return "warning";
-    default:
-      return "neutral";
-  }
-}
-
 export function PaymentStatusBadge({ status }: { status: PaymentStatus }) {
+  const label = PAYMENT_STATUS_LABELS[status] || status;
+
+  if (status === "paid") {
+    return (
+      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider bg-emerald-50 text-emerald-800 border border-emerald-200">
+        <span className="w-1.5 h-1.5 rounded-full bg-emerald-600" />
+        {label}
+      </span>
+    );
+  }
+
+  if (status === "pending" || status === "cod_pending") {
+    return (
+      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider bg-amber-50 text-amber-800 border border-amber-200">
+        <span className="w-1.5 h-1.5 rounded-full bg-amber-600" />
+        {label}
+      </span>
+    );
+  }
+
   return (
-    <Badge
-      label={PAYMENT_STATUS_LABELS[status]}
-      variant={paymentVariant(status)}
-    />
+    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider bg-rose-50 text-rose-800 border border-rose-200">
+      <span className="w-1.5 h-1.5 rounded-full bg-rose-600" />
+      {label}
+    </span>
   );
 }
 
 export function DeliveryStatusLabel({ status }: { status: DeliveryStatus }) {
+  const label = DELIVERY_STATUS_LABELS[status] || status;
+
+  let dotColor = "bg-stone-400";
+  let pulse = false;
+
+  switch (status) {
+    case "delivered":
+      dotColor = "bg-emerald-500";
+      break;
+    case "out_for_delivery":
+      dotColor = "bg-sky-500";
+      pulse = true;
+      break;
+    case "cancelled":
+      dotColor = "bg-rose-500";
+      break;
+    case "packed":
+    case "confirmed":
+      dotColor = "bg-amber-500";
+      break;
+    default:
+      dotColor = "bg-stone-400";
+  }
+
   return (
-    <StatusDot
-      variant={deliveryDot(status)}
-      label={DELIVERY_STATUS_LABELS[status]}
-      isPulsing={status === "out_for_delivery"}
-    />
+    <span className="inline-flex items-center gap-2 text-xs font-semibold text-[#1A1C18]">
+      <span className="relative flex h-2 w-2">
+        {pulse && (
+          <span className={`animate-ping absolute inline-flex h-full w-full rounded-full ${dotColor} opacity-75`} />
+        )}
+        <span className={`relative inline-flex rounded-full h-2 w-2 ${dotColor}`} />
+      </span>
+      <span>{label}</span>
+    </span>
   );
 }
 
 export function DeliveryStatusText({ status }: { status: DeliveryStatus }) {
-  return (
-    <HStack gap={2} vAlign="center">
-      <DeliveryStatusLabel status={status} />
-      <Text type="body">{DELIVERY_STATUS_LABELS[status]}</Text>
-    </HStack>
-  );
+  return <DeliveryStatusLabel status={status} />;
 }

@@ -1,4 +1,4 @@
-import { getCategories, getProducts, getBanners, getStoreSettings } from "@/lib/data/catalog";
+import { getCategories, getProducts, getBanners } from "@/lib/data/catalog";
 import { HeroSection } from "@/components/store/home/HeroSection";
 import { FeaturedCollections } from "@/components/store/home/FeaturedCollections";
 import { BestSellersSection } from "@/components/store/home/BestSellersSection";

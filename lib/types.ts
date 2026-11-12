@@ -34,6 +34,7 @@ export type Category = {
   slug: string;
   description: string | null;
   sort_order: number;
+  image_url?: string | null;
 };
 
 export type ColorVariant = {
@@ -64,6 +65,7 @@ export type Product = {
   is_featured: boolean;
   is_bestseller?: boolean;
   created_at: string;
+  updated_at?: string;
   category?: Category | null;
   sku?: string;
   material?: string;
@@ -90,6 +92,8 @@ export type StoreSettings = {
   delivery_notes: string;
   about_html: string | null;
   terms_html: string | null;
+  logo_url?: string | null;
+  favicon_url?: string | null;
 };
 
 export type Banner = {

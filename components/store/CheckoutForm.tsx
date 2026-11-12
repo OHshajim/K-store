@@ -5,13 +5,11 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import {
-  ShieldCheck,
   Truck,
   CreditCard,
   Banknote,
   ArrowRight,
   ArrowLeft,
-  Check,
   Lock,
   Sparkles,
   Info,
@@ -21,11 +19,10 @@ import { useCartStore } from "@/lib/cart/store";
 import { useCurrencyStore } from "@/lib/currency/store";
 
 export function CheckoutForm({
-  settings,
   userEmail,
   userName,
 }: {
-  settings: StoreSettings;
+  settings?: StoreSettings;
   userEmail?: string | null;
   userName?: string | null;
 }) {
@@ -36,7 +33,6 @@ export function CheckoutForm({
     subtotalCents,
     discountCents,
     shippingCents,
-    totalCents,
     appliedCoupon,
   } = useCartStore();
 
@@ -575,7 +571,7 @@ export function CheckoutForm({
                     "Processing Order..."
                   ) : (
                     <>
-                      Place Order · {formatPrice(grandTotal)}
+                      Place Order · <span suppressHydrationWarning>{formatPrice(grandTotal)}</span>
                       <ArrowRight className="w-4 h-4" />
                     </>
                   )}
@@ -622,7 +618,7 @@ export function CheckoutForm({
                     Qty {item.quantity} {item.selectedColor ? `· ${item.selectedColor}` : ""}
                   </div>
                 </div>
-                <div className="font-mono text-xs font-bold text-[#292B27]">
+                <div className="font-mono text-xs font-bold text-[#292B27]" suppressHydrationWarning>
                   {formatPrice(item.priceCents * item.quantity)}
                 </div>
               </div>
@@ -633,7 +629,7 @@ export function CheckoutForm({
           <div className="space-y-2.5 text-xs text-[#77766E] border-t border-[#292B27]/10 pt-4">
             <div className="flex justify-between">
               <span>Subtotal</span>
-              <span className="font-mono text-[#292B27] font-semibold">
+              <span className="font-mono text-[#292B27] font-semibold" suppressHydrationWarning>
                 {formatPrice(subtotal)}
               </span>
             </div>
@@ -641,20 +637,20 @@ export function CheckoutForm({
             {discount > 0 && (
               <div className="flex justify-between text-emerald-700 font-medium">
                 <span>Promo Discount ({appliedCoupon?.code})</span>
-                <span className="font-mono">-{formatPrice(discount)}</span>
+                <span className="font-mono" suppressHydrationWarning>-{formatPrice(discount)}</span>
               </div>
             )}
 
             <div className="flex justify-between">
               <span>Delivery & Handling</span>
-              <span className="font-mono text-[#292B27]">
+              <span className="font-mono text-[#292B27]" suppressHydrationWarning>
                 {finalShipping === 0 ? "Complimentary" : formatPrice(finalShipping)}
               </span>
             </div>
 
             <div className="flex justify-between text-base font-bold text-[#292B27] pt-3 border-t border-[#292B27]/10">
               <span>Total Due ({currency})</span>
-              <span className="font-mono text-lg">{formatPrice(grandTotal)}</span>
+              <span className="font-mono text-lg" suppressHydrationWarning>{formatPrice(grandTotal)}</span>
             </div>
           </div>
 

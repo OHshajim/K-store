@@ -1,9 +1,4 @@
-import { Card } from "@astryxdesign/core/Card";
-import { Divider } from "@astryxdesign/core/Divider";
-import { EmptyState } from "@astryxdesign/core/EmptyState";
-import { HStack } from "@astryxdesign/core/HStack";
-import { Text } from "@astryxdesign/core/Text";
-import { VStack } from "@astryxdesign/core/VStack";
+import { MessageSquare } from "lucide-react";
 import { StarRating } from "@/components/shared/StarRating";
 import { ReviewForm } from "@/components/store/ReviewForm";
 import { getCurrentProfile } from "@/lib/data/auth";
@@ -28,17 +23,21 @@ export async function ProductReviews({ product }: { product: Product }) {
   const mine = reviewable.find((item) => item.productId === product.id);
 
   return (
-    <VStack gap={4}>
-      <HStack gap={3} vAlign="center">
-        <Text type="display-2" as="h2">
-          Reviews
-        </Text>
-        <StarRating value={summary.average} showValue />
-        {summary.count > 0 && (
-          <Text type="supporting" color="secondary">
-            {summary.count} review{summary.count > 1 ? "s" : ""}
-          </Text>
-        )}
+    <div className="space-y-6">
+      {/* Header bar */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#1A1C18]/10">
+        <div className="flex items-center gap-3">
+          <h2 className="font-editorial text-2xl sm:text-3xl font-bold text-[#1A1C18]">
+            Customer Reviews
+          </h2>
+          <StarRating value={summary.average} showValue />
+          {summary.count > 0 && (
+            <span className="text-xs text-[#8A927A] font-mono">
+              ({summary.count} {summary.count > 1 ? "reviews" : "review"})
+            </span>
+          )}
+        </div>
+
         {mine && (
           <ReviewForm
             productId={mine.productId}
@@ -46,36 +45,48 @@ export async function ProductReviews({ product }: { product: Product }) {
             productName={product.name}
           />
         )}
-      </HStack>
+      </div>
 
+      {/* Review cards */}
       {reviews.length === 0 ? (
-        <EmptyState
-          title="No reviews yet"
-          description="Bought this before? Sign in and share how it holds up."
-        />
+        <div className="text-center py-12 px-4 rounded-3xl bg-white border border-[#1A1C18]/10 shadow-2xs space-y-2">
+          <div className="w-12 h-12 rounded-full bg-[#F4F0E8] mx-auto flex items-center justify-center text-[#B78E69]">
+            <MessageSquare className="w-5 h-5" />
+          </div>
+          <h3 className="font-editorial text-lg font-bold text-[#1A1C18]">
+            No Customer Reflections Yet
+          </h3>
+          <p className="text-xs text-[#4A483E]/70 max-w-sm mx-auto">
+            Acquired this essential previously? Sign in and share how it performs in your daily living rituals.
+          </p>
+        </div>
       ) : (
-        reviews.map((review) => (
-          <Card key={review.id} padding={4} variant="muted">
-            <VStack gap={2}>
-              <HStack gap={3} vAlign="center">
-                <StarRating value={review.rating} />
-                <Text type="label" weight="bold">
-                  {review.reviewer_name ?? "Verified buyer"}
-                </Text>
-                <Text type="supporting" color="secondary">
+        <div className="space-y-4">
+          {reviews.map((review) => (
+            <div
+              key={review.id}
+              className="p-5 rounded-2xl bg-white border border-[#1A1C18]/10 shadow-2xs space-y-3"
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2.5">
+                  <StarRating value={review.rating} />
+                  <span className="text-xs font-bold text-[#1A1C18]">
+                    {review.reviewer_name ?? "Verified Patron"}
+                  </span>
+                </div>
+                <span className="text-[11px] font-mono text-[#8A927A]">
                   {formatDate(review.created_at)}
-                </Text>
-              </HStack>
+                </span>
+              </div>
               {review.comment && (
-                <>
-                  <Divider />
-                  <Text type="body">{review.comment}</Text>
-                </>
+                <p className="text-xs sm:text-sm text-[#4A483E] leading-relaxed pt-1 border-t border-[#1A1C18]/5">
+                  &ldquo;{review.comment}&rdquo;
+                </p>
               )}
-            </VStack>
-          </Card>
-        ))
+            </div>
+          ))}
+        </div>
       )}
-    </VStack>
+    </div>
   );
 }
