@@ -1,4 +1,5 @@
 import { getCategories, getProducts, getBanners } from "@/lib/data/catalog";
+import { getPublishedReviews } from "@/lib/data/reviews";
 import { HeroSection } from "@/components/store/home/HeroSection";
 import { FeaturedCollections } from "@/components/store/home/FeaturedCollections";
 import { BestSellersSection } from "@/components/store/home/BestSellersSection";
@@ -12,10 +13,11 @@ import { NewsletterSection } from "@/components/store/home/NewsletterSection";
 export const revalidate = 60;
 
 export default async function HomePage() {
-  const [categories, bestSellers, heroBanners] = await Promise.all([
+  const [categories, bestSellers, heroBanners, reviews] = await Promise.all([
     getCategories(),
     getProducts({ bestsellers: true, limit: 8 }),
     getBanners("hero"),
+    getPublishedReviews(4),
   ]);
 
   const activeHero = heroBanners[0];
@@ -53,7 +55,7 @@ export default async function HomePage() {
       <EditorialInspiration />
 
       {/* Section J: Customer Reviews */}
-      <CustomerReviewsSection />
+      <CustomerReviewsSection reviews={reviews} />
 
       {/* Section K: Newsletter */}
       <NewsletterSection />

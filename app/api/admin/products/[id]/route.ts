@@ -40,15 +40,30 @@ export async function PATCH(request: Request, { params }: Params) {
 
     try {
       const supabase = await createClient();
-      const { data, error } = await supabase
+      let res = await supabase
         .from("products")
         .update(patch)
         .eq("id", id)
         .select("*")
         .single();
 
-      if (!error && data) {
-        return NextResponse.json({ product: data, id: data.id });
+      if (res.error && res.error.code === "42703") {
+        // Strip extended columns that might not exist yet
+        const basePatch = { ...patch };
+        delete basePatch.material;
+        delete basePatch.room;
+        delete basePatch.sku;
+        delete basePatch.is_bestseller;
+        res = await supabase
+          .from("products")
+          .update(basePatch)
+          .eq("id", id)
+          .select("*")
+          .single();
+      }
+
+      if (!res.error && res.data) {
+        return NextResponse.json({ product: res.data, id: res.data.id });
       }
     } catch {
       // Supabase is offline; handle via in-memory mock update for development preview

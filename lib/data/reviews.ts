@@ -135,6 +135,21 @@ export async function getAllReviews(): Promise<Review[]> {
   );
 }
 
+export async function getPublishedReviews(limit = 4): Promise<Review[]> {
+  try {
+    const supabase = await createClient();
+    const { data } = await supabase
+      .from("reviews")
+      .select("*, product:products(name, slug)")
+      .eq("is_published", true)
+      .order("created_at", { ascending: false })
+      .limit(limit);
+
+    if (data && data.length > 0) return data as Review[];
+  } catch {}
+  return [];
+}
+
 export async function setReviewPublished(
   reviewId: string,
   isPublished: boolean,

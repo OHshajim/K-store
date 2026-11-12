@@ -47,7 +47,7 @@ export const MOCK_CATEGORIES: Category[] = [
     slug: "bedroom",
     description: "Minimalist nightstands, soft linen baskets, and bedside sanctuaries designed for restorative rest.",
     sort_order: 4,
-    image_url: "https://images.unsplash.com/photo-1540518614846-7ede433c4ef7?auto=format&fit=crop&w=1200&q=80",
+    image_url: "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1200&q=80",
   },
   {
     id: "cat-bathroom",

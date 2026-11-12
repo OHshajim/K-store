@@ -35,7 +35,7 @@ export async function POST(request: Request) {
     const slug = body.slug?.trim() || slugify(body.name);
 
     const supabase = await createClient();
-    const { data, error } = await supabase
+    let { data, error } = await supabase
       .from("categories")
       .insert({
         name: body.name,
@@ -46,6 +46,21 @@ export async function POST(request: Request) {
       })
       .select("*")
       .single();
+
+    if (error && error.code === "42703") {
+      const res = await supabase
+        .from("categories")
+        .insert({
+          name: body.name,
+          slug,
+          description: body.description ?? null,
+          sort_order: body.sort_order ?? 0,
+        })
+        .select("*")
+        .single();
+      data = res.data;
+      error = res.error;
+    }
 
     if (error || !data) throw new Error(error?.message ?? "Insert failed");
     return NextResponse.json({ category: data });

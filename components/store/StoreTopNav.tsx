@@ -20,14 +20,16 @@ import { useWishlistStore } from "@/lib/wishlist/store";
 import { SearchModal } from "./SearchModal";
 import { CartDrawer } from "./CartDrawer";
 import { CurrencySelector } from "./CurrencySelector";
-import { MOCK_CATEGORIES } from "@/lib/data/mockData";
+import type { Category } from "@/lib/types";
 
 export function StoreTopNav({
   storeName = "Kstore",
   logoUrl = null,
+  categories = [],
 }: {
   storeName?: string;
   logoUrl?: string | null;
+  categories?: Category[];
 }) {
   const pathname = usePathname();
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -149,7 +151,7 @@ export function StoreTopNav({
                       </Link>
                     </div>
 
-                    {MOCK_CATEGORIES.map((cat) => (
+                    {categories.map((cat) => (
                       <Link
                         key={cat.id}
                         href={`/shop?category=${cat.slug}`}

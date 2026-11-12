@@ -30,6 +30,7 @@ export const CURRENCIES: Record<SupportedCurrency, CurrencyConfig> = {
 
 type CurrencyStore = {
   currency: SupportedCurrency;
+  hasHydrated: boolean;
   setCurrency: (currency: SupportedCurrency) => void;
   formatPrice: (centsInUsd: number) => string;
   convertCents: (centsInUsd: number) => number;
@@ -39,13 +40,20 @@ export const useCurrencyStore = create<CurrencyStore>()(
   persist(
     (set, get) => ({
       currency: "USD",
-      setCurrency: (currency) => set({ currency }),
+      hasHydrated: false,
+      setCurrency: (currency) => {
+        set({ currency });
+        if (typeof document !== "undefined") {
+          document.cookie = `kstore_currency=${currency}; path=/; max-age=31536000; SameSite=Lax`;
+        }
+      },
       convertCents: (centsInUsd) => {
-        const rate = CURRENCIES[get().currency]?.rate ?? 1.0;
+        const curr = get().hasHydrated ? get().currency : "USD";
+        const rate = CURRENCIES[curr]?.rate ?? 1.0;
         return Math.round(centsInUsd * rate);
       },
       formatPrice: (centsInUsd) => {
-        const curr = get().currency;
+        const curr = get().hasHydrated ? get().currency : "USD";
         const config = CURRENCIES[curr] ?? CURRENCIES.USD;
         const converted = (centsInUsd * config.rate) / 100;
         try {
@@ -64,6 +72,12 @@ export const useCurrencyStore = create<CurrencyStore>()(
     }),
     {
       name: "kstore-currency",
+      skipHydration: true,
+      onRehydrateStorage: () => (state) => {
+        if (state) {
+          state.hasHydrated = true;
+        }
+      },
     }
   )
 );

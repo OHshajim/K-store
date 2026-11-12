@@ -3,7 +3,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { CartItem, Product, Coupon } from "@/lib/types";
-import { MOCK_COUPONS } from "@/lib/data/mockData";
 
 type CartState = {
   items: CartItem[];
@@ -18,7 +17,7 @@ type CartState = {
   ) => void;
   setQuantity: (productId: string, quantity: number, variantKey?: string) => void;
   removeItem: (productId: string, variantKey?: string) => void;
-  applyCoupon: (code: string) => { success: boolean; message: string };
+  applyCoupon: (code: string) => Promise<{ success: boolean; message: string }>;
   removeCoupon: () => void;
   clear: () => void;
   count: () => number;
@@ -59,26 +58,25 @@ export const useCartStore = create<CartState>()(
             const current = nextItems[existingIndex];
             nextItems[existingIndex] = {
               ...current,
-              quantity: Math.min(current.stock, current.quantity + quantity),
+              quantity: Math.min(product.stock, current.quantity + quantity),
             };
             return { items: nextItems, isCartOpen: true };
           }
 
+          const newItem: CartItem = {
+            productId: product.id,
+            slug: product.slug,
+            name: product.name,
+            priceCents: product.price_cents,
+            image: product.images?.[0] ?? "",
+            quantity: Math.min(product.stock, quantity),
+            stock: product.stock,
+            selectedColor,
+            selectedMaterial,
+          };
+
           return {
-            items: [
-              ...state.items,
-              {
-                productId: product.id,
-                slug: product.slug,
-                name: product.name,
-                priceCents: product.price_cents,
-                image: product.images[0] ?? null,
-                quantity: Math.min(product.stock, quantity),
-                stock: product.stock,
-                selectedColor,
-                selectedMaterial,
-              },
-            ],
+            items: [...state.items, newItem],
             isCartOpen: true,
           };
         });
@@ -116,30 +114,34 @@ export const useCartStore = create<CartState>()(
         }));
       },
 
-      applyCoupon(code) {
+      async applyCoupon(code) {
         const cleanCode = code.trim().toUpperCase();
-        const found = MOCK_COUPONS.find(
-          (c) => c.code.toUpperCase() === cleanCode && c.is_active
-        );
-
-        if (!found) {
-          return { success: false, message: "Invalid or expired promotional code." };
+        if (!cleanCode) {
+          return { success: false, message: "Please enter a promotional code." };
         }
 
         const subtotal = get().subtotalCents();
-        if (subtotal < found.min_spend_cents) {
-          const req = (found.min_spend_cents / 100).toFixed(0);
+        try {
+          const res = await fetch("/api/coupons/validate", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ code: cleanCode, subtotalCents: subtotal }),
+          });
+          const data = await res.json();
+          if (res.ok && data.success && data.coupon) {
+            set({ appliedCoupon: data.coupon });
+            return { success: true, message: data.message };
+          }
           return {
             success: false,
-            message: `Coupon requires a minimum order of $${req}.`,
+            message: data.message || "Invalid or expired promotional code.",
+          };
+        } catch {
+          return {
+            success: false,
+            message: "Unable to validate code at this moment.",
           };
         }
-
-        set({ appliedCoupon: found });
-        return {
-          success: true,
-          message: `Code ${found.code} applied (${found.discount_percent}% off)!`,
-        };
       },
 
       removeCoupon() {
@@ -165,19 +167,20 @@ export const useCartStore = create<CartState>()(
         const subtotal = get().subtotalCents();
         const coupon = get().appliedCoupon;
         if (!coupon) return 0;
+        if (subtotal < coupon.min_spend_cents) return 0;
         return Math.round((subtotal * coupon.discount_percent) / 100);
       },
 
       shippingCents() {
         const subtotal = get().subtotalCents();
-        if (subtotal === 0 || subtotal >= FREE_SHIPPING_THRESHOLD_CENTS) {
-          return 0;
-        }
+        if (subtotal === 0) return 0;
+        if (subtotal >= FREE_SHIPPING_THRESHOLD_CENTS) return 0;
         return STANDARD_SHIPPING_CENTS;
       },
 
       totalCents() {
         const subtotal = get().subtotalCents();
+        if (subtotal === 0) return 0;
         const discount = get().discountCents();
         const shipping = get().shippingCents();
         return Math.max(0, subtotal - discount + shipping);
@@ -185,19 +188,21 @@ export const useCartStore = create<CartState>()(
 
       freeShippingProgress() {
         const subtotal = get().subtotalCents();
-        const qualified = subtotal >= FREE_SHIPPING_THRESHOLD_CENTS;
+        const remaining = Math.max(0, FREE_SHIPPING_THRESHOLD_CENTS - subtotal);
         const percent = Math.min(100, Math.round((subtotal / FREE_SHIPPING_THRESHOLD_CENTS) * 100));
-        const remainingCents = Math.max(0, FREE_SHIPPING_THRESHOLD_CENTS - subtotal);
-        return { percent, remainingCents, qualified };
+        return {
+          percent,
+          remainingCents: remaining,
+          qualified: remaining === 0 && subtotal > 0,
+        };
       },
     }),
     {
-      name: "kstore-cart",
+      name: "kstore-cart-v2",
       partialize: (state) => ({
         items: state.items,
         appliedCoupon: state.appliedCoupon,
       }),
-      skipHydration: true,
     }
   )
 );

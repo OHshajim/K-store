@@ -31,7 +31,7 @@ export async function POST(request: Request) {
 
     try {
       const supabase = await createClient();
-      const { data, error } = await supabase
+      let res = await supabase
         .from("products")
         .insert({
           name: body.name,
@@ -53,8 +53,29 @@ export async function POST(request: Request) {
         .select("*")
         .single();
 
-      if (!error && data) {
-        return NextResponse.json({ product: data, id: data.id });
+      if (res.error && res.error.code === "42703") {
+        // Fall back to base columns if extended columns migration hasn't run yet
+        res = await supabase
+          .from("products")
+          .insert({
+            name: body.name,
+            slug,
+            description: body.description,
+            details: body.details ?? null,
+            price_cents: body.price_cents,
+            compare_at_cents: body.compare_at_cents ?? null,
+            stock: body.stock,
+            images: body.images,
+            is_active: body.is_active,
+            is_featured: body.is_featured,
+            category_id: body.category_id ?? null,
+          })
+          .select("*")
+          .single();
+      }
+
+      if (!res.error && res.data) {
+        return NextResponse.json({ product: res.data, id: res.data.id });
       }
     } catch {
       // Supabase is offline; handle via in-memory mock update for development preview

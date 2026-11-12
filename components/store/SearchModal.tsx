@@ -1,10 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Search, X, ArrowRight, Sparkles } from "lucide-react";
+import { Search, X, ArrowRight, Sparkles, Loader2 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
-import { MOCK_PRODUCTS } from "@/lib/data/mockData";
+import type { Product } from "@/lib/types";
 import { useCurrencyStore } from "@/lib/currency/store";
 
 export function SearchModal({
@@ -15,6 +15,8 @@ export function SearchModal({
   onClose: () => void;
 }) {
   const [query, setQuery] = useState("");
+  const [results, setResults] = useState<Product[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
   const { formatPrice } = useCurrencyStore();
 
   useEffect(() => {
@@ -31,17 +33,30 @@ export function SearchModal({
     };
   }, [isOpen, onClose]);
 
+  useEffect(() => {
+    if (!query.trim()) {
+      setResults([]);
+      setIsLoading(false);
+      return;
+    }
+    const timer = setTimeout(async () => {
+      setIsLoading(true);
+      try {
+        const res = await fetch(`/api/search?q=${encodeURIComponent(query.trim())}`);
+        const data = await res.json();
+        setResults(data.products || []);
+      } catch {
+        setResults([]);
+      } finally {
+        setIsLoading(false);
+      }
+    }, 180);
+    return () => clearTimeout(timer);
+  }, [query]);
+
   if (!isOpen) return null;
 
-  const filteredProducts = query.trim()
-    ? MOCK_PRODUCTS.filter(
-        (p) =>
-          p.name.toLowerCase().includes(query.toLowerCase()) ||
-          p.description.toLowerCase().includes(query.toLowerCase()) ||
-          p.material?.toLowerCase().includes(query.toLowerCase()) ||
-          p.room?.toLowerCase().includes(query.toLowerCase())
-      ).slice(0, 5)
-    : [];
+  const filteredProducts = results;
 
   const popularSearches = [
     "Modular Storage Shelf",
@@ -73,6 +88,9 @@ export function SearchModal({
               placeholder="Search living, workspace, lighting, or materials (e.g. Oak)..."
               className="w-full bg-transparent text-base sm:text-lg text-[#1A1C18] placeholder:text-[#4A483E]/70 focus:outline-none font-sans"
             />
+            {isLoading && (
+              <Loader2 className="w-4 h-4 text-[#B78E69] animate-spin shrink-0" />
+            )}
             {query ? (
               <button
                 onClick={() => setQuery("")}

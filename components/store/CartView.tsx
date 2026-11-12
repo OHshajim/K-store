@@ -11,12 +11,17 @@ import {
   Sparkles,
   ShoppingBag,
 } from "lucide-react";
-import type { StoreSettings } from "@/lib/types";
+import type { StoreSettings, Product } from "@/lib/types";
 import { useCartStore } from "@/lib/cart/store";
 import { useCurrencyStore } from "@/lib/currency/store";
-import { MOCK_PRODUCTS } from "@/lib/data/mockData";
 
-export function CartView({}: { settings?: StoreSettings | null }) {
+export function CartView({
+  settings: _settings,
+  recommendations: initialRecommendations = [],
+}: {
+  settings?: StoreSettings | null;
+  recommendations?: Product[];
+}) {
   const {
     items,
     setQuantity,
@@ -39,17 +44,17 @@ export function CartView({}: { settings?: StoreSettings | null }) {
   const { percent, remainingCents, qualified } = freeShippingProgress();
   const subtotal = subtotalCents();
 
-  const handleApplyCoupon = (e: React.FormEvent) => {
+  const handleApplyCoupon = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!couponCode.trim()) return;
-    const res = applyCoupon(couponCode);
+    const res = await applyCoupon(couponCode);
     setCouponMsg({ text: res.message, isError: !res.success });
     if (res.success) setCouponCode("");
   };
 
   // Recommended upsell items (items not yet in cart)
   const cartIds = items.map((i) => i.productId);
-  const recommendations = MOCK_PRODUCTS.filter((p) => !cartIds.includes(p.id)).slice(0, 3);
+  const recommendations = initialRecommendations.filter((p) => !cartIds.includes(p.id)).slice(0, 3);
 
   if (items.length === 0) {
     return (

@@ -136,6 +136,7 @@ export function ProductDetailView({
               alt={product.name}
               fill
               priority
+              loading="eager"
               sizes="(max-width: 1024px) 100vw, 60vw"
               className="object-cover object-center transition-all duration-300"
             />
@@ -158,7 +159,7 @@ export function ProductDetailView({
                 </span>
               )}
               {hasDiscount && (
-                <span className="px-3 py-1 bg-[#B78E69] text-white text-[11px] font-bold uppercase tracking-wider rounded-md shadow-xs">
+                <span suppressHydrationWarning className="px-3 py-1 bg-[#B78E69] text-white text-[11px] font-bold uppercase tracking-wider rounded-md shadow-xs">
                   Save {formatPrice(product.compare_at_cents! - product.price_cents)}
                 </span>
               )}
@@ -372,7 +373,7 @@ export function ProductDetailView({
               ) : product.stock <= 0 ? (
                 <span>Currently Sold Out</span>
               ) : (
-                <span className="flex items-center gap-1.5" style={{ color: "#FFFFFF" }}>
+                <span suppressHydrationWarning className="flex items-center gap-1.5" style={{ color: "#FFFFFF" }}>
                   <ShoppingBag className="w-4 h-4 text-white" style={{ color: "#FFFFFF" }} /> Add to Cart —{" "}
                   {formatPrice(product.price_cents * quantity)}
                 </span>

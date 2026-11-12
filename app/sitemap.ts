@@ -1,7 +1,9 @@
 import type { MetadataRoute } from "next";
-import { MOCK_PRODUCTS, MOCK_CATEGORIES } from "@/lib/data/mockData";
+import { getProducts, getCategories } from "@/lib/data/catalog";
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export const dynamic = "force-dynamic";
+
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://kstore.com";
   const now = new Date();
 
@@ -45,31 +47,27 @@ export default function sitemap(): MetadataRoute.Sitemap {
     },
   ];
 
-  // Category routes
-  const categoryRoutes: MetadataRoute.Sitemap = MOCK_CATEGORIES.map((cat) => ({
+  // Fetch real database records
+  const [categories, products] = await Promise.all([
+    getCategories(),
+    getProducts({ limit: 100 }),
+  ]);
+
+  // Dynamic category routes
+  const categoryRoutes: MetadataRoute.Sitemap = categories.map((cat) => ({
     url: `${baseUrl}/shop?category=${cat.slug}`,
     lastModified: now,
-    changeFrequency: "weekly" as const,
+    changeFrequency: "daily",
     priority: 0.8,
   }));
 
-  // Room routes
-  const roomSlugs = ["living", "workspace", "kitchen", "bedroom", "bathroom", "lighting"];
-  const roomRoutes: MetadataRoute.Sitemap = roomSlugs.map((slug) => ({
-    url: `${baseUrl}/shop?room=${slug}`,
-    lastModified: now,
-    changeFrequency: "weekly" as const,
-    priority: 0.8,
-  }));
-
-  // Product detail pages
-  const productRoutes: MetadataRoute.Sitemap = MOCK_PRODUCTS.map((prod) => ({
+  // Dynamic product routes
+  const productRoutes: MetadataRoute.Sitemap = products.map((prod) => ({
     url: `${baseUrl}/product/${prod.slug}`,
-    lastModified: now,
-    changeFrequency: "weekly" as const,
-    priority: 0.9,
+    lastModified: new Date(prod.updated_at || now),
+    changeFrequency: "weekly",
+    priority: 0.8,
   }));
 
-  return [...staticRoutes, ...categoryRoutes, ...roomRoutes, ...productRoutes];
+  return [...staticRoutes, ...categoryRoutes, ...productRoutes];
 }
-

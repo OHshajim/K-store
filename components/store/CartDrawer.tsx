@@ -33,10 +33,10 @@ export function CartDrawer() {
   const { percent, remainingCents, qualified } = freeShippingProgress();
   const subtotal = subtotalCents();
 
-  const handleApplyCoupon = (e: React.FormEvent) => {
+  const handleApplyCoupon = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!couponInput.trim()) return;
-    const res = applyCoupon(couponInput);
+    const res = await applyCoupon(couponInput);
     setCouponFeedback({ msg: res.message, err: !res.success });
     if (res.success) setCouponInput("");
   };

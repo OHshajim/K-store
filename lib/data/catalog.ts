@@ -210,13 +210,19 @@ export async function getProducts(options?: {
 }
 
 export async function getProductById(id: string): Promise<Product | null> {
+  const isUuid =
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+      id
+    );
   try {
     const supabase = await createClient();
-    const { data, error } = await supabase
+    const query = supabase
       .from("products")
-      .select("*, category:categories(*)")
-      .eq("id", id)
-      .maybeSingle();
+      .select("*, category:categories(*)");
+
+    const { data, error } = isUuid
+      ? await query.eq("id", id).maybeSingle()
+      : await query.eq("slug", id).maybeSingle();
 
     if (!error && data) {
       return data as Product;
