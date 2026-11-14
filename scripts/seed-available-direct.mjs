@@ -41,7 +41,7 @@ async function seedDirect() {
       sort_order: c.sort_order,
       image_url: c.image_url || null,
     };
-    const { data, error } = await supabase.from("categories").upsert(catData, { onConflict: "slug" }).select();
+    const { error } = await supabase.from("categories").upsert(catData, { onConflict: "slug" });
     if (error) {
       console.error(`Failed category ${c.slug}:`, error.message);
     } else {
@@ -70,7 +70,7 @@ async function seedDirect() {
       is_featured: p.is_featured,
     };
 
-    const { data, error } = await supabase.from("products").upsert(prodData, { onConflict: "slug" }).select();
+    const { error } = await supabase.from("products").upsert(prodData, { onConflict: "slug" });
     if (error) {
       console.error(`Failed product ${p.slug}:`, error.message);
     } else {

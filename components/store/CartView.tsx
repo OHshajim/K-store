@@ -16,7 +16,7 @@ import { useCartStore } from "@/lib/cart/store";
 import { useCurrencyStore } from "@/lib/currency/store";
 
 export function CartView({
-  settings: _settings,
+  settings,
   recommendations: initialRecommendations = [],
 }: {
   settings?: StoreSettings | null;
@@ -108,7 +108,7 @@ export function CartView({
                   <strong className="text-[#292B27]">
                     {formatPrice(remainingCents)}
                   </strong>{" "}
-                  more to unlock complimentary shipping ($150 minimum)
+                  more to unlock complimentary shipping ({settings?.free_shipping_over_cents ? formatPrice(settings.free_shipping_over_cents) : "$150"} minimum)
                 </span>
               )}
               <span className="font-mono text-[#77766E]">{percent}%</span>

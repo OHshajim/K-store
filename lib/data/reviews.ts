@@ -114,9 +114,9 @@ export async function createReview(input: {
     );
   const isOrderUuid =
     input.orderId &&
-    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
-      input.orderId,
-    )
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+        input.orderId,
+      )
       ? input.orderId
       : null;
 
@@ -158,7 +158,7 @@ export async function getPublishedReviews(limit = 4): Promise<Review[]> {
       .limit(limit);
 
     if (data && data.length > 0) return data as Review[];
-  } catch {}
+  } catch { }
   return [];
 }
 

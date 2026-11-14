@@ -127,7 +127,7 @@ export function ProductDetailView({
         const updated = [product.id, ...list.slice(0, 4)];
         sessionStorage.setItem("kstore_recently_viewed", JSON.stringify(updated));
       }
-    } catch {}
+    } catch { }
   }, [product.id]);
 
   // Sticky bottom bar visibility
@@ -233,11 +233,10 @@ export function ProductDetailView({
                   key={index}
                   type="button"
                   onClick={() => setSelectedImage(index)}
-                  className={`relative w-20 h-20 rounded-xl overflow-hidden shrink-0 border-2 transition-all cursor-pointer ${
-                    selectedImage === index
-                      ? "border-[#1A1C18] ring-2 ring-[#1A1C18]/20 scale-102"
-                      : "border-transparent opacity-70 hover:opacity-100"
-                  }`}
+                  className={`relative w-20 h-20 rounded-xl overflow-hidden shrink-0 border-2 transition-all cursor-pointer ${selectedImage === index
+                    ? "border-[#1A1C18] ring-2 ring-[#1A1C18]/20 scale-102"
+                    : "border-transparent opacity-70 hover:opacity-100"
+                    }`}
                 >
                   <Image
                     src={img}
@@ -307,11 +306,10 @@ export function ProductDetailView({
                     key={v.name}
                     type="button"
                     onClick={() => setSelectedColor(v.name)}
-                    className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border text-xs font-medium transition-all cursor-pointer ${
-                      selectedColor === v.name
-                        ? "border-[#1A1C18] bg-white ring-1 ring-[#1A1C18]"
-                        : "border-[#1A1C18]/15 bg-white/50 hover:bg-white text-[#4A483E]"
-                    }`}
+                    className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border text-xs font-medium transition-all cursor-pointer ${selectedColor === v.name
+                      ? "border-[#1A1C18] bg-white ring-1 ring-[#1A1C18]"
+                      : "border-[#1A1C18]/15 bg-white/50 hover:bg-white text-[#4A483E]"
+                      }`}
                   >
                     <span
                       className="w-3.5 h-3.5 rounded-full border border-black/20"
@@ -336,11 +334,10 @@ export function ProductDetailView({
                     key={mat}
                     type="button"
                     onClick={() => setSelectedMaterial(mat)}
-                    className={`px-3.5 py-1.5 rounded-xl border text-xs font-semibold transition-all cursor-pointer ${
-                      selectedMaterial === mat
-                        ? "border-[#1A1C18] bg-[#1A1C18] text-white shadow-xs"
-                        : "border-[#1A1C18]/20 bg-white text-[#1A1C18] hover:bg-[#F4F0E8]"
-                    }`}
+                    className={`px-3.5 py-1.5 rounded-xl border text-xs font-semibold transition-all cursor-pointer ${selectedMaterial === mat
+                      ? "border-[#1A1C18] bg-[#1A1C18] text-white shadow-xs"
+                      : "border-[#1A1C18]/20 bg-white text-[#1A1C18] hover:bg-[#F4F0E8]"
+                      }`}
                   >
                     {mat}
                   </button>
@@ -356,19 +353,18 @@ export function ProductDetailView({
                 Quantity
               </span>
               <span
-                className={`font-semibold ${
-                  product.stock > 5
-                    ? "text-[#8A927A]"
-                    : product.stock > 0
+                className={`font-semibold ${product.stock > 5
+                  ? "text-[#8A927A]"
+                  : product.stock > 0
                     ? "text-amber-700"
                     : "text-red-600"
-                }`}
+                  }`}
               >
                 {product.stock > 5
                   ? "In Stock · Ready to Dispatch"
                   : product.stock > 0
-                  ? `Low Stock · Only ${product.stock} Units Remaining`
-                  : "Out of Stock"}
+                    ? `Low Stock · Only ${product.stock} Units Remaining`
+                    : "Out of Stock"}
               </span>
             </div>
 
@@ -397,11 +393,10 @@ export function ProductDetailView({
               <button
                 type="button"
                 onClick={() => toggleItem(product)}
-                className={`p-3 rounded-xl border transition-all cursor-pointer ${
-                  isFavorited
-                    ? "bg-[#B78E69] text-white border-transparent shadow-md"
-                    : "border-[#1A1C18]/20 bg-white text-[#1A1C18] hover:bg-[#F4F0E8]"
-                }`}
+                className={`p-3 rounded-xl border transition-all cursor-pointer ${isFavorited
+                  ? "bg-[#B78E69] text-white border-transparent shadow-md"
+                  : "border-[#1A1C18]/20 bg-white text-[#1A1C18] hover:bg-[#F4F0E8]"
+                  }`}
                 title={isFavorited ? "In Wishlist" : "Save to Wishlist"}
               >
                 <Heart className={`w-5 h-5 ${isFavorited ? "fill-current" : ""}`} />
@@ -417,13 +412,12 @@ export function ProductDetailView({
               onClick={handleAddToCart}
               data-btn={addedFeedback ? "accent" : product.stock <= 0 ? undefined : "dark"}
               style={{ color: product.stock <= 0 ? "#6B7280" : "#FFFFFF" }}
-              className={`w-full py-4 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 shadow-lg transition-all cursor-pointer ${
-                addedFeedback
-                  ? "bg-[#8A927A] text-white"
-                  : product.stock <= 0
+              className={`w-full py-4 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 shadow-lg transition-all cursor-pointer ${addedFeedback
+                ? "bg-[#8A927A] text-white"
+                : product.stock <= 0
                   ? "bg-gray-300 text-gray-500 cursor-not-allowed"
                   : "bg-[#1A1C18] text-white hover:bg-[#3d403a]"
-              }`}
+                }`}
             >
               {addedFeedback ? (
                 <span className="flex items-center gap-1.5" style={{ color: "#FFFFFF" }}>
@@ -603,9 +597,9 @@ export function ProductDetailView({
               <span className="text-xl font-mono font-bold">
                 {reviewList.length > 0
                   ? (
-                      reviewList.reduce((acc, r) => acc + r.rating, 0) /
-                      reviewList.length
-                    ).toFixed(1)
+                    reviewList.reduce((acc, r) => acc + r.rating, 0) /
+                    reviewList.length
+                  ).toFixed(1)
                   : product.rating ?? "4.9"}
               </span>
               <div className="flex text-[#B78E69]">
@@ -664,9 +658,8 @@ export function ProductDetailView({
                       className="p-1 text-[#B78E69] hover:scale-110 transition-transform cursor-pointer"
                     >
                       <Star
-                        className={`w-6 h-6 ${
-                          star <= userRating ? "fill-current" : "text-[#D8C9B5]"
-                        }`}
+                        className={`w-6 h-6 ${star <= userRating ? "fill-current" : "text-[#D8C9B5]"
+                          }`}
                       />
                     </button>
                   ))}
@@ -725,9 +718,8 @@ export function ProductDetailView({
                     {[...Array(5)].map((_, i) => (
                       <Star
                         key={i}
-                        className={`w-3.5 h-3.5 ${
-                          i < rev.rating ? "fill-current" : "text-[#D8C9B5]"
-                        }`}
+                        className={`w-3.5 h-3.5 ${i < rev.rating ? "fill-current" : "text-[#D8C9B5]"
+                          }`}
                       />
                     ))}
                   </div>

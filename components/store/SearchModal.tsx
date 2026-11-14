@@ -33,16 +33,23 @@ export function SearchModal({
     };
   }, [isOpen, onClose]);
 
-  useEffect(() => {
-    if (!query.trim()) {
+  const handleQueryChange = (val: string) => {
+    setQuery(val);
+    if (!val.trim()) {
       setResults([]);
       setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    const trimmed = query.trim();
+    if (!trimmed) {
       return;
     }
     const timer = setTimeout(async () => {
       setIsLoading(true);
       try {
-        const res = await fetch(`/api/search?q=${encodeURIComponent(query.trim())}`);
+        const res = await fetch(`/api/search?q=${encodeURIComponent(trimmed)}`);
         const data = await res.json();
         setResults(data.products || []);
       } catch {
@@ -56,7 +63,7 @@ export function SearchModal({
 
   if (!isOpen) return null;
 
-  const filteredProducts = results;
+  const filteredProducts = query.trim() ? results : [];
 
   const popularSearches = [
     "Modular Storage Shelf",
@@ -84,7 +91,7 @@ export function SearchModal({
               type="text"
               autoFocus
               value={query}
-              onChange={(e) => setQuery(e.target.value)}
+              onChange={(e) => handleQueryChange(e.target.value)}
               placeholder="Search living, workspace, lighting, or materials (e.g. Oak)..."
               className="w-full bg-transparent text-base sm:text-lg text-[#1A1C18] placeholder:text-[#4A483E]/70 focus:outline-none font-sans"
             />
@@ -93,7 +100,7 @@ export function SearchModal({
             )}
             {query ? (
               <button
-                onClick={() => setQuery("")}
+                onClick={() => handleQueryChange("")}
                 className="p-1 text-[#4A483E] hover:text-[#1A1C18] rounded-full hover:bg-[#F4F0E8] transition-colors"
               >
                 <X className="w-4 h-4" />

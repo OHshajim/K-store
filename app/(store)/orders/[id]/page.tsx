@@ -1,4 +1,4 @@
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import { getCurrentProfile, getCurrentUser } from "@/lib/data/auth";
 import { requireStoreSettings } from "@/lib/data/catalog";
 import { getOrderById } from "@/lib/data/orders";

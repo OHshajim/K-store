@@ -1,7 +1,6 @@
 import { randomUUID } from "crypto";
 import { orderNumberFromId } from "@/lib/format";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { createClient } from "@/lib/supabase/server";
 import { subtotalOfCents, type PricedItem } from "@/lib/data/pricing";
 import type { Order, PaymentMethod } from "@/lib/types";
 
@@ -35,9 +34,9 @@ export async function createOrder(input: CheckoutInput): Promise<Order> {
     const admin = createAdminClient();
     const validUserId =
       input.userId &&
-      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
-        input.userId,
-      )
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+          input.userId,
+        )
         ? input.userId
         : null;
 
@@ -111,7 +110,7 @@ export async function createOrder(input: CheckoutInput): Promise<Order> {
           message: "Order placed",
           created_by: input.userId,
         });
-      } catch {}
+      } catch { }
 
       decrementStock(admin, input.items);
       const fetched = await fetchFullOrder(admin, id);
@@ -187,7 +186,7 @@ async function decrementStock(
         .eq("id", item.productId)
         .gte("stock", item.quantity);
     }
-  } catch {}
+  } catch { }
 }
 
 async function fetchFullOrder(
@@ -209,7 +208,7 @@ async function fetchFullOrder(
       .eq("id", id)
       .maybeSingle();
     if (simpleData) return sortEvents(simpleData as Order | null);
-  } catch {}
+  } catch { }
   return inMemoryOrders.get(id) ?? null;
 }
 
@@ -234,7 +233,7 @@ export async function getOrderById(
       // Allow viewing the order confirmation
       return order;
     }
-  } catch {}
+  } catch { }
 
   const mem = inMemoryOrders.get(id);
   if (mem) {
@@ -253,7 +252,7 @@ export async function getOrderById(
       if (userId && demoOrder.user_id === userId) return demoOrder;
       return demoOrder;
     }
-  } catch {}
+  } catch { }
 
   // If in development mode and the ID looks like an order UUID, provide a graceful fallback so test URLs don't break
   if (process.env.NODE_ENV !== "production" && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) {
@@ -328,7 +327,7 @@ export async function getOrderByTracking(
       .eq("tracking_token", token)
       .maybeSingle();
     if (data) return sortEvents(data as Order | null);
-  } catch {}
+  } catch { }
 
   const mem = inMemoryOrders.get(orderNumber);
   if (mem && mem.tracking_token === token) {
@@ -341,7 +340,7 @@ export async function getOrderByTracking(
       (o) => o.order_number === orderNumber && o.tracking_token === token
     );
     if (demoOrder) return demoOrder;
-  } catch {}
+  } catch { }
 
   return null;
 }
@@ -362,7 +361,7 @@ export async function getOrdersForUser(userId: string): Promise<Order[]> {
 
       if (data && data.length > 0) return data as Order[];
     }
-  } catch {}
+  } catch { }
 
   const matches: Order[] = [];
   for (const ord of inMemoryOrders.values()) {
