@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { requireAdminProfile } from "@/lib/data/auth";
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 const bodySchema = z.object({
   placement: z.enum(["hero", "promo"]).default("hero"),
@@ -19,7 +19,7 @@ export async function POST(request: Request) {
     await requireAdminProfile();
     const body = bodySchema.parse(await request.json());
 
-    const supabase = await createClient();
+    const supabase = createAdminClient();
     const { data, error } = await supabase
       .from("banners")
       .insert({

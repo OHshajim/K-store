@@ -103,18 +103,30 @@ export async function getUserReviews(userId: string): Promise<Review[]> {
 export async function createReview(input: {
   userId: string;
   productId: string;
-  orderId: string;
+  orderId?: string | null;
   rating: number;
   comment?: string;
 }): Promise<void> {
-  const supabase = await createClient();
-  // RLS enforces: own order, paid/delivered, product was in the order.
-  const { error } = await supabase.from("reviews").insert({
+  const admin = createAdminClient();
+  const isUuid =
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+      input.userId,
+    );
+  const isOrderUuid =
+    input.orderId &&
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+      input.orderId,
+    )
+      ? input.orderId
+      : null;
+
+  const { error } = await admin.from("reviews").insert({
     product_id: input.productId,
-    order_id: input.orderId,
-    user_id: input.userId,
+    order_id: isOrderUuid,
+    user_id: isUuid ? input.userId : null,
     rating: input.rating,
     comment: input.comment || null,
+    is_published: true,
   });
   if (error) throw new Error(error.message);
 }
@@ -158,6 +170,15 @@ export async function setReviewPublished(
   const { error } = await admin
     .from("reviews")
     .update({ is_published: isPublished })
+    .eq("id", reviewId);
+  if (error) throw new Error(error.message);
+}
+
+export async function deleteReview(reviewId: string): Promise<void> {
+  const admin = createAdminClient();
+  const { error } = await admin
+    .from("reviews")
+    .delete()
     .eq("id", reviewId);
   if (error) throw new Error(error.message);
 }

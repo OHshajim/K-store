@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { requireAdminProfile } from "@/lib/data/auth";
 import { slugify } from "@/lib/format";
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -24,7 +24,7 @@ export async function PATCH(request: Request, { params }: Params) {
       slug: body.slug?.trim() || (body.name ? slugify(body.name) : undefined),
     };
 
-    const supabase = await createClient();
+    const supabase = createAdminClient();
     const { error } = await supabase
       .from("categories")
       .update(patch)
@@ -44,7 +44,7 @@ export async function DELETE(_request: Request, { params }: Params) {
     await requireAdminProfile();
     const { id } = await params;
 
-    const supabase = await createClient();
+    const supabase = createAdminClient();
     const { error } = await supabase.from("categories").delete().eq("id", id);
     if (error) throw new Error(error.message);
     return NextResponse.json({ ok: true });

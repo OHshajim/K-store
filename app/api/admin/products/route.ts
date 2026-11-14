@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { requireAdminProfile } from "@/lib/data/auth";
 import { slugify } from "@/lib/format";
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import type { Product } from "@/lib/types";
 
 const bodySchema = z.object({
@@ -30,7 +30,7 @@ export async function POST(request: Request) {
     const slug = body.slug?.trim() || slugify(body.name);
 
     try {
-      const supabase = await createClient();
+      const supabase = createAdminClient();
       let res = await supabase
         .from("products")
         .insert({

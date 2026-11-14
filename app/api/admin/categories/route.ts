@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { requireAdminProfile } from "@/lib/data/auth";
 import { slugify } from "@/lib/format";
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 const bodySchema = z.object({
   name: z.string().min(2),
@@ -15,7 +15,7 @@ const bodySchema = z.object({
 export async function GET() {
   try {
     await requireAdminProfile();
-    const supabase = await createClient();
+    const supabase = createAdminClient();
     const { data } = await supabase
       .from("categories")
       .select("*")
@@ -34,7 +34,7 @@ export async function POST(request: Request) {
     const body = bodySchema.parse(await request.json());
     const slug = body.slug?.trim() || slugify(body.name);
 
-    const supabase = await createClient();
+    const supabase = createAdminClient();
     let { data, error } = await supabase
       .from("categories")
       .insert({

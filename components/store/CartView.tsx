@@ -227,7 +227,7 @@ export function CartView({
                     <div className="flex gap-3 items-center mb-2">
                       <div className="relative w-12 h-12 rounded-lg overflow-hidden bg-[#F4F0E8] shrink-0">
                         <Image
-                          src={rec.images[0]}
+                          src={rec.images?.[0] || "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&w=600&q=80"}
                           alt={rec.name}
                           fill
                           className="object-cover"

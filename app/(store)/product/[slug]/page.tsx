@@ -5,6 +5,7 @@ import {
   getProducts,
   requireStoreSettings,
 } from "@/lib/data/catalog";
+import { getProductReviews } from "@/lib/data/reviews";
 import { ProductDetailView } from "@/components/store/ProductDetailView";
 
 export const dynamic = "force-dynamic";
@@ -35,12 +36,15 @@ export default async function ProductPage({ params }: { params: Params }) {
 
   if (!product) notFound();
 
-  // Fetch related products in same category or room
-  const allRelated = await getProducts({
-    room: product.room,
-    categorySlug: product.category?.slug,
-    limit: 5,
-  });
+  // Fetch reviews & related products in same category or room
+  const [reviews, allRelated] = await Promise.all([
+    getProductReviews(product.id),
+    getProducts({
+      room: product.room,
+      categorySlug: product.category?.slug,
+      limit: 5,
+    }),
+  ]);
 
   const related = allRelated.filter((p) => p.id !== product.id).slice(0, 4);
 
@@ -88,6 +92,7 @@ export default async function ProductPage({ params }: { params: Params }) {
         product={product}
         settings={settings}
         relatedProducts={related}
+        reviews={reviews}
       />
     </>
   );

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { requireAdminProfile } from "@/lib/data/auth";
-import { setReviewPublished } from "@/lib/data/reviews";
+import { setReviewPublished, deleteReview } from "@/lib/data/reviews";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -17,6 +17,20 @@ export async function PATCH(request: Request, { params }: Params) {
   } catch (error) {
     const message =
       error instanceof Error ? error.message : "Unable to update review";
+    const status = message.includes("Admin") ? 403 : 400;
+    return NextResponse.json({ error: message }, { status });
+  }
+}
+
+export async function DELETE(_request: Request, { params }: Params) {
+  try {
+    await requireAdminProfile();
+    const { id } = await params;
+    await deleteReview(id);
+    return NextResponse.json({ ok: true });
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "Unable to delete review";
     const status = message.includes("Admin") ? 403 : 400;
     return NextResponse.json({ error: message }, { status });
   }

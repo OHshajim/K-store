@@ -192,7 +192,7 @@ export function SearchModal({
                   >
                     <div className="relative w-14 h-14 rounded-xl overflow-hidden bg-[#F4F0E8] shrink-0 border border-[#1A1C18]/10">
                       <Image
-                        src={p.images[0]}
+                        src={p.images?.[0] || "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&w=600&q=80"}
                         alt={p.name}
                         fill
                         className="object-cover group-hover:scale-105 transition-transform"

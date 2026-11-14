@@ -25,12 +25,30 @@ export function Footer({
 }) {
   const [newsletterEmail, setNewsletterEmail] = useState("");
   const [subscribed, setSubscribed] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [notice, setNotice] = useState<string | null>(null);
 
-  const handleNewsletterSubmit = (e: React.FormEvent) => {
+  const handleNewsletterSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newsletterEmail.trim()) return;
-    setSubscribed(true);
-    setNewsletterEmail("");
+    setSubmitting(true);
+    setNotice(null);
+    try {
+      const res = await fetch("/api/newsletter", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: newsletterEmail.trim() }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Subscription failed");
+      setSubscribed(true);
+      setNotice(data.message || "Welcome to Kstore private circle.");
+      setNewsletterEmail("");
+    } catch (err) {
+      setNotice(err instanceof Error ? err.message : "Unable to subscribe");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -216,7 +234,7 @@ export function Footer({
             </p>
             {subscribed ? (
               <div className="p-3 bg-white/10 rounded-lg text-xs text-[#8A927A] font-medium border border-[#8A927A]/30">
-                Welcome to Kstore. Please check your inbox to confirm your subscription.
+                {notice || "Welcome to Kstore. Please check your inbox to confirm your subscription."}
               </div>
             ) : (
               <form onSubmit={handleNewsletterSubmit} className="space-y-2">
@@ -226,17 +244,22 @@ export function Footer({
                     required
                     placeholder="Enter your email"
                     value={newsletterEmail}
+                    disabled={submitting}
                     onChange={(e) => setNewsletterEmail(e.target.value)}
-                    className="w-full bg-white/10 text-white placeholder:text-white/40 text-xs px-3.5 py-2.5 rounded-lg border border-white/20 focus:outline-none focus:ring-1 focus:ring-[#D8C9B5]"
+                    className="w-full bg-white/10 text-white placeholder:text-white/40 text-xs px-3.5 py-2.5 rounded-lg border border-white/20 focus:outline-none focus:ring-1 focus:ring-[#D8C9B5] disabled:opacity-50"
                   />
                   <button
                     type="submit"
-                    className="absolute right-1 top-1 bottom-1 px-3 bg-[#B78E69] text-white rounded-md text-xs font-medium hover:bg-[#a57d59] transition-colors flex items-center justify-center cursor-pointer"
+                    disabled={submitting}
+                    className="absolute right-1 top-1 bottom-1 px-3 bg-[#B78E69] text-white rounded-md text-xs font-medium hover:bg-[#a57d59] transition-colors flex items-center justify-center cursor-pointer disabled:opacity-50"
                     aria-label="Subscribe"
                   >
                     <ArrowRight className="w-3.5 h-3.5" />
                   </button>
                 </div>
+                {notice && (
+                  <span className="text-[11px] text-rose-300 block">{notice}</span>
+                )}
                 <span className="text-[10px] text-white/50 block">
                   By subscribing, you agree to our privacy policy and consent to email updates. Unsubscribe anytime.
                 </span>

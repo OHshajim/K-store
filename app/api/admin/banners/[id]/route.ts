@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { requireAdminProfile } from "@/lib/data/auth";
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -22,7 +22,7 @@ export async function PATCH(request: Request, { params }: Params) {
     const { id } = await params;
     const body = bodySchema.parse(await request.json());
 
-    const supabase = await createClient();
+    const supabase = createAdminClient();
     const { error } = await supabase
       .from("banners")
       .update(body)
@@ -42,7 +42,7 @@ export async function DELETE(_request: Request, { params }: Params) {
     await requireAdminProfile();
     const { id } = await params;
 
-    const supabase = await createClient();
+    const supabase = createAdminClient();
     const { error } = await supabase.from("banners").delete().eq("id", id);
     if (error) throw new Error(error.message);
     return NextResponse.json({ ok: true });

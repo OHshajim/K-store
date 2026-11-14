@@ -7,9 +7,11 @@ export function NewsletterSection() {
   const [email, setEmail] = useState("");
   const [consent, setConsent] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
   const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !email.includes("@")) {
       setError("Please provide a valid email address.");
@@ -20,8 +22,23 @@ export function NewsletterSection() {
       return;
     }
     setError(null);
-    setSubmitted(true);
-    setEmail("");
+    setIsSubmitting(true);
+    try {
+      const res = await fetch("/api/newsletter", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Subscription failed");
+      setSuccessMessage(data.message || "Thank you for welcoming Kstore into your world.");
+      setSubmitted(true);
+      setEmail("");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unable to subscribe at this moment.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -49,7 +66,7 @@ export function NewsletterSection() {
               You are on the list.
             </h4>
             <p className="text-xs text-[#D8C9B5]">
-              Thank you for welcoming Kstore into your world. A confirmation has been dispatched.
+              {successMessage || "Thank you for welcoming Kstore into your world. A confirmation has been dispatched."}
             </p>
           </div>
         ) : (
@@ -59,20 +76,22 @@ export function NewsletterSection() {
                 <Mail className="w-4 h-4 text-[#D8C9B5]/70 absolute left-4 top-1/2 -translate-y-1/2" />
                 <input
                   type="email"
+                  disabled={isSubmitting}
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="Enter your email address"
-                  className="w-full pl-11 pr-4 py-3.5 bg-white/10 border border-white/20 rounded-2xl text-sm text-white placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-[#D8C9B5] transition-all"
+                  className="w-full pl-11 pr-4 py-3.5 bg-white/10 border border-white/20 rounded-2xl text-sm text-white placeholder:text-white/50 focus:outline-none focus:ring-2 focus:ring-[#D8C9B5] transition-all disabled:opacity-50"
                 />
               </div>
 
               <button
                 type="submit"
+                disabled={isSubmitting}
                 data-btn="accent"
                 style={{ color: "#FFFFFF", backgroundColor: "#B78E69" }}
-                className="px-8 py-3.5 bg-[#B78E69] hover:bg-[#a67c57] text-white text-sm font-semibold rounded-2xl transition-all shadow-lg flex items-center justify-center gap-2 cursor-pointer shrink-0"
+                className="px-8 py-3.5 bg-[#B78E69] hover:bg-[#a67c57] text-white text-sm font-semibold rounded-2xl transition-all shadow-lg flex items-center justify-center gap-2 cursor-pointer shrink-0 disabled:opacity-50"
               >
-                <span style={{ color: "#FFFFFF" }}>Subscribe</span>
+                <span style={{ color: "#FFFFFF" }}>{isSubmitting ? "Subscribing…" : "Subscribe"}</span>
                 <ArrowRight className="w-4 h-4 text-white" style={{ color: "#FFFFFF" }} />
               </button>
             </div>

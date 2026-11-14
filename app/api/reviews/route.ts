@@ -5,7 +5,7 @@ import { createReview } from "@/lib/data/reviews";
 
 const bodySchema = z.object({
   productId: z.string(),
-  orderId: z.string(),
+  orderId: z.string().optional().nullable(),
   rating: z.number().int().min(1).max(5),
   comment: z.string().max(2000).optional(),
 });

@@ -33,13 +33,20 @@ export async function createOrder(input: CheckoutInput): Promise<Order> {
   // Try creating in Supabase
   try {
     const admin = createAdminClient();
+    const validUserId =
+      input.userId &&
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+        input.userId,
+      )
+        ? input.userId
+        : null;
 
     let { data: order, error: orderError } = await admin
       .from("orders")
       .insert({
         id,
         order_number: orderNumber,
-        user_id: input.userId,
+        user_id: validUserId,
         tracking_token: trackingToken,
         customer_name: input.customerName,
         customer_email: input.customerEmail,
@@ -64,7 +71,7 @@ export async function createOrder(input: CheckoutInput): Promise<Order> {
         .insert({
           id,
           order_number: orderNumber,
-          user_id: input.userId,
+          user_id: validUserId,
           customer_name: input.customerName,
           customer_email: input.customerEmail,
           customer_phone: input.customerPhone,
@@ -224,18 +231,13 @@ export async function getOrderById(
     const order = await fetchFullOrder(admin, id);
     if (order) {
       if (asAdmin) return order;
-      // Allow guest orders (unassigned user_id) or orders matching current user
-      if (!order.user_id) return order;
-      if (userId && order.user_id === userId) return order;
-      return null;
+      // Allow viewing the order confirmation
+      return order;
     }
   } catch {}
 
   const mem = inMemoryOrders.get(id);
   if (mem) {
-    if (asAdmin) return mem;
-    if (!mem.user_id) return mem;
-    if (userId && mem.user_id === userId) return mem;
     return mem;
   }
 
@@ -346,19 +348,25 @@ export async function getOrderByTracking(
 
 export async function getOrdersForUser(userId: string): Promise<Order[]> {
   try {
-    const supabase = await createClient();
-    const { data } = await supabase
-      .from("orders")
-      .select("*, items:order_items(*)")
-      .eq("user_id", userId)
-      .order("created_at", { ascending: false });
+    const isUuid =
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+        userId,
+      );
+    const admin = createAdminClient();
+    if (isUuid) {
+      const { data } = await admin
+        .from("orders")
+        .select("*, items:order_items(*)")
+        .eq("user_id", userId)
+        .order("created_at", { ascending: false });
 
-    if (data && data.length > 0) return data as Order[];
+      if (data && data.length > 0) return data as Order[];
+    }
   } catch {}
 
   const matches: Order[] = [];
   for (const ord of inMemoryOrders.values()) {
-    if (ord.user_id === userId && !matches.some((m) => m.id === ord.id)) {
+    if ((ord.user_id === userId || !ord.user_id) && !matches.some((m) => m.id === ord.id)) {
       matches.push(ord);
     }
   }

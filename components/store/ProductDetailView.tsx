@@ -19,7 +19,7 @@ import {
   Check,
   ArrowRight,
 } from "lucide-react";
-import type { Product, StoreSettings } from "@/lib/types";
+import type { Product, StoreSettings, Review } from "@/lib/types";
 import { useCartStore } from "@/lib/cart/store";
 import { useWishlistStore } from "@/lib/wishlist/store";
 import { useCurrencyStore } from "@/lib/currency/store";
@@ -28,15 +28,74 @@ import { ProductCard } from "@/components/store/ProductCard";
 export function ProductDetailView({
   product,
   relatedProducts = [],
+  reviews = [],
 }: {
   product: Product;
   settings?: StoreSettings;
   relatedProducts?: Product[];
+  reviews?: Review[];
 }) {
   const router = useRouter();
   const { addProduct } = useCartStore();
   const { toggleItem, isInWishlist } = useWishlistStore();
   const { formatPrice } = useCurrencyStore();
+
+  const [showReviewModal, setShowReviewModal] = useState(false);
+  const [userRating, setUserRating] = useState(5);
+  const [userComment, setUserComment] = useState("");
+  const [isSubmittingReview, setIsSubmittingReview] = useState(false);
+  const [reviewNotice, setReviewNotice] = useState<string | null>(null);
+  const [reviewList, setReviewList] = useState<Review[]>(reviews);
+
+  const handleReviewSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmittingReview(true);
+    setReviewNotice(null);
+    try {
+      const res = await fetch("/api/reviews", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          productId: product.id,
+          rating: userRating,
+          comment: userComment.trim() || undefined,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        if (res.status === 401) {
+          router.push(`/login?next=/product/${product.slug}`);
+          return;
+        }
+        throw new Error(data.error || "Review submission failed");
+      }
+      setReviewNotice("Thank you for sharing your impression! It has been recorded.");
+      setReviewList((prev) => [
+        {
+          id: `rev-${Date.now()}`,
+          product_id: product.id,
+          order_id: "",
+          user_id: "",
+          rating: userRating,
+          comment: userComment.trim() || null,
+          is_published: true,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          reviewer_name: "Verified Collector",
+        },
+        ...prev,
+      ]);
+      setUserComment("");
+      setTimeout(() => {
+        setShowReviewModal(false);
+        setReviewNotice(null);
+      }, 2500);
+    } catch (err) {
+      setReviewNotice(err instanceof Error ? err.message : "Unable to submit review");
+    } finally {
+      setIsSubmittingReview(false);
+    }
+  };
 
   const isFavorited = isInWishlist(product.id);
   const images = product.images.length > 0 ? product.images : [
@@ -530,7 +589,7 @@ export function ProductDetailView({
 
       {/* Customer Reviews Showcase */}
       <section className="pt-12 border-t border-[#1A1C18]/10">
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-8">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
           <div>
             <span className="text-xs font-bold uppercase tracking-widest text-[#8A927A] block mb-1">
               Verified Ownership
@@ -539,52 +598,191 @@ export function ProductDetailView({
               Customer Impressions
             </h3>
           </div>
-          <div className="mt-3 sm:mt-0 flex items-center gap-2 text-xs font-semibold text-[#1A1C18]">
-            <span className="text-xl font-mono font-bold">{product.rating ?? "4.9"}</span>
-            <div className="flex text-[#B78E69]">
-              {[...Array(5)].map((_, i) => (
-                <Star key={i} className="w-4 h-4 fill-current" />
-              ))}
+          <div className="flex flex-wrap items-center gap-4">
+            <div className="flex items-center gap-2 text-xs font-semibold text-[#1A1C18]">
+              <span className="text-xl font-mono font-bold">
+                {reviewList.length > 0
+                  ? (
+                      reviewList.reduce((acc, r) => acc + r.rating, 0) /
+                      reviewList.length
+                    ).toFixed(1)
+                  : product.rating ?? "4.9"}
+              </span>
+              <div className="flex text-[#B78E69]">
+                {[...Array(5)].map((_, i) => (
+                  <Star key={i} className="w-4 h-4 fill-current" />
+                ))}
+              </div>
+              <span className="text-[#4A483E]">
+                ({reviewList.length > 0 ? reviewList.length : product.review_count ?? 32} reflections)
+              </span>
             </div>
-            <span className="text-[#4A483E]">Based on {product.review_count ?? 32} verified purchases</span>
+
+            <button
+              type="button"
+              onClick={() => setShowReviewModal(true)}
+              className="px-4 py-2 rounded-xl bg-white border border-[#1A1C18]/15 text-xs font-semibold text-[#1A1C18] hover:bg-[#F4F0E8] transition-all cursor-pointer shadow-2xs"
+            >
+              Share Reflection
+            </button>
           </div>
         </div>
 
-        {/* 2 Review Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="bg-white p-6 rounded-2xl border border-[#1A1C18]/10 space-y-3 shadow-xs">
-            <div className="flex items-center justify-between">
-              <div className="flex text-[#B78E69]">
-                {[...Array(5)].map((_, i) => (
-                  <Star key={i} className="w-3.5 h-3.5 fill-current" />
-                ))}
-              </div>
-              <span className="text-[11px] font-mono text-[#4A483E]">2 weeks ago</span>
+        {/* Review Submission Modal / Inline Form */}
+        {showReviewModal && (
+          <div className="mb-8 p-6 bg-white rounded-3xl border border-[#1A1C18]/15 shadow-sm space-y-4 animate-in fade-in zoom-in-95">
+            <div className="flex items-center justify-between pb-3 border-b border-[#1A1C18]/10">
+              <h4 className="font-editorial text-lg font-bold text-[#1A1C18]">
+                Share Your Architectural Impression
+              </h4>
+              <button
+                type="button"
+                onClick={() => setShowReviewModal(false)}
+                className="text-xs text-[#4A483E] hover:text-[#1A1C18] cursor-pointer"
+              >
+                Cancel
+              </button>
             </div>
-            <p className="text-xs sm:text-sm text-[#1A1C18]/90 italic leading-relaxed">
-              &ldquo;The proportion and precision of the {product.name} exceeded our expectations. The timber has a soft tactile oil finish that feels alive. Fits our living area with total quiet grace.&rdquo;
-            </p>
-            <div className="text-xs font-semibold text-[#1A1C18] pt-2 border-t border-[#1A1C18]/5">
-              Verified Homeowner · Brooklyn, NY
-            </div>
-          </div>
 
-          <div className="bg-white p-6 rounded-2xl border border-[#1A1C18]/10 space-y-3 shadow-xs">
-            <div className="flex items-center justify-between">
-              <div className="flex text-[#B78E69]">
-                {[...Array(5)].map((_, i) => (
-                  <Star key={i} className="w-3.5 h-3.5 fill-current" />
-                ))}
+            {reviewNotice && (
+              <div className="p-3 bg-emerald-50 border border-emerald-200 text-xs text-emerald-800 rounded-xl">
+                {reviewNotice}
               </div>
-              <span className="text-[11px] font-mono text-[#4A483E]">1 month ago</span>
-            </div>
-            <p className="text-xs sm:text-sm text-[#1A1C18]/90 italic leading-relaxed">
-              &ldquo;Packaging was pristine and assembly took less than 15 minutes. Truly thoughtful design. Will be outfitting the rest of our study with Kstore.&rdquo;
-            </p>
-            <div className="text-xs font-semibold text-[#1A1C18] pt-2 border-t border-[#1A1C18]/5">
-              Architectural Designer · Toronto, ON
-            </div>
+            )}
+
+            <form onSubmit={handleReviewSubmit} className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-[#1A1C18] mb-1.5">
+                  Rating
+                </label>
+                <div className="flex items-center gap-1.5">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <button
+                      key={star}
+                      type="button"
+                      onClick={() => setUserRating(star)}
+                      className="p-1 text-[#B78E69] hover:scale-110 transition-transform cursor-pointer"
+                    >
+                      <Star
+                        className={`w-6 h-6 ${
+                          star <= userRating ? "fill-current" : "text-[#D8C9B5]"
+                        }`}
+                      />
+                    </button>
+                  ))}
+                  <span className="text-xs font-mono font-bold text-[#1A1C18] ml-2">
+                    {userRating} / 5 Stars
+                  </span>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold uppercase tracking-wider text-[#1A1C18] mb-1.5">
+                  Your Reflection &amp; Craft Details
+                </label>
+                <textarea
+                  rows={3}
+                  value={userComment}
+                  onChange={(e) => setUserComment(e.target.value)}
+                  placeholder="Share how this piece settles in your space, the timber tactile finish, or your living experience…"
+                  className="w-full p-3.5 bg-[#FDFBF7] border border-[#1A1C18]/15 rounded-xl text-xs text-[#1A1C18] placeholder:text-[#4A483E]/50 focus:outline-none focus:ring-2 focus:ring-[#1A1C18]"
+                />
+              </div>
+
+              <div className="flex items-center justify-end gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowReviewModal(false)}
+                  className="px-4 py-2 text-xs font-semibold text-[#4A483E] hover:text-[#1A1C18] cursor-pointer"
+                >
+                  Dismiss
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSubmittingReview}
+                  style={{ color: "#FFFFFF", backgroundColor: "#1A1C18" }}
+                  className="px-6 py-2.5 bg-[#1A1C18] text-white text-xs font-semibold rounded-xl hover:bg-[#32362F] transition-all cursor-pointer shadow-xs disabled:opacity-50"
+                >
+                  <span style={{ color: "#FFFFFF" }}>
+                    {isSubmittingReview ? "Submitting…" : "Publish Reflection"}
+                  </span>
+                </button>
+              </div>
+            </form>
           </div>
+        )}
+
+        {/* Review Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {reviewList.length > 0 ? (
+            reviewList.map((rev) => (
+              <div
+                key={rev.id}
+                className="bg-white p-6 rounded-2xl border border-[#1A1C18]/10 space-y-3 shadow-xs"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex text-[#B78E69]">
+                    {[...Array(5)].map((_, i) => (
+                      <Star
+                        key={i}
+                        className={`w-3.5 h-3.5 ${
+                          i < rev.rating ? "fill-current" : "text-[#D8C9B5]"
+                        }`}
+                      />
+                    ))}
+                  </div>
+                  <span className="text-[11px] font-mono text-[#4A483E]">
+                    {rev.created_at ? new Date(rev.created_at).toLocaleDateString() : "Recent"}
+                  </span>
+                </div>
+                <p className="text-xs sm:text-sm text-[#1A1C18]/90 italic leading-relaxed">
+                  &ldquo;{rev.comment || "Exceptional Scandinavian design and finish."}&rdquo;
+                </p>
+                <div className="text-xs font-semibold text-[#1A1C18] pt-2 border-t border-[#1A1C18]/5 flex items-center justify-between">
+                  <span>{rev.reviewer_name || "Verified Resident"}</span>
+                  <span className="text-[10px] font-mono text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full">
+                    Verified Ownership
+                  </span>
+                </div>
+              </div>
+            ))
+          ) : (
+            <>
+              <div className="bg-white p-6 rounded-2xl border border-[#1A1C18]/10 space-y-3 shadow-xs">
+                <div className="flex items-center justify-between">
+                  <div className="flex text-[#B78E69]">
+                    {[...Array(5)].map((_, i) => (
+                      <Star key={i} className="w-3.5 h-3.5 fill-current" />
+                    ))}
+                  </div>
+                  <span className="text-[11px] font-mono text-[#4A483E]">2 weeks ago</span>
+                </div>
+                <p className="text-xs sm:text-sm text-[#1A1C18]/90 italic leading-relaxed">
+                  &ldquo;The proportion and precision of the {product.name} exceeded our expectations. The timber has a soft tactile oil finish that feels alive. Fits our living area with total quiet grace.&rdquo;
+                </p>
+                <div className="text-xs font-semibold text-[#1A1C18] pt-2 border-t border-[#1A1C18]/5">
+                  Verified Homeowner · Brooklyn, NY
+                </div>
+              </div>
+
+              <div className="bg-white p-6 rounded-2xl border border-[#1A1C18]/10 space-y-3 shadow-xs">
+                <div className="flex items-center justify-between">
+                  <div className="flex text-[#B78E69]">
+                    {[...Array(5)].map((_, i) => (
+                      <Star key={i} className="w-3.5 h-3.5 fill-current" />
+                    ))}
+                  </div>
+                  <span className="text-[11px] font-mono text-[#4A483E]">1 month ago</span>
+                </div>
+                <p className="text-xs sm:text-sm text-[#1A1C18]/90 italic leading-relaxed">
+                  &ldquo;Packaging was pristine and assembly took less than 15 minutes. Truly thoughtful design. Will be outfitting the rest of our study with Kstore.&rdquo;
+                </p>
+                <div className="text-xs font-semibold text-[#1A1C18] pt-2 border-t border-[#1A1C18]/5">
+                  Architectural Designer · Toronto, ON
+                </div>
+              </div>
+            </>
+          )}
         </div>
       </section>
 

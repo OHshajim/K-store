@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { requireAdminProfile } from "@/lib/data/auth";
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 const bodySchema = z.object({
   store_name: z.string().min(2),
@@ -23,7 +23,7 @@ export async function PATCH(request: Request) {
     await requireAdminProfile();
     const body = bodySchema.parse(await request.json());
 
-    const supabase = await createClient();
+    const supabase = createAdminClient();
     let { error } = await supabase
       .from("store_settings")
       .update({
