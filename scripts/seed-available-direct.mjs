@@ -39,6 +39,7 @@ async function seedDirect() {
       slug: c.slug,
       description: c.description,
       sort_order: c.sort_order,
+      image_url: c.image_url || null,
     };
     const { data, error } = await supabase.from("categories").upsert(catData, { onConflict: "slug" }).select();
     if (error) {

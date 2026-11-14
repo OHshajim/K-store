@@ -23,7 +23,7 @@ export const MOCK_CATEGORIES: Category[] = [
     slug: "living-room",
     description: "Architectural storage, low-profile seating, and solid timber tables designed for serene shared spaces.",
     sort_order: 1,
-    image_url: "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&w=1200&q=80",
+    image_url: "https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=1200&q=85",
   },
   {
     id: "cat-workspace",
@@ -31,7 +31,7 @@ export const MOCK_CATEGORIES: Category[] = [
     slug: "workspace",
     description: "Quiet focus tools, precision desk organizers, and cable architecture for calm productivity.",
     sort_order: 2,
-    image_url: "https://images.unsplash.com/photo-1518455027359-f3f8164ba6bd?auto=format&fit=crop&w=1200&q=80",
+    image_url: "https://images.unsplash.com/photo-1518455027359-f3f8164ba6bd?auto=format&fit=crop&w=1200&q=85",
   },
   {
     id: "cat-kitchen",
@@ -39,7 +39,7 @@ export const MOCK_CATEGORIES: Category[] = [
     slug: "kitchen",
     description: "Modular pantry jars, tactile stoneware trays, and prep organization crafted for everyday ritual.",
     sort_order: 3,
-    image_url: "https://images.unsplash.com/photo-1556911220-e15b29be8c8f?auto=format&fit=crop&w=1200&q=80",
+    image_url: "https://images.unsplash.com/photo-1556911220-e15b29be8c8f?auto=format&fit=crop&w=1200&q=85",
   },
   {
     id: "cat-bedroom",
@@ -47,7 +47,7 @@ export const MOCK_CATEGORIES: Category[] = [
     slug: "bedroom",
     description: "Minimalist nightstands, soft linen baskets, and bedside sanctuaries designed for restorative rest.",
     sort_order: 4,
-    image_url: "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1200&q=80",
+    image_url: "https://images.unsplash.com/photo-1616594039964-ae9021a400a0?auto=format&fit=crop&w=1200&q=85",
   },
   {
     id: "cat-bathroom",
@@ -55,7 +55,7 @@ export const MOCK_CATEGORIES: Category[] = [
     slug: "bathroom",
     description: "Water-resistant timber shelving, matte stoneware canisters, and towel architecture for spa-like simplicity.",
     sort_order: 5,
-    image_url: "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?auto=format&fit=crop&w=1200&q=80",
+    image_url: "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?auto=format&fit=crop&w=1200&q=85",
   },
   {
     id: "cat-lighting",
@@ -63,7 +63,7 @@ export const MOCK_CATEGORIES: Category[] = [
     slug: "lighting",
     description: "Sculptural luminaires and dimmable ambient lamps that cast warm, glare-free atmospheres.",
     sort_order: 6,
-    image_url: "https://images.unsplash.com/photo-1507473885765-e6ed057f782c?auto=format&fit=crop&w=1200&q=80",
+    image_url: "https://images.unsplash.com/photo-1507473885765-e6ed057f782c?auto=format&fit=crop&w=1200&q=85",
   },
 ];
 
