@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { ArrowRight, Check, Mail, Sparkles } from "lucide-react";
 
 export function NewsletterSection() {
@@ -106,7 +107,22 @@ export function NewsletterSection() {
               />
               <span>
                 I agree to receive personalized newsletters and design releases. You can unsubscribe at any time in accordance with our{" "}
-                <span className="underline text-white">privacy policy</span>.
+                <Link
+                  href="/privacy"
+                  onClick={(e) => e.stopPropagation()}
+                  className="underline text-white hover:text-[#B78E69] transition-colors cursor-pointer font-medium"
+                >
+                  privacy policy
+                </Link>{" "}
+                and{" "}
+                <Link
+                  href="/terms"
+                  onClick={(e) => e.stopPropagation()}
+                  className="underline text-white hover:text-[#B78E69] transition-colors cursor-pointer font-medium"
+                >
+                  terms
+                </Link>
+                .
               </span>
             </label>
 

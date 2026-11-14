@@ -212,8 +212,13 @@ export function Footer({
                 </Link>
               </li>
               <li>
+                <Link href="/privacy" className="hover:text-white transition-colors">
+                  Privacy Policy
+                </Link>
+              </li>
+              <li>
                 <Link href="/terms" className="hover:text-white transition-colors">
-                  Privacy Policy & Terms
+                  Terms of Service
                 </Link>
               </li>
               <li>
@@ -261,7 +266,15 @@ export function Footer({
                   <span className="text-[11px] text-rose-300 block">{notice}</span>
                 )}
                 <span className="text-[10px] text-white/50 block">
-                  By subscribing, you agree to our privacy policy and consent to email updates. Unsubscribe anytime.
+                  By subscribing, you agree to our{" "}
+                  <Link href="/privacy" className="underline text-[#D8C9B5] hover:text-white transition-colors cursor-pointer">
+                    privacy policy
+                  </Link>{" "}
+                  and{" "}
+                  <Link href="/terms" className="underline text-[#D8C9B5] hover:text-white transition-colors cursor-pointer">
+                    terms
+                  </Link>
+                  , and consent to email updates. Unsubscribe anytime.
                 </span>
               </form>
             )}
@@ -273,8 +286,12 @@ export function Footer({
           <div className="flex flex-wrap items-center justify-center md:justify-start gap-x-6 gap-y-2">
             <span>© {new Date().getFullYear()} {storeName} International Ltd. All rights reserved.</span>
             <span className="hidden sm:inline text-white/20">·</span>
+            <Link href="/privacy" className="hover:text-white transition-colors">
+              Privacy Policy
+            </Link>
+            <span className="hidden sm:inline text-white/20">·</span>
             <Link href="/terms" className="hover:text-white transition-colors">
-              Privacy &amp; Terms
+              Terms of Service
             </Link>
             <span className="hidden sm:inline text-white/20">·</span>
             <Link href="/about" className="hover:text-white transition-colors">
