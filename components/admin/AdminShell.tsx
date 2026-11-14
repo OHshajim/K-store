@@ -11,6 +11,7 @@ import {
 import {
   ArrowLeftIcon,
   ArrowRightOnRectangleIcon,
+  BookOpenIcon,
   Cog6ToothIcon,
   CubeIcon,
   HomeIcon,
@@ -168,6 +169,12 @@ export function AdminShell({
                   ★ 4.9
                 </span>
               }
+            />
+            <SideNavItem
+              label="Journal & Essays"
+              href="/admin/journal"
+              icon={BookOpenIcon}
+              isSelected={pathname.startsWith("/admin/journal")}
             />
           </SideNavSection>
 

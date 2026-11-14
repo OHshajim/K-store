@@ -83,7 +83,7 @@ export async function getProducts(options?: {
   inStockOnly?: boolean;
   limit?: number;
 }): Promise<Product[]> {
-  let products: Product[] = [];
+  let products: Product[] | null = null;
 
   try {
     const supabase = await createClient();
@@ -101,15 +101,15 @@ export async function getProducts(options?: {
     if (options?.limit) query = query.limit(options.limit);
 
     const { data, error } = await query;
-    if (!error && data && data.length > 0) {
+    if (!error && Array.isArray(data)) {
       products = data as Product[];
     }
   } catch {
     // Supabase query failed or not active
   }
 
-  // If database was empty or unreachable, use high-fidelity demonstration catalog
-  if (products.length === 0) {
+  // Only fall back to demonstration catalog if database was completely unreachable
+  if (products === null) {
     products = MOCK_PRODUCTS.map((prod) => {
       const cat = MOCK_CATEGORIES.find((c) => c.id === prod.category_id);
       return { ...prod, category: cat ?? null };
@@ -279,7 +279,7 @@ export async function getAllProductSlugs(): Promise<string[]> {
   return MOCK_PRODUCTS.map((p) => p.slug);
 }
 
-// Special Feature: NORDEN Fit Assistant deterministic space matcher
+// Special Feature: Fit Assistant deterministic space matcher
 export async function getFitRecommendations(query: NordenFitQuery): Promise<FitRecommendation[]> {
   const allProducts = await getProducts();
   const recommendations: FitRecommendation[] = [];

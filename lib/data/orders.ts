@@ -17,6 +17,9 @@ export type CheckoutInput = {
   shippingCents: number;
 };
 
+// System guest account ID in auth.users to satisfy foreign key & NOT NULL constraints on guest checkouts
+const SYSTEM_GUEST_USER_ID = "86f1777f-552c-4211-bfd4-8bffc3a77abb";
+
 // Global in-memory fallback registry for development & test modes
 const inMemoryOrders = new Map<string, Order>();
 
@@ -26,26 +29,26 @@ export async function createOrder(input: CheckoutInput): Promise<Order> {
   const id = randomUUID();
   const orderNumber = orderNumberFromId(id);
   const trackingToken = randomUUID();
-  const paymentStatus = input.paymentMethod === "cash_on_delivery" ? "cod_pending" : "pending";
+  const paymentStatus =
+    input.paymentMethod === "cash_on_delivery" ? "cod_pending" : "awaiting_payment";
   const now = new Date().toISOString();
 
   // Try creating in Supabase
   try {
     const admin = createAdminClient();
-    const validUserId =
+    const isExplicitUser =
       input.userId &&
-        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
-          input.userId,
-        )
-        ? input.userId
-        : null;
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+        input.userId,
+      );
+    const targetUserId = isExplicitUser ? input.userId! : SYSTEM_GUEST_USER_ID;
 
-    let { data: order, error: orderError } = await admin
+    const { data: order, error: orderError } = await admin
       .from("orders")
       .insert({
         id,
         order_number: orderNumber,
-        user_id: validUserId,
+        user_id: targetUserId,
         tracking_token: trackingToken,
         customer_name: input.customerName,
         customer_email: input.customerEmail,
@@ -63,35 +66,12 @@ export async function createOrder(input: CheckoutInput): Promise<Order> {
       .select("*")
       .single();
 
-    if (orderError && orderError.code === "42703") {
-      // Retry without tracking_token if column has not been migrated yet
-      const retry = await admin
-        .from("orders")
-        .insert({
-          id,
-          order_number: orderNumber,
-          user_id: validUserId,
-          customer_name: input.customerName,
-          customer_email: input.customerEmail,
-          customer_phone: input.customerPhone,
-          shipping_address: input.shippingAddress,
-          shipping_city: input.shippingCity,
-          shipping_notes: input.shippingNotes ?? null,
-          payment_method: input.paymentMethod,
-          payment_status: paymentStatus,
-          delivery_status: "pending",
-          subtotal_cents: subtotal,
-          shipping_cents: input.shippingCents,
-          total_cents: total,
-        })
-        .select("*")
-        .single();
-      order = retry.data;
-      orderError = retry.error;
+    if (orderError) {
+      console.error("Order creation in Supabase failed:", orderError);
     }
 
     if (!orderError && order) {
-      await admin.from("order_items").insert(
+      const { error: itemsError } = await admin.from("order_items").insert(
         input.items.map((item) => ({
           order_id: id,
           product_id: item.productId,
@@ -103,21 +83,27 @@ export async function createOrder(input: CheckoutInput): Promise<Order> {
         })),
       );
 
+      if (itemsError) {
+        console.error("Order items insert in Supabase failed:", itemsError);
+      }
+
       try {
         await admin.from("order_events").insert({
           order_id: id,
           kind: "created",
           message: "Order placed",
-          created_by: input.userId,
+          created_by: targetUserId,
         });
-      } catch { }
+      } catch (evErr) {
+        console.error("Order event insert notice:", evErr);
+      }
 
       decrementStock(admin, input.items);
       const fetched = await fetchFullOrder(admin, id);
       if (fetched) return fetched;
     }
-  } catch {
-    // Supabase not running, proceed to fallback
+  } catch (err) {
+    console.error("Unexpected error in createOrder:", err);
   }
 
   // Fallback demo order object
@@ -193,20 +179,31 @@ async function fetchFullOrder(
   admin: ReturnType<typeof createAdminClient>,
   id: string,
 ): Promise<Order | null> {
+  const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
   try {
-    const { data, error } = await admin
+    let query = admin
       .from("orders")
-      .select("*, items:order_items(*), events:order_events(*)")
-      .eq("id", id)
-      .maybeSingle();
+      .select("*, items:order_items(*), events:order_events(*)");
+
+    if (isUuid) {
+      query = query.or(`id.eq.${id},tracking_token.eq.${id}`);
+    } else {
+      query = query.or(`order_number.eq.${id},order_number.ilike.${id}`);
+    }
+
+    const { data, error } = await query.maybeSingle();
     if (!error && data) return sortEvents(data as Order | null);
 
     // Fallback if order_events is not yet established
-    const { data: simpleData } = await admin
+    let simpleQuery = admin
       .from("orders")
-      .select("*, items:order_items(*)")
-      .eq("id", id)
-      .maybeSingle();
+      .select("*, items:order_items(*)");
+    if (isUuid) {
+      simpleQuery = simpleQuery.or(`id.eq.${id},tracking_token.eq.${id}`);
+    } else {
+      simpleQuery = simpleQuery.or(`order_number.eq.${id},order_number.ilike.${id}`);
+    }
+    const { data: simpleData } = await simpleQuery.maybeSingle();
     if (simpleData) return sortEvents(simpleData as Order | null);
   } catch { }
   return inMemoryOrders.get(id) ?? null;

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { getCurrentProfile } from "@/lib/data/auth";
 import { getStoreSettings } from "@/lib/data/catalog";
@@ -59,6 +60,12 @@ export async function POST(request: Request) {
     } catch (error) {
       console.error("order email failed", error);
     }
+
+    try {
+      revalidatePath("/admin", "layout");
+      revalidatePath("/admin/orders", "page");
+      revalidatePath("/orders", "layout");
+    } catch {}
 
     return NextResponse.json({ order, id: order.id });
   } catch (error) {

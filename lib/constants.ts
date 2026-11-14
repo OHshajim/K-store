@@ -12,6 +12,7 @@ export const PAYMENT_METHOD_LABELS: Record<PaymentMethod, string> = {
 
 export const PAYMENT_STATUS_LABELS: Record<PaymentStatus, string> = {
   pending: "Awaiting payment",
+  awaiting_payment: "Awaiting payment",
   paid: "Paid",
   cod_pending: "Cash on delivery",
   refunded: "Refunded",

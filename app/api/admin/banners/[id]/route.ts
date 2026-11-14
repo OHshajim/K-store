@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { requireAdminProfile } from "@/lib/data/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -28,6 +29,12 @@ export async function PATCH(request: Request, { params }: Params) {
       .update(body)
       .eq("id", id);
     if (error) throw new Error(error.message);
+
+    try {
+      revalidatePath("/", "layout");
+      revalidatePath("/admin/banners", "page");
+    } catch {}
+
     return NextResponse.json({ ok: true });
   } catch (error) {
     const message =
@@ -45,6 +52,12 @@ export async function DELETE(_request: Request, { params }: Params) {
     const supabase = createAdminClient();
     const { error } = await supabase.from("banners").delete().eq("id", id);
     if (error) throw new Error(error.message);
+
+    try {
+      revalidatePath("/", "layout");
+      revalidatePath("/admin/banners", "page");
+    } catch {}
+
     return NextResponse.json({ ok: true });
   } catch (error) {
     const message =

@@ -34,7 +34,7 @@ export function EditorialInspiration() {
         {EDITORIAL_ARTICLES.map((article) => (
           <Link
             key={article.id}
-            href={`/journal#${article.slug}`}
+            href={`/journal/${article.slug}`}
             className="group flex flex-col bg-white rounded-3xl overflow-hidden border border-[#1A1C18]/12 shadow-xs hover:shadow-xl transition-all duration-300"
           >
             {/* Image */}

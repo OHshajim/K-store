@@ -179,7 +179,7 @@ export function Footer({
               </li>
               <li>
                 <Link href="/fit-assistant" className="text-[#8A927A] hover:underline font-semibold flex items-center gap-1">
-                  NORDEN Fit Assistant →
+                  {storeName} Fit Assistant →
                 </Link>
               </li>
             </ul>

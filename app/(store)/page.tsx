@@ -1,4 +1,4 @@
-import { getCategories, getProducts, getBanners } from "@/lib/data/catalog";
+import { getCategories, getProducts, getBanners, requireStoreSettings } from "@/lib/data/catalog";
 import { getPublishedReviews } from "@/lib/data/reviews";
 import { HeroSection } from "@/components/store/home/HeroSection";
 import { FeaturedCollections } from "@/components/store/home/FeaturedCollections";
@@ -13,11 +13,12 @@ import { NewsletterSection } from "@/components/store/home/NewsletterSection";
 export const revalidate = 60;
 
 export default async function HomePage() {
-  const [categories, bestSellers, heroBanners, reviews] = await Promise.all([
+  const [categories, bestSellers, heroBanners, reviews, settings] = await Promise.all([
     getCategories(),
     getProducts({ bestsellers: true, limit: 8 }),
     getBanners("hero"),
     getPublishedReviews(4),
+    requireStoreSettings(),
   ]);
 
   const activeHero = heroBanners[0];
@@ -29,6 +30,7 @@ export default async function HomePage() {
         headline={activeHero?.title || "Make room for what matters."}
         description={
           activeHero?.subtitle ||
+          settings.tagline ||
           "Thoughtfully designed essentials for a more organized, beautiful home."
         }
         primaryCta={activeHero?.cta_label || "Explore Collection"}
@@ -42,8 +44,11 @@ export default async function HomePage() {
       {/* Section E: Best Sellers */}
       <BestSellersSection products={bestSellers} />
 
-      {/* Section F: Brand Story */}
-      <BrandStorySection />
+      {/* Section F: Brand Story (Admin Editable) */}
+      <BrandStorySection
+        storeName={settings.store_name}
+        aboutHtml={settings.about_html}
+      />
 
       {/* Section G: Shop by Room */}
       <ShopByRoomSection />

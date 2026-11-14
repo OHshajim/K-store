@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { requireAdminProfile } from "@/lib/data/auth";
 import { slugify } from "@/lib/format";
@@ -75,6 +76,12 @@ export async function POST(request: Request) {
       }
 
       if (!res.error && res.data) {
+        try {
+          revalidatePath("/", "layout");
+          revalidatePath("/shop", "layout");
+          revalidatePath("/admin/products", "page");
+          if (res.data.slug) revalidatePath(`/product/${res.data.slug}`, "page");
+        } catch {}
         return NextResponse.json({ product: res.data, id: res.data.id });
       }
     } catch {

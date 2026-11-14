@@ -4,7 +4,13 @@ import Link from "next/link";
 import Image from "next/image";
 import { ArrowRight, Compass } from "lucide-react";
 
-export function BrandStorySection() {
+export function BrandStorySection({
+  storeName = "Kstore",
+  aboutHtml,
+}: {
+  storeName?: string;
+  aboutHtml?: string | null;
+}) {
   return (
     <section className="py-24 bg-[#D8C9B5]/25 border-y border-[#1A1C18]/10">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -31,7 +37,7 @@ export function BrandStorySection() {
                 &ldquo;Simplicity is the deliberate removal of the unnecessary.&rdquo;
               </p>
               <span className="text-[11px] text-[#4A483E] mt-2 block font-sans font-medium">
-                Kstore Design Manifesto
+                {storeName} Design Manifesto
               </span>
             </div>
           </div>
@@ -40,24 +46,31 @@ export function BrandStorySection() {
           <div className="space-y-6">
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#8A927A]/15 text-[#8A927A] text-xs font-semibold uppercase tracking-wider">
               <Compass className="w-3.5 h-3.5" />
-              The Kstore Heritage
+              The {storeName} Heritage
             </div>
 
             <h2 className="font-editorial text-3xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-[#1A1C18] leading-[1.12]">
               Designed with intention. Made for living.
             </h2>
 
-            <div className="space-y-4 text-sm sm:text-base text-[#4A483E] leading-relaxed font-sans">
-              <p>
-                Founded on the timeless Scandinavian conviction that home should be a calming sanctuary, Kstore crafts modern living essentials that balance architectural proportion with daily utility.
-              </p>
-              <p>
-                Every timber shelf, task lamp, and modular tray originates in collaboration with master woodworkers and artisan ceramicists across Sweden, Denmark, and Vermont. We prioritize FSC-certified quarter-sawn white oak, high-fire stoneware, and machined solid brass over fleeting trends.
-              </p>
-              <p>
-                By cutting out third-party wholesale distributors, we invest directly into zero-compromise materials, honest transparent pricing, and carbon-neutral direct shipping to your doorway.
-              </p>
-            </div>
+            {aboutHtml ? (
+              <div
+                className="prose prose-stone max-w-none text-sm sm:text-base text-[#4A483E] leading-relaxed font-sans line-clamp-6"
+                dangerouslySetInnerHTML={{ __html: aboutHtml }}
+              />
+            ) : (
+              <div className="space-y-4 text-sm sm:text-base text-[#4A483E] leading-relaxed font-sans">
+                <p>
+                  Founded on the timeless conviction that home should be a calming sanctuary, {storeName} crafts modern living essentials that balance architectural proportion with daily utility.
+                </p>
+                <p>
+                  Every timber shelf, task lamp, and modular tray originates in collaboration with master woodworkers and artisan ceramicists. We prioritize FSC-certified quarter-sawn white oak, high-fire stoneware, and machined solid brass over fleeting trends.
+                </p>
+                <p>
+                  By operating directly with craft workshops, we invest directly into zero-compromise materials, honest transparent pricing, and carbon-neutral direct shipping to your doorway.
+                </p>
+              </div>
+            )}
 
             {/* Core Values Summary */}
             <div className="grid grid-cols-2 gap-4 pt-4 border-t border-[#1A1C18]/10">

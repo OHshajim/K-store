@@ -4,6 +4,7 @@ export type PaymentMethod = "stripe" | "cash_on_delivery";
 
 export type PaymentStatus =
   | "pending"
+  | "awaiting_payment"
   | "paid"
   | "cod_pending"
   | "refunded"
@@ -197,7 +198,7 @@ export type Coupon = {
   expires_at?: string | null;
 };
 
-export type NordenFitQuery = {
+export type FitAssistantQuery = {
   roomType: string;
   availableWidthCm: number;
   availableHeightCm: number;
@@ -205,6 +206,8 @@ export type NordenFitQuery = {
   preferredColor: string;
   budgetUsd: number;
 };
+
+export type NordenFitQuery = FitAssistantQuery;
 
 export type FitRecommendation = {
   product: Product;

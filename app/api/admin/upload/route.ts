@@ -37,19 +37,36 @@ export async function POST(request: Request) {
     const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
     const filename = `${randomUUID()}.${ext}`;
 
-    // 1. Try uploading to Supabase Storage if configured
+    // 1. Upload to Supabase Storage
     try {
       const admin = createAdminClient();
-      const { data: uploadData, error: uploadError } = await admin.storage
-        .from("products")
+      const bucketName = "products";
+
+      let { data: uploadData, error: uploadError } = await admin.storage
+        .from(bucketName)
         .upload(filename, buffer, {
           contentType: file.type,
           upsert: true,
         });
 
+      if (uploadError) {
+        // Fallback to product-images bucket if needed
+        const res2 = await admin.storage
+          .from("product-images")
+          .upload(filename, buffer, {
+            contentType: file.type,
+            upsert: true,
+          });
+        uploadData = res2.data;
+        uploadError = res2.error;
+      }
+
       if (!uploadError && uploadData) {
+        const activeBucket = uploadData.path.includes("product-images")
+          ? "product-images"
+          : "products";
         const { data: publicUrlData } = admin.storage
-          .from("products")
+          .from(activeBucket)
           .getPublicUrl(filename);
 
         return NextResponse.json({
@@ -59,8 +76,12 @@ export async function POST(request: Request) {
           storage: "supabase",
         });
       }
-    } catch {
-      // Supabase storage unavailable or bucket not yet created, fall back to local public upload
+
+      if (uploadError) {
+        console.error("Supabase storage upload error:", uploadError);
+      }
+    } catch (sErr) {
+      console.error("Supabase storage connection error:", sErr);
     }
 
     // 2. Fallback: Save to public/uploads directory for offline development & testing

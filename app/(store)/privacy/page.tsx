@@ -76,7 +76,7 @@ export default async function PrivacyPage() {
               <strong>Commercial Fulfillment:</strong> Your name, delivery address, phone number, and billing details when purchasing furniture or design accessories.
             </li>
             <li>
-              <strong>Client Accounts:</strong> Saved preferences, room dimensions submitted to our NORDEN Fit Assistant, wishlists, and order verification history.
+              <strong>Client Accounts:</strong> Saved preferences, room dimensions submitted to our {storeName} Fit Assistant, wishlists, and order verification history.
             </li>
           </ul>
         </section>

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { requireAdminProfile } from "@/lib/data/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -36,6 +37,12 @@ export async function POST(request: Request) {
       .single();
 
     if (error || !data) throw new Error(error?.message ?? "Insert failed");
+
+    try {
+      revalidatePath("/", "layout");
+      revalidatePath("/admin/banners", "page");
+    } catch {}
+
     return NextResponse.json({ banner: data });
   } catch (error) {
     const message =

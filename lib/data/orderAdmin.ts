@@ -170,18 +170,23 @@ export const DEMO_ADMIN_ORDERS: Order[] = [
 export async function getAllOrders(): Promise<Order[]> {
   try {
     const admin = createAdminClient();
-    const { data } = await admin
+    const { data, error } = await admin
       .from("orders")
-      .select("*, items:order_items(*)")
+      .select("*, items:order_items(*), events:order_events(*)")
       .order("created_at", { ascending: false })
       .limit(200);
 
-    if (data && data.length > 0) {
+    if (!error && Array.isArray(data)) {
       return data as Order[];
     }
-  } catch {}
+    if (error) {
+      console.error("Error fetching orders from Supabase:", error);
+    }
+  } catch (err) {
+    console.error("Supabase connection error in getAllOrders:", err);
+  }
 
-  return DEMO_ADMIN_ORDERS;
+  return [];
 }
 
 export async function updateOrderStatus(input: {

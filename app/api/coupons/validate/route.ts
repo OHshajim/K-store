@@ -27,6 +27,7 @@ export async function POST(request: Request) {
     let matchedCoupon = coupon;
     if (error && error.code === "PGRST205") {
       const fallbackList = [
+        { code: "KSTORE10", discount_percent: 10, min_spend_cents: 10000, is_active: true },
         { code: "NORDEN10", discount_percent: 10, min_spend_cents: 10000, is_active: true },
         { code: "WELCOME20", discount_percent: 20, min_spend_cents: 25000, is_active: true },
         { code: "SIMPLIFIED", discount_percent: 15, min_spend_cents: 0, is_active: true },

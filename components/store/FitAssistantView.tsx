@@ -47,7 +47,13 @@ const COLOR_OPTIONS = [
   { id: "Bronze", name: "Brushed Bronze / Brass", hex: "#B78E69" },
 ];
 
-export function FitAssistantView({ allProducts }: { allProducts: Product[] }) {
+export function FitAssistantView({
+  allProducts,
+  storeName = "Kstore",
+}: {
+  allProducts: Product[];
+  storeName?: string;
+}) {
   const [step, setStep] = useState(1);
   const [roomType, setRoomType] = useState("living");
   const [unit, setUnit] = useState<"cm" | "in">("cm");
@@ -176,13 +182,13 @@ export function FitAssistantView({ allProducts }: { allProducts: Product[] }) {
       <div className="text-center max-w-2xl mx-auto mb-12">
         <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#8A927A]/15 text-[#8A927A] text-xs font-semibold uppercase tracking-wider mb-3">
           <Compass className="w-3.5 h-3.5" />
-          Deterministic Spatial Matching Engine
+          {storeName} Spatial Matching Engine
         </div>
         <h1 className="font-editorial text-4xl sm:text-5xl font-bold tracking-tight text-[#292B27] mb-3">
-          Find Your Perfect Fit
+          {storeName} Fit Assistant
         </h1>
         <p className="text-sm sm:text-base text-[#77766E] font-sans">
-          Provide your room dimensions, preferred aesthetic, and budget. Our studio engine determines exact clearance and recommends tailored essentials.
+          Provide your room dimensions, preferred aesthetic, and budget. Our {storeName} spatial studio engine determines exact clearance and recommends tailored essentials.
         </p>
 
         {/* Step Indicator */}

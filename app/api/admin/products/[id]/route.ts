@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { requireAdminProfile } from "@/lib/data/auth";
 import { slugify } from "@/lib/format";
@@ -63,6 +64,12 @@ export async function PATCH(request: Request, { params }: Params) {
       }
 
       if (!res.error && res.data) {
+        try {
+          revalidatePath("/", "layout");
+          revalidatePath("/shop", "layout");
+          revalidatePath("/admin/products", "page");
+          if (res.data.slug) revalidatePath(`/product/${res.data.slug}`, "page");
+        } catch {}
         return NextResponse.json({ product: res.data, id: res.data.id });
       }
     } catch {
@@ -100,6 +107,13 @@ export async function DELETE(_request: Request, { params }: Params) {
       .update({ is_active: false })
       .eq("id", id);
     if (error) throw new Error(error.message);
+
+    try {
+      revalidatePath("/", "layout");
+      revalidatePath("/shop", "layout");
+      revalidatePath("/admin/products", "page");
+    } catch {}
+
     return NextResponse.json({ ok: true });
   } catch (error) {
     const message =

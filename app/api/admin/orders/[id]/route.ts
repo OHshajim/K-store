@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { requireAdminProfile } from "@/lib/data/auth";
 import { requireStoreSettings } from "@/lib/data/catalog";
@@ -60,6 +61,14 @@ export async function PATCH(request: Request, { params }: Params) {
     } catch (error) {
       console.error("admin status email failed", error);
     }
+
+    try {
+      revalidatePath("/admin", "layout");
+      revalidatePath("/admin/orders", "page");
+      revalidatePath(`/admin/orders/${id}`, "page");
+      revalidatePath("/orders", "layout");
+      revalidatePath(`/orders/${id}`, "page");
+    } catch {}
 
     return NextResponse.json({ order });
   } catch (error) {

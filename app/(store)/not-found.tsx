@@ -3,7 +3,7 @@ import { Compass, ArrowRight, Home } from "lucide-react";
 
 export default function StoreNotFound() {
   return (
-    <div className="flex-1 flex items-center justify-center py-20 px-4 sm:px-6 lg:px-8 min-h-[65vh]">
+    <main className="flex-1 flex items-center justify-center py-20 px-4 sm:px-6 lg:px-8">
       <div className="max-w-2xl mx-auto text-center">
         {/* Architectural Kicker */}
         <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#8A927A]/15 text-[#8A927A] text-xs font-semibold uppercase tracking-wider mb-6">
@@ -16,7 +16,7 @@ export default function StoreNotFound() {
         </h1>
 
         <p className="font-sans text-base sm:text-lg text-[#4A483E] max-w-lg mx-auto mb-10 leading-relaxed font-light">
-          The spatial arrangement, order, or home essential you are looking for has been relocated, archived, or does not exist.
+          The spatial arrangement or home essential you are looking for has been relocated, archived, or does not exist.
         </p>
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-14">
@@ -66,6 +66,6 @@ export default function StoreNotFound() {
           </div>
         </div>
       </div>
-    </div>
+    </main>
   );
 }

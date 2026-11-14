@@ -2,24 +2,33 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { Compass, ShieldCheck, Layers, ArrowRight } from "lucide-react";
+import { requireStoreSettings } from "@/lib/data/catalog";
 
-export const metadata: Metadata = {
-  title: "Our Story & Philosophy — Kstore",
-  description:
-    "Thoughtfully designed essentials for better living. Discover the Scandinavian craft heritage and architectural conviction behind Kstore.",
-};
+export const dynamic = "force-dynamic";
 
-export default function AboutPage() {
+export async function generateMetadata(): Promise<Metadata> {
+  const settings = await requireStoreSettings();
+  const storeName = settings.store_name || "Kstore";
+  return {
+    title: `Our Story & Philosophy — ${storeName}`,
+    description: `Thoughtfully designed essentials for better living. Discover the craft heritage and architectural conviction behind ${storeName}.`,
+  };
+}
+
+export default async function AboutPage() {
+  const settings = await requireStoreSettings();
+  const storeName = settings.store_name || "Kstore";
+
   return (
     <div className="py-12 px-4 sm:px-6 lg:px-8 max-w-5xl mx-auto space-y-20 font-sans">
       {/* Hero Header */}
       <div className="text-center space-y-4 max-w-3xl mx-auto">
         <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#8A927A]/15 text-[#8A927A] text-xs font-semibold uppercase tracking-wider">
           <Compass className="w-3.5 h-3.5" />
-          The Kstore Philosophy
+          The {storeName} Philosophy
         </div>
         <h1 className="font-editorial text-4xl sm:text-6xl font-bold tracking-tight text-[#292B27]">
-          Thoughtfully Designed Essentials for Better Living
+          {settings.tagline ? settings.tagline : "Thoughtfully Designed Essentials for Better Living"}
         </h1>
         <p className="text-base sm:text-lg text-[#77766E] leading-relaxed font-light">
           We believe the physical objects that populate our daily rituals should bring enduring calm, effortless utility, and architectural stillness to the modern dwelling.
@@ -29,7 +38,7 @@ export default function AboutPage() {
       {/* Large Workshop Lifestyle Image */}
       <div className="relative h-[420px] sm:h-[540px] rounded-3xl overflow-hidden shadow-xl border border-[#292B27]/10">
         <Image
-          src="https://images.unsplash.com/photo-1538688525198-9b88f6f53126?auto=format&fit=crop&w=1600&q=80"
+          src={settings.logo_url && settings.logo_url.startsWith("http") ? settings.logo_url : "https://images.unsplash.com/photo-1538688525198-9b88f6f53126?auto=format&fit=crop&w=1600&q=80"}
           alt="Artisanal woodworking workshop with timber planks and precision hand tools"
           fill
           priority
@@ -39,7 +48,7 @@ export default function AboutPage() {
         <div className="absolute inset-0 bg-gradient-to-t from-[#292B27]/60 via-transparent to-transparent" />
         <div className="absolute bottom-6 left-6 sm:bottom-8 sm:left-8 text-white max-w-md">
           <span className="text-[10px] font-mono uppercase tracking-widest text-[#D8C9B5] block mb-1">
-            Småland & Vermont Studios
+            Design Studios &amp; Workshops
           </span>
           <p className="font-editorial text-xl sm:text-2xl font-bold">
             Precision milling meets generations of timber craftsmanship.
@@ -86,36 +95,46 @@ export default function AboutPage() {
         </div>
       </div>
 
-      {/* The Origin Narrative */}
+      {/* The Origin Narrative / Admin Editable Story */}
       <div className="bg-white rounded-3xl p-8 sm:p-12 border border-[#292B27]/10 shadow-sm space-y-6">
         <span className="text-xs font-bold uppercase tracking-widest text-[#8A927A] block">
-          Our Beginning
+          Our Beginning &amp; Craft Story
         </span>
-        <h2 className="font-editorial text-3xl sm:text-4xl font-bold text-[#292B27] leading-tight">
-          Born out of a simple desire for fewer, better essentials.
-        </h2>
-        <div className="space-y-4 text-sm sm:text-base text-[#77766E] leading-relaxed">
-          <p>
-            Kstore began in 2024 as a conversation between two architectural designers navigating cramped city lofts. Frustrated by flat-pack furniture that degraded after two moves and luxury galleries priced beyond reason, we set out to bridge the divide.
-          </p>
-          <p>
-            Today, our collections serve thousands of residences across the United States, Canada, and the United Kingdom. Whether it is our signature Modular Storage Shelf or the tactile Turned Oak Desk Station, every product is engineered to last for decades.
-          </p>
-        </div>
 
-        <div className="pt-4 flex items-center gap-4">
+        {settings.about_html ? (
+          <div
+            className="prose prose-stone max-w-none text-sm sm:text-base leading-relaxed text-[#4A483E]"
+            dangerouslySetInnerHTML={{ __html: settings.about_html }}
+          />
+        ) : (
+          <>
+            <h2 className="font-editorial text-3xl sm:text-4xl font-bold text-[#292B27] leading-tight">
+              Born out of a simple desire for fewer, better essentials.
+            </h2>
+            <div className="space-y-4 text-sm sm:text-base text-[#77766E] leading-relaxed">
+              <p>
+                {storeName} began as a conversation between architectural designers navigating modern living spaces. Frustrated by flat-pack furniture that degraded after two moves and luxury galleries priced beyond reason, we set out to bridge the divide.
+              </p>
+              <p>
+                Today, our collections serve thousands of residences across the United States, Canada, and the United Kingdom. Whether it is our signature Modular Storage Shelf or the tactile Turned Oak Desk Station, every product is engineered to last for decades.
+              </p>
+            </div>
+          </>
+        )}
+
+        <div className="pt-4 flex flex-wrap items-center gap-4">
           <Link
             href="/shop"
-            className="px-8 py-3.5 bg-[#292B27] text-white text-xs font-semibold rounded-xl hover:bg-[#3d403a] transition-all inline-flex items-center gap-2 shadow-md"
+            className="px-8 py-3.5 bg-[#292B27] text-white text-xs font-semibold rounded-xl hover:bg-[#3d403a] transition-all inline-flex items-center gap-2 shadow-md cursor-pointer"
           >
-            Explore The Living Collection
+            Explore The {storeName} Collection
             <ArrowRight className="w-4 h-4" />
           </Link>
           <Link
             href="/fit-assistant"
-            className="px-6 py-3.5 border border-[#292B27]/20 text-[#292B27] text-xs font-semibold rounded-xl hover:bg-[#F4F0E8] transition-colors"
+            className="px-6 py-3.5 border border-[#292B27]/20 text-[#292B27] text-xs font-semibold rounded-xl hover:bg-[#F4F0E8] transition-colors cursor-pointer"
           >
-            Launch Fit Assistant
+            Launch {storeName} Fit Assistant
           </Link>
         </div>
       </div>

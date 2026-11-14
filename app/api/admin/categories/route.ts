@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { requireAdminProfile } from "@/lib/data/auth";
 import { slugify } from "@/lib/format";
@@ -63,6 +64,13 @@ export async function POST(request: Request) {
     }
 
     if (error || !data) throw new Error(error?.message ?? "Insert failed");
+
+    try {
+      revalidatePath("/", "layout");
+      revalidatePath("/shop", "layout");
+      revalidatePath("/admin/categories", "page");
+    } catch {}
+
     return NextResponse.json({ category: data });
   } catch (error) {
     const message =
