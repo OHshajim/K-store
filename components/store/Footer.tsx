@@ -238,7 +238,7 @@ export function Footer({
               </div>
             ) : (
               <form onSubmit={handleNewsletterSubmit} className="space-y-2">
-                <div className="relative">
+                <div className="relative flex items-center">
                   <input
                     type="email"
                     required
@@ -246,12 +246,12 @@ export function Footer({
                     value={newsletterEmail}
                     disabled={submitting}
                     onChange={(e) => setNewsletterEmail(e.target.value)}
-                    className="w-full bg-white/10 text-white placeholder:text-white/40 text-xs px-3.5 py-2.5 rounded-lg border border-white/20 focus:outline-none focus:ring-1 focus:ring-[#D8C9B5] disabled:opacity-50"
+                    className="w-full bg-white/10 text-white placeholder:text-white/40 text-xs pl-3.5 pr-11 py-3 rounded-xl border border-white/20 focus:outline-none focus:ring-2 focus:ring-[#B78E69]/50 focus:border-[#B78E69] transition-all disabled:opacity-50"
                   />
                   <button
                     type="submit"
                     disabled={submitting}
-                    className="absolute right-1 top-1 bottom-1 px-3 bg-[#B78E69] text-white rounded-md text-xs font-medium hover:bg-[#a57d59] transition-colors flex items-center justify-center cursor-pointer disabled:opacity-50"
+                    className="absolute right-1.5 p-2 bg-[#B78E69] text-white rounded-lg hover:bg-[#a57d59] transition-colors flex items-center justify-center cursor-pointer disabled:opacity-50 shadow-xs"
                     aria-label="Subscribe"
                   >
                     <ArrowRight className="w-3.5 h-3.5" />
@@ -269,15 +269,23 @@ export function Footer({
         </div>
 
         {/* Bottom Bar: Copyright & Currency */}
-        <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-[#D8C9B5]/70">
-          <div className="flex items-center gap-6">
-            <span>© {new Date().getFullYear()} Kstore International Ltd. All rights reserved.</span>
-            <span className="hidden md:inline">·</span>
-            <span className="hidden md:inline">Portfolio Case Study for Strix Devs</span>
+        <div className="pt-8 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-[#D8C9B5]/80">
+          <div className="flex flex-wrap items-center justify-center md:justify-start gap-x-6 gap-y-2">
+            <span>© {new Date().getFullYear()} {storeName} International Ltd. All rights reserved.</span>
+            <span className="hidden sm:inline text-white/20">·</span>
+            <Link href="/terms" className="hover:text-white transition-colors">
+              Privacy &amp; Terms
+            </Link>
+            <span className="hidden sm:inline text-white/20">·</span>
+            <Link href="/about" className="hover:text-white transition-colors">
+              Design Principles
+            </Link>
+            <span className="hidden sm:inline text-white/20">·</span>
+            <span className="text-white/60">Crafted for Architectural Living</span>
           </div>
 
-          <div className="flex items-center gap-4">
-            <span className="text-[11px]">Region & Currency:</span>
+          <div className="flex items-center gap-3 shrink-0">
+            <span className="text-xs text-[#D8C9B5]/90 font-medium">Region &amp; Currency:</span>
             <CurrencySelector variant="footer" />
           </div>
         </div>
