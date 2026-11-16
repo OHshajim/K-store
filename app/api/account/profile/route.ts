@@ -7,6 +7,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 const bodySchema = z.object({
   full_name: z.string().min(2, "Name must be at least 2 characters").max(80),
   phone: z.string().max(30).optional().nullable(),
+  avatar_url: z.string().optional().nullable(),
 });
 
 export async function PATCH(request: Request) {
@@ -26,6 +27,9 @@ export async function PATCH(request: Request) {
         const parsed = JSON.parse(demoCookie);
         parsed.name = body.full_name;
         parsed.phone = body.phone || null;
+        if (body.avatar_url !== undefined) {
+          parsed.avatar_url = body.avatar_url;
+        }
         cookieStore.set("kstore_session", JSON.stringify(parsed), {
           httpOnly: true,
           secure: process.env.NODE_ENV === "production",
@@ -45,13 +49,18 @@ export async function PATCH(request: Request) {
     if (isUuid) {
       try {
         const admin = createAdminClient();
+        const updateData: Record<string, unknown> = {
+          full_name: body.full_name,
+          phone: body.phone || null,
+          updated_at: new Date().toISOString(),
+        };
+        if (body.avatar_url !== undefined) {
+          updateData.avatar_url = body.avatar_url;
+        }
+
         await admin
           .from("profiles")
-          .update({
-            full_name: body.full_name,
-            phone: body.phone || null,
-            updated_at: new Date().toISOString(),
-          })
+          .update(updateData)
           .eq("id", profile.id);
       } catch (dbErr) {
         console.warn("Could not update Supabase profiles table:", dbErr);

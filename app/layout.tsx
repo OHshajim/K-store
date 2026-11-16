@@ -93,9 +93,16 @@ export const viewport: Viewport = {
   viewportFit: "cover",
 };
 
-export default function RootLayout({ children }: { children: ReactNode }) {
+export default async function RootLayout({ children }: { children: ReactNode }) {
+  const settings = await requireStoreSettings();
+  const iconUrl = settings.favicon_url || settings.logo_url || "/favicon.ico";
+
   return (
     <html lang="en" data-theme="light" className="light" style={{ colorScheme: "light" }}>
+      <head>
+        <link rel="icon" href={iconUrl} sizes="any" />
+        <link rel="apple-touch-icon" href={iconUrl} />
+      </head>
       <body className="bg-[#F4F0E8] text-[#1A1C18]">
         <AppProviders>{children}</AppProviders>
       </body>

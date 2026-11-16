@@ -10,5 +10,9 @@ export const dynamic = "force-dynamic";
 
 export default async function AdminJournalPage() {
   const articles = await getArticles();
-  return <JournalManager initialArticles={articles} />;
+  return (
+    <div className="p-6 sm:p-8 max-w-7xl mx-auto">
+      <JournalManager initialArticles={articles} />
+    </div>
+  );
 }

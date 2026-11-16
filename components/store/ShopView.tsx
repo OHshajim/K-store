@@ -88,6 +88,21 @@ export function ShopView({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  // Close mobile filter drawer on Escape and lock body scroll
+  useEffect(() => {
+    if (!isMobileFilterOpen) return;
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setIsMobileFilterOpen(false);
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.body.style.overflow = prevOverflow;
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isMobileFilterOpen]);
+
   // Compute filtered & sorted catalog
   const filteredProducts = useMemo(() => {
     let result = [...initialProducts];

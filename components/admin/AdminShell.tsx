@@ -23,15 +23,23 @@ import {
 } from "@heroicons/react/24/outline";
 import Image from "next/image";
 import type { ReactNode } from "react";
+import type { AdminCounts } from "@/lib/data/adminStats";
+import type { Profile } from "@/lib/types";
 
 export function AdminShell({
   children,
   storeName = "Kstore",
   logoUrl = null,
+  counts,
+  profile,
+  currency = "USD",
 }: {
   children: ReactNode;
   storeName?: string;
   logoUrl?: string | null;
+  counts?: AdminCounts;
+  profile?: Profile | null;
+  currency?: string;
 }) {
   const pathname = usePathname();
 
@@ -79,14 +87,21 @@ export function AdminShell({
             <div className="p-3 border-t border-white/10 bg-[#1A1C18] flex items-center justify-between">
               <div className="flex items-center gap-2.5 min-w-0">
                 <div className="w-8 h-8 rounded-full bg-[#B78E69] text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-sm">
-                  SA
+                  {profile?.full_name
+                    ? profile.full_name
+                        .split(" ")
+                        .map((n) => n[0])
+                        .join("")
+                        .slice(0, 2)
+                        .toUpperCase()
+                    : "SA"}
                 </div>
                 <div className="truncate">
                   <div className="text-xs font-semibold text-white truncate">
-                    Studio Architect
+                    {profile?.full_name || "Studio Architect"}
                   </div>
                   <div className="text-[10px] text-[#D8C9B5]/70 font-mono truncate">
-                    admin@kstore.com
+                    {profile?.email || "admin@kstore.com"}
                   </div>
                 </div>
               </div>
@@ -118,9 +133,11 @@ export function AdminShell({
               icon={CubeIcon}
               isSelected={pathname.startsWith("/admin/products")}
               endContent={
-                <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-white/10 text-white">
-                  30
-                </span>
+                counts?.products !== undefined ? (
+                  <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-white/10 text-white">
+                    {counts.products}
+                  </span>
+                ) : null
               }
             />
             <SideNavItem
@@ -129,9 +146,11 @@ export function AdminShell({
               icon={Squares2X2Icon}
               isSelected={pathname.startsWith("/admin/categories")}
               endContent={
-                <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-white/10 text-white">
-                  6
-                </span>
+                counts?.categories !== undefined ? (
+                  <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-white/10 text-white">
+                    {counts.categories}
+                  </span>
+                ) : null
               }
             />
             <SideNavItem
@@ -140,9 +159,11 @@ export function AdminShell({
               icon={TruckIcon}
               isSelected={pathname.startsWith("/admin/orders")}
               endContent={
-                <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-[#B78E69] text-white">
-                  4
-                </span>
+                counts?.orders !== undefined ? (
+                  <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-[#B78E69] text-white">
+                    {counts.orders}
+                  </span>
+                ) : null
               }
             />
           </SideNavSection>
@@ -154,9 +175,15 @@ export function AdminShell({
               icon={MegaphoneIcon}
               isSelected={pathname.startsWith("/admin/banners")}
               endContent={
-                <span className="text-[9px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300">
-                  Active
-                </span>
+                counts?.activeBanners !== undefined && counts.activeBanners > 0 ? (
+                  <span className="text-[9px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300">
+                    {counts.activeBanners} Live
+                  </span>
+                ) : (
+                  <span className="text-[9px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded bg-white/10 text-white/50">
+                    0
+                  </span>
+                )
               }
             />
             <SideNavItem
@@ -165,9 +192,11 @@ export function AdminShell({
               icon={StarIcon}
               isSelected={pathname.startsWith("/admin/reviews")}
               endContent={
-                <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-amber-400/20 text-amber-300">
-                  ★ 4.9
-                </span>
+                counts?.reviewsCount ? (
+                  <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-amber-400/20 text-amber-300">
+                    ★ {counts.averageRating ?? 5.0} ({counts.reviewsCount})
+                  </span>
+                ) : null
               }
             />
             <SideNavItem
@@ -175,19 +204,28 @@ export function AdminShell({
               href="/admin/journal"
               icon={BookOpenIcon}
               isSelected={pathname.startsWith("/admin/journal")}
+              endContent={
+                counts?.articles !== undefined && counts.articles > 0 ? (
+                  <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-white/10 text-white">
+                    {counts.articles}
+                  </span>
+                ) : null
+              }
             />
           </SideNavSection>
 
           <SideNavSection title="SYSTEM">
             <SideNavItem
-              label="Users & Staff"
+              label="Users & Managers"
               href="/admin/users"
               icon={UsersIcon}
               isSelected={pathname.startsWith("/admin/users")}
               endContent={
-                <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-white/10 text-white">
-                  5
-                </span>
+                counts?.users !== undefined ? (
+                  <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-white/10 text-white">
+                    {counts.users}
+                  </span>
+                ) : null
               }
             />
             <SideNavItem
@@ -197,7 +235,7 @@ export function AdminShell({
               isSelected={pathname.startsWith("/admin/settings")}
               endContent={
                 <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-white/10 text-[#D8C9B5]">
-                  USD/CAD/GBP
+                  {currency}
                 </span>
               }
             />

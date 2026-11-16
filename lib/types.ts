@@ -1,4 +1,4 @@
-export type UserRole = "customer" | "admin";
+export type UserRole = "customer" | "manager" | "admin";
 
 export type PaymentMethod = "stripe" | "cash_on_delivery";
 
@@ -93,6 +93,8 @@ export type StoreSettings = {
   delivery_notes: string;
   about_html: string | null;
   terms_html: string | null;
+  privacy_html?: string | null;
+  faq_html?: string | null;
   logo_url?: string | null;
   favicon_url?: string | null;
 };

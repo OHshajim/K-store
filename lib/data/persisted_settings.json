@@ -1,0 +1,16 @@
+{
+  "store_name": "Kstore",
+  "tagline": "Modern Living, Simplified.",
+  "support_email": "concierge@kstore.com",
+  "currency": "USD",
+  "currency_symbol": "$",
+  "shipping_flat_cents": 1500,
+  "free_shipping_over_cents": 15000,
+  "delivery_notes": "Complimentary white-glove packaging. Dispatched from our Vermont & Copenhagen fulfillment centers.",
+  "about_html": "<p>Kstore is an architectural design studio and direct-to-consumer home goods house founded on the conviction that physical objects should bring enduring calm, effortless utility, and stillness to the modern dwelling.</p><p>We work exclusively with FSC-certified solid hardwoods, honed ceramic stoneware, and aerospace anodized aluminum. Born out of a desire for fewer, better essentials, our pieces are engineered with precision joinery to endure for generations across international residences.</p>",
+  "faq_html": "<div class=\"space-y-6\"><div><h3 class=\"text-base font-bold text-[#1A1C18] mb-1\">What is your white-glove delivery process?</h3><p class=\"text-sm text-[#4A483E]/85\">Every timber furnishing order over $150 receives complimentary white-glove home placement. Our couriers schedule a convenient 2-hour window, carry items to your room of choice, and remove all protective packaging.</p></div><div><h3 class=\"text-base font-bold text-[#1A1C18] mb-1\">How should I care for natural solid white oak?</h3><p class=\"text-sm text-[#4A483E]/85\">Dust lightly with a dry microfiber cloth. For routine care, wipe along the timber grain with a damp cloth and mild plant-based soap. We recommend conditioning with organic beeswax twice annually.</p></div><div><h3 class=\"text-base font-bold text-[#1A1C18] mb-1\">How does the 30-Day in-home trial work?</h3><p class=\"text-sm text-[#4A483E]/85\">Experience our essentials in your own lighting and room layout for 30 days. If an item does not suit your space, contact our concierge for a complimentary pickup and a 100% refund.</p></div><div><h3 class=\"text-base font-bold text-[#1A1C18] mb-1\">What does the 10-Year craft warranty cover?</h3><p class=\"text-sm text-[#4A483E]/85\">We guarantee all mortise-and-tenon structural joinery, drawer runners, and timber frames against defects under residential usage for 10 years from delivery.</p></div></div>",
+  "privacy_html": "<p>At Kstore, client data governance is an uncompromising principle. We collect only information vital to coordinating white-glove deliveries, providing architectural fit recommendations, and honoring client transactions.</p><p>All digital payments and credentials are encrypted using modern TLS 1.3 cryptographic protocols. We maintain a strict zero-tolerance policy against selling, renting, or monetizing patron records to third-party advertising brokers.</p>",
+  "terms_html": "<p>By acquiring goods through the Kstore catalog, patrons enter an agreement grounded in transparent consumer protection, sustainable manufacturing, and uncompromising craft integrity.</p><p>All orders are backed by our signature 30-day in-home trial period and a 10-year structural warranty on natural timber joinery and internal components.</p>",
+  "logo_url": null,
+  "favicon_url": "https://jfsgqgfvkhnhwvpcxfnr.supabase.co/storage/v1/object/public/products/4bbb43a9-926f-4fa1-bab6-5510a04f3779.png"
+}

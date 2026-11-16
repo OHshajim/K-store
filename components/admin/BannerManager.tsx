@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import {
@@ -13,9 +13,14 @@ import {
   ArrowRight,
   AlertCircle,
   X,
+  Image as ImageIcon,
+  Megaphone,
+  Layers,
+  Search,
 } from "lucide-react";
 import type { Banner as BannerType } from "@/lib/types";
 import { ImageUploadInput } from "@/components/admin/ImageUploadInput";
+import { ConfirmationModal } from "@/components/shared/ConfirmationModal";
 
 type Draft = {
   placement: "hero" | "promo";
@@ -46,6 +51,37 @@ export function BannerManager({ banners }: { banners: BannerType[] }) {
   const [draft, setDraft] = useState<Draft | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [bannerToDelete, setBannerToDelete] = useState<BannerType | null>(null);
+  const [isDeletingBanner, setIsDeletingBanner] = useState(false);
+  const [filter, setFilter] = useState<"all" | "hero" | "promo">("all");
+  const [search, setSearch] = useState("");
+
+  const filteredBanners = banners.filter((b) => {
+    const matchesFilter = filter === "all" || b.placement === filter;
+    const q = search.toLowerCase().trim();
+    const matchesSearch =
+      !q ||
+      b.title.toLowerCase().includes(q) ||
+      (b.subtitle && b.subtitle.toLowerCase().includes(q));
+    return matchesFilter && matchesSearch;
+  });
+
+  // Close modal on Escape and lock body scroll
+  useEffect(() => {
+    if (!draft) return;
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && !isSaving) {
+        setDraft(null);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.body.style.overflow = prevOverflow;
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [draft, isSaving]);
 
   function openCreate() {
     setEditing(null);
@@ -99,17 +135,30 @@ export function BannerManager({ banners }: { banners: BannerType[] }) {
     }
   }
 
-  async function remove(banner: BannerType) {
-    if (!confirm(`Are you sure you want to delete banner "${banner.title}"?`)) return;
-    const response = await fetch(`/api/admin/banners/${banner.id}`, {
-      method: "DELETE",
-    });
-    if (!response.ok) {
-      const data = await response.json();
-      setError(data.error || "Unable to delete");
-      return;
+  function initiateDelete(banner: BannerType) {
+    setBannerToDelete(banner);
+  }
+
+  async function executeDeleteBanner() {
+    if (!bannerToDelete) return;
+    setIsDeletingBanner(true);
+    setError(null);
+    try {
+      const response = await fetch(`/api/admin/banners/${bannerToDelete.id}`, {
+        method: "DELETE",
+      });
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || "Unable to delete banner");
+      }
+      setBannerToDelete(null);
+      router.refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unable to delete banner");
+      setBannerToDelete(null);
+    } finally {
+      setIsDeletingBanner(false);
     }
-    router.refresh();
   }
 
   async function toggleActive(banner: BannerType) {
@@ -158,9 +207,116 @@ export function BannerManager({ banners }: { banners: BannerType[] }) {
         </div>
       )}
 
-      {/* 2. Visual Banner Preview Deck */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {banners.map((banner) => {
+      {/* 2. Marketing Telemetry Deck (Consistent 4-KPI Hierarchy) */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="p-4 rounded-xl bg-white border border-[#1A1C18]/10 shadow-2xs space-y-1">
+          <div className="flex items-center justify-between text-[#4A483E]">
+            <span className="text-[11px] font-bold uppercase tracking-wider">Active Campaigns</span>
+            <Sparkles className="w-4 h-4 text-emerald-600" />
+          </div>
+          <div className="text-xl font-bold font-mono text-[#1A1C18]">
+            {banners.filter((b) => b.is_active).length} Live
+          </div>
+          <div className="text-[10px] text-emerald-700 font-mono">Visible on storefront</div>
+        </div>
+
+        <div className="p-4 rounded-xl bg-white border border-[#1A1C18]/10 shadow-2xs space-y-1">
+          <div className="flex items-center justify-between text-[#4A483E]">
+            <span className="text-[11px] font-bold uppercase tracking-wider">Hero Showcases</span>
+            <ImageIcon className="w-4 h-4 text-[#B78E69]" />
+          </div>
+          <div className="text-xl font-bold font-mono text-[#1A1C18]">
+            {banners.filter((b) => b.placement === "hero").length} Slides
+          </div>
+          <div className="text-[10px] text-[#4A483E]/70 font-mono">Homepage hero focal points</div>
+        </div>
+
+        <div className="p-4 rounded-xl bg-white border border-[#1A1C18]/10 shadow-2xs space-y-1">
+          <div className="flex items-center justify-between text-[#4A483E]">
+            <span className="text-[11px] font-bold uppercase tracking-wider">Announcement Bars</span>
+            <Megaphone className="w-4 h-4 text-[#8A927A]" />
+          </div>
+          <div className="text-xl font-bold font-mono text-[#1A1C18]">
+            {banners.filter((b) => b.placement === "promo").length} Notices
+          </div>
+          <div className="text-[10px] text-[#4A483E]/70 font-mono">Top promotional ticker</div>
+        </div>
+
+        <div className="p-4 rounded-xl bg-white border border-[#1A1C18]/10 shadow-2xs space-y-1">
+          <div className="flex items-center justify-between text-[#4A483E]">
+            <span className="text-[11px] font-bold uppercase tracking-wider">Total Schedule</span>
+            <Layers className="w-4 h-4 text-[#1A1C18]" />
+          </div>
+          <div className="text-xl font-bold font-mono text-[#1A1C18]">
+            {banners.length} Placements
+          </div>
+          <div className="text-[10px] text-[#4A483E]/70 font-mono">Configured marketing assets</div>
+        </div>
+      </div>
+
+      {/* 3. Search & Placement Filter Toolbar */}
+      <div className="p-4 rounded-2xl bg-white border border-[#1A1C18]/10 shadow-xs space-y-3">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+          {/* Search Input */}
+          <div className="relative flex-1">
+            <Search className="w-4 h-4 text-[#4A483E]/60 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+            <input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search banners by headline or subtitle..."
+              className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-[#1A1C18]/15 bg-[#FAF9F6] text-xs text-[#1A1C18] placeholder:text-[#4A483E]/50 focus:outline-none focus:ring-2 focus:ring-[#1A1C18] focus:bg-white transition-all"
+            />
+            {search && (
+              <button
+                type="button"
+                onClick={() => setSearch("")}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-[#4A483E] hover:text-[#1A1C18]"
+              >
+                Clear
+              </button>
+            )}
+          </div>
+
+          {/* Placement Filter Chips */}
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar text-xs">
+            {[
+              { id: "all", label: `All Banners (${banners.length})` },
+              { id: "hero", label: `Hero Showcases (${banners.filter((b) => b.placement === "hero").length})` },
+              { id: "promo", label: `Promo Tickers (${banners.filter((b) => b.placement === "promo").length})` },
+            ].map((tab) => {
+              const isSelected = filter === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  type="button"
+                  onClick={() => setFilter(tab.id as "all" | "hero" | "promo")}
+                  className={`px-3 py-1.5 rounded-xl font-semibold transition-all whitespace-nowrap cursor-pointer ${
+                    isSelected
+                      ? "bg-[#1A1C18] text-white shadow-2xs"
+                      : "bg-[#FAF9F6] text-[#4A483E] hover:bg-stone-200/60"
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
+      {/* 4. Visual Banner Preview Deck */}
+      {filteredBanners.length === 0 ? (
+        <div className="p-12 text-center bg-white rounded-3xl border border-[#1A1C18]/10 space-y-3">
+          <Layers className="w-8 h-8 text-[#8A927A] mx-auto opacity-50" />
+          <h3 className="font-editorial text-lg font-bold text-[#1A1C18]">No banners match your criteria</h3>
+          <p className="text-xs text-[#4A483E]/70 max-w-sm mx-auto">
+            Try adjusting your search terms or filter selection to view promotional slides.
+          </p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {filteredBanners.map((banner) => {
           const isHero = banner.placement === "hero";
           const img =
             banner.image_url ||
@@ -255,8 +411,8 @@ export function BannerManager({ banners }: { banners: BannerType[] }) {
                   </button>
                   <button
                     type="button"
-                    onClick={() => remove(banner)}
-                    className="p-1.5 rounded-lg text-[#4A483E] hover:text-red-600 hover:bg-red-50 transition-colors"
+                    onClick={() => initiateDelete(banner)}
+                    className="p-1.5 rounded-lg text-[#4A483E] hover:text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
                     title="Delete banner"
                   >
                     <Trash2 className="w-4 h-4" />
@@ -267,10 +423,16 @@ export function BannerManager({ banners }: { banners: BannerType[] }) {
           );
         })}
       </div>
+      )}
 
       {/* 3. Editor Modal Dialog */}
       {draft && (
-        <div className="fixed inset-0 z-50 bg-[#1A1C18]/60 backdrop-blur-xs flex items-center justify-center p-4">
+        <div
+          className="fixed inset-0 z-50 bg-[#1A1C18]/60 backdrop-blur-xs flex items-center justify-center p-4"
+          onClick={(e) => {
+            if (e.target === e.currentTarget && !isSaving) setDraft(null);
+          }}
+        >
           <div className="w-full max-w-lg bg-white rounded-3xl p-6 shadow-2xl border border-[#1A1C18]/15 space-y-4 animate-in fade-in zoom-in-95 duration-150 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between pb-3 border-b border-[#1A1C18]/10">
               <h3 className="text-lg font-bold text-[#1A1C18]">
@@ -420,6 +582,38 @@ export function BannerManager({ banners }: { banners: BannerType[] }) {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Banner Deletion Confirmation Modal */}
+      {bannerToDelete && (
+        <ConfirmationModal
+          isOpen={!!bannerToDelete}
+          onClose={() => {
+            if (!isDeletingBanner) setBannerToDelete(null);
+          }}
+          onConfirm={executeDeleteBanner}
+          isLoading={isDeletingBanner}
+          title="Delete Promotional Banner"
+          subtitle="Marketing Campaign Action"
+          variant="danger"
+          confirmText="Yes, Delete Banner"
+          cancelText="Keep Banner"
+          description={
+            <div className="space-y-2">
+              <p>
+                Are you sure you want to delete <strong className="text-[#1A1C18]">&quot;{bannerToDelete.title}&quot;</strong>?
+              </p>
+              {bannerToDelete.subtitle && (
+                <p className="text-stone-600 italic">
+                  &ldquo;{bannerToDelete.subtitle}&rdquo;
+                </p>
+              )}
+              <p className="text-stone-600">
+                This hero visual showcase will be permanently removed from the storefront rotation.
+              </p>
+            </div>
+          }
+        />
       )}
     </div>
   );

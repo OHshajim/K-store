@@ -311,30 +311,34 @@ export async function getOrderById(
 
 export async function getOrderByTracking(
   orderNumber: string,
-  token: string,
+  token?: string | null,
 ): Promise<Order | null> {
-  if (!orderNumber || !token) return null;
+  if (!orderNumber) return null;
 
   try {
     const admin = createAdminClient();
-    const { data } = await admin
+    let query = admin
       .from("orders")
       .select("*, items:order_items(*), events:order_events(*)")
-      .eq("order_number", orderNumber)
-      .eq("tracking_token", token)
-      .maybeSingle();
+      .eq("order_number", orderNumber);
+
+    if (token) {
+      query = query.eq("tracking_token", token);
+    }
+
+    const { data } = await query.maybeSingle();
     if (data) return sortEvents(data as Order | null);
   } catch { }
 
   const mem = inMemoryOrders.get(orderNumber);
-  if (mem && mem.tracking_token === token) {
+  if (mem && (!token || mem.tracking_token === token)) {
     return mem;
   }
 
   try {
     const { DEMO_ADMIN_ORDERS } = await import("@/lib/data/orderAdmin");
     const demoOrder = DEMO_ADMIN_ORDERS.find(
-      (o) => o.order_number === orderNumber && o.tracking_token === token
+      (o) => o.order_number === orderNumber && (!token || o.tracking_token === token)
     );
     if (demoOrder) return demoOrder;
   } catch { }

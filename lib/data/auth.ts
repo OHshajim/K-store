@@ -3,10 +3,12 @@ import { createClient } from "@/lib/supabase/server";
 import type { Profile } from "@/lib/types";
 
 export type SessionPayload = {
-  role: "admin" | "customer";
+  role: "admin" | "manager" | "customer";
   email: string;
   name: string;
   userId: string;
+  avatar_url?: string | null;
+  phone?: string | null;
 };
 
 async function getDemoSession(): Promise<SessionPayload | null> {
@@ -74,10 +76,11 @@ export async function getCurrentProfile(): Promise<Profile | null> {
       role: demoSession.role,
       full_name: demoSession.name,
       phone:
-        demoSession.role === "admin"
+        demoSession.phone ||
+        (demoSession.role === "admin"
           ? "+1 (800) 555-0199"
-          : "+46 8 123 4567",
-      avatar_url: null,
+          : "+46 8 123 4567"),
+      avatar_url: demoSession.avatar_url || null,
     };
   }
 
@@ -86,8 +89,11 @@ export async function getCurrentProfile(): Promise<Profile | null> {
 
 export async function requireAdminProfile(): Promise<Profile> {
   const profile = await getCurrentProfile();
-  if (!profile || profile.role !== "admin") {
-    throw new Error("Admin access required");
+  if (
+    !profile ||
+    (profile.role !== "admin" && profile.role !== "manager")
+  ) {
+    throw new Error("Admin or manager access required");
   }
   return profile;
 }

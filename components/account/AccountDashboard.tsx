@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import {
   User,
@@ -20,6 +21,11 @@ import {
   Truck,
   RotateCcw,
   ExternalLink,
+  Camera,
+  Upload,
+  Trash2,
+  Loader2,
+  KeyRound,
 } from "lucide-react";
 import { LogoutButton } from "@/components/auth/LogoutButton";
 import { ReviewForm } from "@/components/store/ReviewForm";
@@ -60,7 +66,12 @@ export function AccountDashboard({
   reviews: Review[];
   showResetNotice: boolean;
 }) {
+  const router = useRouter();
   const [tab, setTab] = useState<TabType>("profile");
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(profile.avatar_url ?? null);
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+  const [avatarMessage, setAvatarMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const heroFileInputRef = useRef<HTMLInputElement | null>(null);
 
   const initials = (profile.full_name || profile.email || "KS")
     .split(" ")
@@ -68,6 +79,56 @@ export function AccountDashboard({
     .join("")
     .slice(0, 2)
     .toUpperCase();
+
+  async function handleAvatarUpload(file: File) {
+    if (!file) return;
+    setIsUploadingAvatar(true);
+    setAvatarMessage(null);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await fetch("/api/account/avatar", {
+        method: "POST",
+        body: formData,
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to upload avatar");
+      setAvatarUrl(data.avatar_url);
+      setAvatarMessage({ type: "success", text: "Profile picture updated successfully." });
+      router.refresh();
+      setTimeout(() => setAvatarMessage(null), 4000);
+    } catch (err) {
+      setAvatarMessage({
+        type: "error",
+        text: err instanceof Error ? err.message : "Failed to upload avatar",
+      });
+    } finally {
+      setIsUploadingAvatar(false);
+    }
+  }
+
+  async function handleAvatarDelete() {
+    setIsUploadingAvatar(true);
+    setAvatarMessage(null);
+    try {
+      const res = await fetch("/api/account/avatar", {
+        method: "DELETE",
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to remove avatar");
+      setAvatarUrl(null);
+      setAvatarMessage({ type: "success", text: "Profile picture removed successfully." });
+      router.refresh();
+      setTimeout(() => setAvatarMessage(null), 4000);
+    } catch (err) {
+      setAvatarMessage({
+        type: "error",
+        text: err instanceof Error ? err.message : "Failed to remove avatar",
+      });
+    } finally {
+      setIsUploadingAvatar(false);
+    }
+  }
 
   const totalReviewsCount = reviewable.length + reviews.length;
 
@@ -88,10 +149,72 @@ export function AccountDashboard({
       <div className="bg-white rounded-3xl border border-[#1A1C18]/10 shadow-[0_2px_12px_rgba(26,28,24,0.04)] p-6 sm:p-8 space-y-6">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-6 border-b border-[#1A1C18]/10">
           <div className="flex items-center gap-4 sm:gap-5">
-            {/* Avatar / Monogram */}
-            <div className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-br from-[#1A1C18] to-[#2D302A] text-white flex items-center justify-center font-bold font-editorial text-2xl sm:text-3xl shadow-md border-2 border-[#B78E69]/40 shrink-0">
-              <span>{initials}</span>
-              <span className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-emerald-500 border-2 border-white" />
+            {/* Avatar / Monogram with Interactive Camera Upload */}
+            <div className="relative group shrink-0">
+              <div className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-br from-[#1A1C18] to-[#2D302A] text-white flex items-center justify-center font-bold font-editorial text-2xl sm:text-3xl shadow-md border-2 border-[#B78E69]/40 overflow-hidden">
+                {avatarUrl ? (
+                  <Image
+                    src={avatarUrl}
+                    alt={profile.full_name || "Profile"}
+                    fill
+                    sizes="80px"
+                    className="object-cover"
+                  />
+                ) : (
+                  <span>{initials}</span>
+                )}
+
+                {/* Hover overlay for instant photo update */}
+                <button
+                  type="button"
+                  onClick={() => heroFileInputRef.current?.click()}
+                  disabled={isUploadingAvatar}
+                  className="absolute inset-0 bg-[#1A1C18]/70 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center text-white cursor-pointer"
+                  title="Upload profile picture"
+                >
+                  {isUploadingAvatar ? (
+                    <Loader2 className="w-5 h-5 animate-spin text-[#D8C9B5]" />
+                  ) : (
+                    <>
+                      <Camera className="w-5 h-5 text-[#D8C9B5]" />
+                      <span className="text-[9px] font-mono mt-0.5 font-bold uppercase tracking-wider">
+                        {avatarUrl ? "Change" : "Upload"}
+                      </span>
+                    </>
+                  )}
+                </button>
+              </div>
+
+              {/* Corner Camera Button Indicator */}
+              <button
+                type="button"
+                onClick={() => heroFileInputRef.current?.click()}
+                disabled={isUploadingAvatar}
+                className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-[#1A1C18] text-white border-2 border-white flex items-center justify-center shadow-xs hover:bg-[#B78E69] transition-colors cursor-pointer"
+                title="Upload or change profile picture"
+              >
+                {isUploadingAvatar ? (
+                  <Loader2 className="w-3 h-3 animate-spin text-white" />
+                ) : (
+                  <Camera className="w-3 h-3 text-[#D8C9B5]" />
+                )}
+              </button>
+
+              {/* Hidden File Input for Avatar Upload */}
+              <input
+                ref={heroFileInputRef}
+                type="file"
+                accept="image/png,image/jpeg,image/webp,image/avif,image/gif"
+                className="hidden"
+                disabled={isUploadingAvatar}
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    handleAvatarUpload(file);
+                  }
+                  e.target.value = "";
+                }}
+              />
             </div>
 
             {/* Profile Meta */}
@@ -144,6 +267,24 @@ export function AccountDashboard({
             <LogoutButton />
           </div>
         </div>
+
+        {/* Upload Status Alert if triggered from hero */}
+        {avatarMessage && (
+          <div
+            className={`p-3.5 rounded-2xl text-xs flex items-center gap-2.5 animate-in fade-in ${
+              avatarMessage.type === "success"
+                ? "bg-emerald-50 border border-emerald-200 text-emerald-800"
+                : "bg-red-50 border border-red-200 text-red-800"
+            }`}
+          >
+            {avatarMessage.type === "success" ? (
+              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+            ) : (
+              <AlertCircle className="w-4 h-4 text-red-600 shrink-0" />
+            )}
+            <span>{avatarMessage.text}</span>
+          </div>
+        )}
 
         {/* Quick Telemetry Strip */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs font-sans">
@@ -269,8 +410,16 @@ export function AccountDashboard({
 
       {/* 4. Tab Panels */}
       <div>
-        {tab === "profile" && <ProfileForm profile={profile} />}
-        {tab === "security" && <SecurityForm />}
+        {tab === "profile" && (
+          <ProfileForm
+            profile={profile}
+            avatarUrl={avatarUrl}
+            onAvatarUpload={handleAvatarUpload}
+            onAvatarDelete={handleAvatarDelete}
+            isUploadingAvatar={isUploadingAvatar}
+          />
+        )}
+        {tab === "security" && <SecurityForm userEmail={profile.email} />}
         {tab === "orders" && <OrdersPanel orders={orders} />}
         {tab === "reviews" && (
           <ReviewsPanel reviewable={reviewable} reviews={reviews} />
@@ -280,13 +429,33 @@ export function AccountDashboard({
   );
 }
 
-function ProfileForm({ profile }: { profile: Profile }) {
+function ProfileForm({
+  profile,
+  avatarUrl,
+  onAvatarUpload,
+  onAvatarDelete,
+  isUploadingAvatar,
+}: {
+  profile: Profile;
+  avatarUrl: string | null;
+  onAvatarUpload: (file: File) => Promise<void>;
+  onAvatarDelete: () => Promise<void>;
+  isUploadingAvatar: boolean;
+}) {
   const router = useRouter();
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [fullName, setFullName] = useState(profile.full_name ?? "");
   const [phone, setPhone] = useState(profile.phone ?? "");
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+
+  const initials = (profile.full_name || profile.email || "KS")
+    .split(" ")
+    .map((p) => p[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
 
   async function save(e: React.FormEvent) {
     e.preventDefault();
@@ -320,7 +489,7 @@ function ProfileForm({ profile }: { profile: Profile }) {
             Personal Identity &amp; Contact Details
           </h2>
           <p className="text-xs text-[#4A483E]/80 mt-1">
-            Update your registered name and contact telephone for order logistics.
+            Update your profile photography, registered name, and contact telephone for order logistics.
           </p>
         </div>
 
@@ -337,6 +506,84 @@ function ProfileForm({ profile }: { profile: Profile }) {
             <span>{notice}</span>
           </div>
         )}
+
+        {/* Profile Avatar Upload & Management Section */}
+        <div className="p-4 sm:p-5 rounded-2xl bg-[#F4F0E8]/50 border border-[#1A1C18]/10 space-y-3.5">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#1A1C18]">
+              <Camera className="w-3.5 h-3.5 text-[#B78E69]" />
+              <span>Resident Profile Picture</span>
+            </div>
+            <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-white border border-[#1A1C18]/10 text-[#4A483E] font-medium">
+              {avatarUrl ? "Custom Avatar" : "Monogram Initials"}
+            </span>
+          </div>
+
+          <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+            <div className="relative w-16 h-16 sm:w-18 sm:h-18 rounded-2xl bg-[#1A1C18] text-white flex items-center justify-center font-editorial font-bold text-2xl border-2 border-[#B78E69]/40 overflow-hidden shrink-0 shadow-xs">
+              {avatarUrl ? (
+                <Image
+                  src={avatarUrl}
+                  alt={profile.full_name || "Profile"}
+                  fill
+                  sizes="72px"
+                  className="object-cover"
+                />
+              ) : (
+                <span>{initials}</span>
+              )}
+            </div>
+
+            <div className="space-y-2 flex-1">
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isUploadingAvatar}
+                  className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-[#1A1C18] text-white hover:bg-[#2D302A] text-xs font-semibold cursor-pointer transition-colors shadow-2xs disabled:opacity-50"
+                >
+                  {isUploadingAvatar ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin text-white" />
+                  ) : (
+                    <Upload className="w-3.5 h-3.5 text-[#D8C9B5]" />
+                  )}
+                  <span>{avatarUrl ? "Change Photo" : "Upload Photo"}</span>
+                </button>
+
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp,image/avif,image/gif"
+                  className="hidden"
+                  disabled={isUploadingAvatar}
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      onAvatarUpload(file);
+                    }
+                    e.target.value = "";
+                  }}
+                />
+
+                {avatarUrl && (
+                  <button
+                    type="button"
+                    onClick={onAvatarDelete}
+                    disabled={isUploadingAvatar}
+                    className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-red-200 text-red-700 hover:bg-red-50 text-xs font-semibold transition-colors cursor-pointer disabled:opacity-50"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                    <span>Remove Photo</span>
+                  </button>
+                )}
+              </div>
+
+              <p className="text-[11px] text-[#4A483E]/70 leading-normal">
+                Supported formats: PNG, JPG, WebP, AVIF, GIF (max 5MB). Photo appears in account sanctuary, top navigation, and reviews.
+              </p>
+            </div>
+          </div>
+        </div>
 
         <form onSubmit={save} className="space-y-4 text-xs">
           <div className="space-y-1.5">
@@ -456,56 +703,126 @@ function ProfileForm({ profile }: { profile: Profile }) {
   );
 }
 
-function SecurityForm() {
-  const [password, setPassword] = useState("");
+function SecurityForm({ userEmail }: { userEmail: string }) {
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  // OTP workflow states
+  const [otpStep, setOtpStep] = useState<"initial" | "otp_dispatched">("initial");
+  const [otp, setOtp] = useState("");
+  const [debugOtp, setDebugOtp] = useState<string | null>(null);
+  const [isSendingOtp, setIsSendingOtp] = useState(false);
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [cooldown, setCooldown] = useState(0);
+
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
-  const [isSaving, setIsSaving] = useState(false);
 
-  async function save(e: React.FormEvent) {
+  // Cooldown countdown timer
+  useEffect(() => {
+    if (cooldown <= 0) return;
+    const timer = setInterval(() => {
+      setCooldown((c) => Math.max(0, c - 1));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [cooldown]);
+
+  async function handleSendOtp() {
+    if (newPassword.length < 8) {
+      setError("New password must contain at least 8 characters.");
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setError("New password and confirmation password do not match.");
+      return;
+    }
+
+    setError(null);
+    setNotice(null);
+    setIsSendingOtp(true);
+
+    try {
+      const res = await fetch("/api/auth/otp/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: userEmail, intent: "password_change" }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to dispatch verification code");
+
+      setOtpStep("otp_dispatched");
+      setCooldown(25);
+      if (data.debugOtp) {
+        setDebugOtp(data.debugOtp);
+      }
+      setNotice(`A 6-digit security code has been sent to ${userEmail}. Code expires in 10 minutes.`);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to dispatch verification code");
+    } finally {
+      setIsSendingOtp(false);
+    }
+  }
+
+  async function handleVerifyAndUpdatePassword(e: React.FormEvent) {
     e.preventDefault();
-    if (password.length < 8) {
+    if (otp.trim().length !== 6) {
+      setError("Please enter the complete 6-digit verification code.");
+      return;
+    }
+    if (newPassword.length < 8) {
       setError("Password must contain at least 8 characters.");
       return;
     }
+    if (newPassword !== confirmPassword) {
+      setError("New password and confirmation password do not match.");
+      return;
+    }
+
     setError(null);
     setNotice(null);
-    setIsSaving(true);
+    setIsVerifying(true);
+
     try {
-      const { createClient } = await import("@/lib/supabase/client");
-      const supabase = createClient();
-      const { error: updateError } = await supabase.auth.updateUser({
-        password,
+      const res = await fetch("/api/auth/otp/verify-reset", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: userEmail,
+          otp: otp.trim(),
+          newPassword,
+          intent: "password_change",
+        }),
       });
-      if (updateError) {
-        if (updateError.message.toLowerCase().includes("session") || updateError.message.toLowerCase().includes("auth")) {
-          // Demo session handling
-          setPassword("");
-          setNotice("Authentication credentials updated for this active session.");
-          setTimeout(() => setNotice(null), 4000);
-          return;
-        }
-        throw updateError;
-      }
-      setPassword("");
-      setNotice("Your authentication password has been updated.");
-      setTimeout(() => setNotice(null), 4000);
-    } catch (reason) {
-      setError(reason instanceof Error ? reason.message : "Unable to update password");
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Verification failed");
+
+      setNewPassword("");
+      setConfirmPassword("");
+      setOtp("");
+      setDebugOtp(null);
+      setOtpStep("initial");
+      setNotice("Your authentication password has been successfully updated via OTP verification.");
+      setTimeout(() => setNotice(null), 6000);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unable to update password");
     } finally {
-      setIsSaving(false);
+      setIsVerifying(false);
     }
   }
 
   return (
     <div className="max-w-2xl bg-white rounded-3xl p-6 sm:p-8 border border-[#1A1C18]/10 shadow-[0_2px_8px_rgba(26,28,24,0.04)] space-y-6">
       <div className="border-b border-[#1A1C18]/10 pb-4">
-        <h2 className="font-editorial text-xl font-bold text-[#1A1C18]">
-          Password &amp; Access Security
-        </h2>
+        <div className="flex items-center gap-2">
+          <ShieldCheck className="w-5 h-5 text-[#B78E69]" />
+          <h2 className="font-editorial text-xl font-bold text-[#1A1C18]">
+            Two-Factor Password Authentication
+          </h2>
+        </div>
         <p className="text-xs text-[#4A483E]/80 mt-1">
-          Set or change your secret password. Users authenticated via Google can also define a password here for direct email sign-in.
+          For your sanctuary security, password modifications require a one-time 6-digit verification code sent to your registered email (<strong className="text-[#1A1C18]">{userEmail}</strong>).
         </p>
       </div>
 
@@ -523,47 +840,170 @@ function SecurityForm() {
         </div>
       )}
 
-      <form onSubmit={save} className="space-y-4 text-xs">
-        <div className="space-y-1.5">
-          <label className="font-bold uppercase tracking-wider text-[#1A1C18] block">
-            New Secret Password
-          </label>
-          <div className="relative">
-            <input
-              type={showPassword ? "text" : "password"}
-              required
-              minLength={8}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Minimum 8 characters"
-              className="w-full pl-10 pr-10 py-3 rounded-xl border border-[#1A1C18]/15 text-xs text-[#1A1C18] focus:outline-none focus:ring-2 focus:ring-[#1A1C18]"
-            />
-            <Lock className="w-4 h-4 text-[#8A927A] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+      {otpStep === "initial" ? (
+        /* STEP 1: Define New Password & Confirm Password */
+        <div className="space-y-4 text-xs">
+          <div className="space-y-1.5">
+            <label className="font-bold uppercase tracking-wider text-[#1A1C18] block">
+              New Secret Password <span className="text-red-500">*</span>
+            </label>
+            <div className="relative">
+              <input
+                type={showPassword ? "text" : "password"}
+                required
+                minLength={8}
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                placeholder="Minimum 8 characters"
+                className="w-full pl-10 pr-10 py-3 rounded-xl border border-[#1A1C18]/15 text-xs text-[#1A1C18] focus:outline-none focus:ring-2 focus:ring-[#1A1C18]"
+              />
+              <Lock className="w-4 h-4 text-[#8A927A] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#4A483E] hover:text-[#1A1C18]"
+              >
+                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
+            </div>
+            <p className="text-[11px] text-[#4A483E]/70">
+              Must contain at least 8 characters. We recommend including numbers and symbols.
+            </p>
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="font-bold uppercase tracking-wider text-[#1A1C18] block">
+              Confirm New Password <span className="text-red-500">*</span>
+            </label>
+            <div className="relative">
+              <input
+                type={showConfirmPassword ? "text" : "password"}
+                required
+                minLength={8}
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="Re-enter your new password"
+                className="w-full pl-10 pr-10 py-3 rounded-xl border border-[#1A1C18]/15 text-xs text-[#1A1C18] focus:outline-none focus:ring-2 focus:ring-[#1A1C18]"
+              />
+              <KeyRound className="w-4 h-4 text-[#8A927A] absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#4A483E] hover:text-[#1A1C18]"
+              >
+                {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
+            </div>
+          </div>
+
+          <div className="pt-3">
             <button
               type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#4A483E] hover:text-[#1A1C18]"
+              onClick={handleSendOtp}
+              disabled={isSendingOtp || newPassword.length < 8 || newPassword !== confirmPassword}
+              data-btn="dark"
+              style={{ color: "#FFFFFF", backgroundColor: "#1A1C18" }}
+              className="px-6 py-3 rounded-xl bg-[#1A1C18] text-white text-xs font-semibold hover:bg-[#2D302A] transition-all shadow-xs cursor-pointer disabled:opacity-50 flex items-center gap-2"
             >
-              {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              {isSendingOtp ? (
+                <>
+                  <Loader2 className="w-3.5 h-3.5 animate-spin text-white" />
+                  <span>Sending Verification Code…</span>
+                </>
+              ) : (
+                <>
+                  <ShieldCheck className="w-3.5 h-3.5 text-[#D8C9B5]" />
+                  <span>Send 6-Digit OTP Code</span>
+                </>
+              )}
             </button>
           </div>
-          <p className="text-[11px] text-[#4A483E]/70">
-            Must contain at least 8 characters. We recommend including numbers and symbols.
-          </p>
         </div>
+      ) : (
+        /* STEP 2: Verify 6-digit OTP and update password */
+        <form onSubmit={handleVerifyAndUpdatePassword} className="space-y-4 text-xs">
+          {debugOtp && (
+            <div className="p-3.5 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-900 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-amber-600 shrink-0" />
+                <span>
+                  Demo Mode Helper: OTP is <strong className="font-mono text-sm">{debugOtp}</strong>
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setOtp(debugOtp)}
+                className="px-3 py-1 bg-amber-200 hover:bg-amber-300 text-amber-950 font-bold rounded-lg text-[11px] transition-colors shrink-0"
+              >
+                Fill Code
+              </button>
+            </div>
+          )}
 
-        <div className="pt-3">
-          <button
-            type="submit"
-            disabled={isSaving || password.length < 8}
-            data-btn="dark"
-            style={{ color: "#FFFFFF", backgroundColor: "#1A1C18" }}
-            className="px-6 py-3 rounded-xl bg-[#1A1C18] text-white text-xs font-semibold hover:bg-[#2D302A] transition-all shadow-xs cursor-pointer disabled:opacity-50"
-          >
-            <span style={{ color: "#FFFFFF" }}>{isSaving ? "Updating Password…" : "Update Password"}</span>
-          </button>
-        </div>
-      </form>
+          <div className="space-y-1.5">
+            <label className="font-bold uppercase tracking-wider text-[#1A1C18] block">
+              6-Digit Security Code <span className="text-red-500">*</span>
+            </label>
+            <div className="relative">
+              <input
+                type="text"
+                required
+                maxLength={6}
+                value={otp}
+                onChange={(e) => setOtp(e.target.value.replace(/[^0-9]/g, "").slice(0, 6))}
+                placeholder="123456"
+                autoFocus
+                className="w-full text-center tracking-[0.5em] font-mono font-bold text-lg py-3 rounded-xl border border-[#1A1C18]/20 text-[#1A1C18] focus:outline-none focus:ring-2 focus:ring-[#1A1C18]"
+              />
+            </div>
+            <div className="flex items-center justify-between text-[11px] text-[#4A483E]/80 pt-1">
+              <span>Code sent to {userEmail}</span>
+              <button
+                type="button"
+                disabled={cooldown > 0 || isSendingOtp}
+                onClick={handleSendOtp}
+                className="text-[#1A1C18] font-bold underline hover:text-[#B78E69] disabled:opacity-50 disabled:no-underline cursor-pointer"
+              >
+                {cooldown > 0 ? `Resend code in ${cooldown}s` : "Resend OTP"}
+              </button>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-3 pt-3">
+            <button
+              type="submit"
+              disabled={isVerifying || otp.length !== 6}
+              data-btn="dark"
+              style={{ color: "#FFFFFF", backgroundColor: "#1A1C18" }}
+              className="px-6 py-3 rounded-xl bg-[#1A1C18] text-white text-xs font-semibold hover:bg-[#2D302A] transition-all shadow-xs cursor-pointer disabled:opacity-50 flex items-center gap-2"
+            >
+              {isVerifying ? (
+                <>
+                  <Loader2 className="w-3.5 h-3.5 animate-spin text-white" />
+                  <span>Verifying Code &amp; Updating…</span>
+                </>
+              ) : (
+                <>
+                  <CheckCircle2 className="w-3.5 h-3.5 text-[#D8C9B5]" />
+                  <span>Verify OTP &amp; Confirm New Password</span>
+                </>
+              )}
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                setOtpStep("initial");
+                setOtp("");
+                setError(null);
+              }}
+              className="px-4 py-3 rounded-xl border border-[#1A1C18]/15 text-[#4A483E] hover:text-[#1A1C18] hover:bg-[#F4F0E8] text-xs font-semibold transition-colors cursor-pointer"
+            >
+              Back to Password Edit
+            </button>
+          </div>
+        </form>
+      )}
     </div>
   );
 }

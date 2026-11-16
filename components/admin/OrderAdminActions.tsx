@@ -16,16 +16,49 @@ import {
   PAYMENT_STATUS_LABELS,
   DELIVERY_FLOW,
 } from "@/lib/constants";
+import { ConfirmationModal } from "@/components/shared/ConfirmationModal";
 
 export function OrderAdminActions({ order }: { order: Order }) {
   const router = useRouter();
   const [paymentStatus, setPaymentStatus] = useState<PaymentStatus>(order.payment_status);
   const [deliveryStatus, setDeliveryStatus] = useState<DeliveryStatus>(order.delivery_status);
+  const [pendingReversalStatus, setPendingReversalStatus] = useState<DeliveryStatus | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
   const currentFlowIndex = DELIVERY_FLOW.indexOf(deliveryStatus as (typeof DELIVERY_FLOW)[number]);
+
+  function handleSelectDeliveryStatus(newStatus: DeliveryStatus) {
+    if (newStatus === deliveryStatus) return;
+
+    // Check if reversing from "delivered"
+    if (order.delivery_status === "delivered" && newStatus !== "delivered") {
+      setPendingReversalStatus(newStatus);
+      return;
+    }
+
+    // Check if reversing backwards in the delivery flow
+    const currentIdx = DELIVERY_FLOW.indexOf(deliveryStatus as (typeof DELIVERY_FLOW)[number]);
+    const newIdx = DELIVERY_FLOW.indexOf(newStatus as (typeof DELIVERY_FLOW)[number]);
+    if (currentIdx !== -1 && newIdx !== -1 && newIdx < currentIdx && deliveryStatus === "delivered") {
+      setPendingReversalStatus(newStatus);
+      return;
+    }
+
+    setDeliveryStatus(newStatus);
+  }
+
+  function confirmReversal() {
+    if (pendingReversalStatus) {
+      setDeliveryStatus(pendingReversalStatus);
+      setPendingReversalStatus(null);
+    }
+  }
+
+  function cancelReversal() {
+    setPendingReversalStatus(null);
+  }
 
   async function save() {
     setError(null);
@@ -93,7 +126,7 @@ export function OrderAdminActions({ order }: { order: Order }) {
               <button
                 key={flowStep}
                 type="button"
-                onClick={() => setDeliveryStatus(flowStep)}
+                onClick={() => handleSelectDeliveryStatus(flowStep)}
                 className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer ${
                   isCurrent
                     ? "bg-[#1A1C18] text-white border-[#1A1C18] shadow-xs"
@@ -163,7 +196,7 @@ export function OrderAdminActions({ order }: { order: Order }) {
           <div className="relative">
             <select
               value={deliveryStatus}
-              onChange={(e) => setDeliveryStatus(e.target.value as DeliveryStatus)}
+              onChange={(e) => handleSelectDeliveryStatus(e.target.value as DeliveryStatus)}
               className="w-full appearance-none px-4 py-3 bg-[#FDFBF7] border border-[#1A1C18]/15 rounded-xl text-xs font-semibold text-[#1A1C18] focus:outline-none focus:ring-2 focus:ring-[#B78E69]/30 focus:border-[#B78E69] transition-all cursor-pointer pr-10"
             >
               {Object.entries(DELIVERY_STATUS_LABELS).map(([value, label]) => (
@@ -196,6 +229,32 @@ export function OrderAdminActions({ order }: { order: Order }) {
           </span>
         </button>
       </div>
+
+      {/* Confirmation Modal for Reversing Delivery Progress */}
+      {pendingReversalStatus && (
+        <ConfirmationModal
+          isOpen={!!pendingReversalStatus}
+          onClose={cancelReversal}
+          onConfirm={confirmReversal}
+          title="Reverse Delivery Progress?"
+          subtitle="Status Change Confirmation"
+          variant="warning"
+          confirmText="Yes, Reverse Delivery"
+          cancelText="Keep as Delivered"
+          description={
+            <div className="space-y-2">
+              <p className="font-bold text-[#1A1C18]">
+                Are you really wanting to do that?
+              </p>
+              <p className="leading-relaxed">
+                This order was marked as <strong className="text-[#1A1C18]">Delivered</strong>. 
+                Reversing it back to <strong className="text-[#B78E69]">{DELIVERY_STATUS_LABELS[pendingReversalStatus]}</strong> will 
+                re-open fulfillment dispatch and update the customer&apos;s live tracking timeline.
+              </p>
+            </div>
+          }
+        />
+      )}
     </div>
   );
 }

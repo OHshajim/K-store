@@ -5,7 +5,7 @@ import { useCurrencyStore } from "@/lib/currency/store";
 import { X, Trash2, ArrowRight, ShieldCheck, ShoppingBag, Sparkles } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export function CartDrawer() {
   const {
@@ -27,6 +27,20 @@ export function CartDrawer() {
   const { formatPrice } = useCurrencyStore();
   const [couponInput, setCouponInput] = useState("");
   const [couponFeedback, setCouponFeedback] = useState<{ msg: string; err: boolean } | null>(null);
+
+  // Close drawer on Escape & manage body scroll
+  useEffect(() => {
+    if (!isCartOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") closeCart();
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    document.body.style.overflow = "hidden";
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = "unset";
+    };
+  }, [isCartOpen, closeCart]);
 
   if (!isCartOpen) return null;
 

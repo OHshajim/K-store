@@ -14,7 +14,7 @@ type Params = { params: Promise<{ id: string }> };
 
 const bodySchema = z.object({
   payment_status: z
-    .enum(["pending", "paid", "cod_pending", "refunded", "cancelled"])
+    .enum(["pending", "awaiting_payment", "paid", "cod_pending", "refunded", "cancelled"])
     .optional(),
   delivery_status: z
     .enum([

@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Image from "next/image";
 import {
   CheckCircle,
@@ -13,6 +14,9 @@ import {
   ShoppingBag,
   Clock,
   ShieldCheck,
+  Copy,
+  Check,
+  Printer,
 } from "lucide-react";
 import type { Order, StoreSettings } from "@/lib/types";
 import { PAYMENT_METHOD_LABELS, DELIVERY_FLOW, DELIVERY_STATUS_LABELS } from "@/lib/constants";
@@ -101,6 +105,7 @@ export function OrderDetailView({
   isAdmin?: boolean;
   trackingToken?: string;
 }) {
+  const [copiedLink, setCopiedLink] = useState(false);
   const currentFlowIndex = DELIVERY_FLOW.indexOf(
     order.delivery_status as (typeof DELIVERY_FLOW)[number]
   );
@@ -131,6 +136,47 @@ export function OrderDetailView({
               <Calendar className="w-3.5 h-3.5 text-[#8A927A]" />
               Placed on {formatDateTime(order.created_at)}
             </p>
+
+            {/* Direct Tracking Link Bar */}
+            <div className="pt-2.5 flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  if (typeof window !== "undefined") {
+                    const url = `${window.location.origin}/orders/${order.id}`;
+                    void navigator.clipboard.writeText(url);
+                    setCopiedLink(true);
+                    setTimeout(() => setCopiedLink(false), 2500);
+                  }
+                }}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#FAF9F6] border border-[#1A1C18]/10 text-xs font-mono text-[#1A1C18] hover:bg-white hover:border-[#1A1C18]/30 transition-all cursor-pointer"
+                title="Copy permanent tracking link"
+              >
+                {copiedLink ? (
+                  <>
+                    <Check className="w-3.5 h-3.5 text-emerald-600" />
+                    <span className="text-emerald-700 font-sans font-semibold">Tracking Link Copied!</span>
+                  </>
+                ) : (
+                  <>
+                    <Copy className="w-3.5 h-3.5 text-stone-500" />
+                    <span>Copy Tracking Link</span>
+                  </>
+                )}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  if (typeof window !== "undefined") window.print();
+                }}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#FAF9F6] border border-[#1A1C18]/10 text-xs font-sans font-semibold text-stone-600 hover:text-[#1A1C18] hover:bg-white transition-all cursor-pointer"
+                title="Print Order Receipt"
+              >
+                <Printer className="w-3.5 h-3.5 text-stone-500" />
+                <span>Print Receipt</span>
+              </button>
+            </div>
           </div>
 
           <div className="flex flex-wrap items-center gap-2">

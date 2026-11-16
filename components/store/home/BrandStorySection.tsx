@@ -12,7 +12,7 @@ export function BrandStorySection({
   aboutHtml?: string | null;
 }) {
   return (
-    <section className="py-24 bg-[#D8C9B5]/25 border-y border-[#1A1C18]/10">
+    <section className="py-24 bg-[#D8C9B5]/25 border-y border-[#1A1C18]/10 overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
           {/* Editorial Photography Composition */}
@@ -29,7 +29,7 @@ export function BrandStorySection({
             </div>
 
             {/* Floating Inset Detail Card */}
-            <div className="absolute -bottom-8 -right-4 sm:-right-8 w-64 bg-white p-5 rounded-2xl shadow-2xl border border-[#1A1C18]/10 hidden sm:block">
+            <div className="absolute -bottom-8 right-2 sm:right-4 lg:-right-8 w-64 bg-white p-5 rounded-2xl shadow-2xl border border-[#1A1C18]/10 hidden sm:block">
               <span className="text-[10px] uppercase font-bold tracking-widest text-[#8A927A] block mb-1">
                 Philosophy
               </span>

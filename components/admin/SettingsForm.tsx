@@ -10,6 +10,10 @@ import {
   CheckCircle2,
   AlertCircle,
   Eye,
+  Compass,
+  HelpCircle,
+  ShieldCheck,
+  ExternalLink,
 } from "lucide-react";
 import Image from "next/image";
 import type { StoreSettings } from "@/lib/types";
@@ -31,6 +35,8 @@ export function SettingsForm({ settings }: { settings: StoreSettings }) {
     delivery_notes: settings.delivery_notes,
     about_html: settings.about_html ?? "",
     terms_html: settings.terms_html ?? "",
+    privacy_html: settings.privacy_html ?? "",
+    faq_html: settings.faq_html ?? "",
     logo_url: settings.logo_url ?? "",
     favicon_url: settings.favicon_url ?? "",
   });
@@ -64,6 +70,8 @@ export function SettingsForm({ settings }: { settings: StoreSettings }) {
           delivery_notes: draft.delivery_notes,
           about_html: draft.about_html || null,
           terms_html: draft.terms_html || null,
+          privacy_html: draft.privacy_html || null,
+          faq_html: draft.faq_html || null,
           logo_url: draft.logo_url || null,
           favicon_url: draft.favicon_url || null,
         }),
@@ -352,39 +360,146 @@ export function SettingsForm({ settings }: { settings: StoreSettings }) {
           </div>
       </div>
 
-      {/* 4. Section 3: Editorial & Legal Content */ }
-  <div className="p-6 rounded-2xl bg-white border border-[#1A1C18]/10 shadow-[0_2px_8px_rgba(26,28,24,0.04)] space-y-4">
-    <div className="flex items-center gap-2 pb-3 border-b border-[#1A1C18]/10">
-      <FileText className="w-4 h-4 text-[#8A927A]" />
-      <h2 className="text-sm font-bold text-[#1A1C18]">Brand Storytelling &amp; Legal Policies</h2>
-    </div>
+      {/* 4. Section 3: Editorial, Content & Legal Pages */}
+      <div className="p-6 rounded-2xl bg-white border border-[#1A1C18]/10 shadow-[0_2px_8px_rgba(26,28,24,0.04)] space-y-6">
+        <div className="flex items-center justify-between pb-3 border-b border-[#1A1C18]/10">
+          <div className="flex items-center gap-2">
+            <FileText className="w-4 h-4 text-[#8A927A]" />
+            <h2 className="text-sm font-bold text-[#1A1C18]">
+              Brand Storytelling, FAQ &amp; Legal Policies
+            </h2>
+          </div>
+          <span className="text-[10px] font-mono uppercase tracking-wider text-[#8A927A] px-2.5 py-0.5 bg-[#8A927A]/10 rounded-full font-bold">
+            Live Storefront Content
+          </span>
+        </div>
 
-    <div className="space-y-4 text-xs">
-      <div className="space-y-1.5">
-        <label className="font-bold uppercase tracking-wider text-[#1A1C18] block">
-          About Page Brand Narrative (HTML allowed)
-        </label>
-        <textarea
-          rows={4}
-          value={draft.about_html}
-          onChange={(e) => set("about_html", e.target.value)}
-          className="w-full px-3.5 py-2.5 rounded-xl border border-[#1A1C18]/15 text-xs text-[#1A1C18] font-mono leading-relaxed"
-        />
-      </div>
+        <div className="space-y-6 text-xs">
+          {/* 1. Our Story */}
+          <div className="space-y-2 p-4 rounded-xl bg-[#FDFBF7] border border-[#1A1C18]/10">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+              <div className="flex items-center gap-2">
+                <Compass className="w-4 h-4 text-[#B78E69]" />
+                <label className="font-bold uppercase tracking-wider text-[#1A1C18] block">
+                  Our Story &amp; Philosophy Narrative (HTML allowed)
+                </label>
+              </div>
+              <a
+                href="/about"
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-1 text-[11px] font-mono text-[#B78E69] hover:underline"
+              >
+                <span>Preview /about &amp; /story</span>
+                <ExternalLink className="w-3 h-3" />
+              </a>
+            </div>
+            <p className="text-[11px] text-[#4A483E]/70 font-sans">
+              Published on the dedicated Our Story page (`/about` &amp; `/story`) and featured in the Brand Story section on the home page.
+            </p>
+            <textarea
+              rows={5}
+              value={draft.about_html}
+              onChange={(e) => set("about_html", e.target.value)}
+              placeholder="<p>Our journey began with a commitment to enduring craftsmanship and natural materials...</p>"
+              className="w-full px-3.5 py-2.5 rounded-xl border border-[#1A1C18]/15 text-xs text-[#1A1C18] font-mono leading-relaxed bg-white focus:outline-none focus:ring-2 focus:ring-[#1A1C18]"
+            />
+          </div>
 
-      <div className="space-y-1.5">
-        <label className="font-bold uppercase tracking-wider text-[#1A1C18] block">
-          Terms &amp; Conditions / Guarantee (HTML allowed)
-        </label>
-        <textarea
-          rows={4}
-          value={draft.terms_html}
-          onChange={(e) => set("terms_html", e.target.value)}
-          className="w-full px-3.5 py-2.5 rounded-xl border border-[#1A1C18]/15 text-xs text-[#1A1C18] font-mono leading-relaxed"
-        />
+          {/* 2. FAQ */}
+          <div className="space-y-2 p-4 rounded-xl bg-[#FDFBF7] border border-[#1A1C18]/10">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+              <div className="flex items-center gap-2">
+                <HelpCircle className="w-4 h-4 text-[#8A927A]" />
+                <label className="font-bold uppercase tracking-wider text-[#1A1C18] block">
+                  Frequently Asked Questions (FAQ Content / HTML allowed)
+                </label>
+              </div>
+              <a
+                href="/faq"
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-1 text-[11px] font-mono text-[#8A927A] hover:underline"
+              >
+                <span>Preview /faq</span>
+                <ExternalLink className="w-3 h-3" />
+              </a>
+            </div>
+            <p className="text-[11px] text-[#4A483E]/70 font-sans">
+              Published on `/faq`. Formats client guidance on white-glove shipping, solid oak care, 30-day in-home trials, and custom dimensions.
+            </p>
+            <textarea
+              rows={5}
+              value={draft.faq_html}
+              onChange={(e) => set("faq_html", e.target.value)}
+              placeholder="<h3>How does white-glove delivery work?</h3><p>Our couriers place each piece in your room of choice and remove all protective packaging.</p>"
+              className="w-full px-3.5 py-2.5 rounded-xl border border-[#1A1C18]/15 text-xs text-[#1A1C18] font-mono leading-relaxed bg-white focus:outline-none focus:ring-2 focus:ring-[#1A1C18]"
+            />
+          </div>
+
+          {/* 3. Privacy Policy */}
+          <div className="space-y-2 p-4 rounded-xl bg-[#FDFBF7] border border-[#1A1C18]/10">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+              <div className="flex items-center gap-2">
+                <ShieldCheck className="w-4 h-4 text-emerald-700" />
+                <label className="font-bold uppercase tracking-wider text-[#1A1C18] block">
+                  Privacy Policy (HTML allowed)
+                </label>
+              </div>
+              <a
+                href="/privacy"
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-1 text-[11px] font-mono text-emerald-800 hover:underline"
+              >
+                <span>Preview /privacy</span>
+                <ExternalLink className="w-3 h-3" />
+              </a>
+            </div>
+            <p className="text-[11px] text-[#4A483E]/70 font-sans">
+              Published on `/privacy`. Outlines personal data management, cookie preferences, and zero third-party data broker sales.
+            </p>
+            <textarea
+              rows={5}
+              value={draft.privacy_html}
+              onChange={(e) => set("privacy_html", e.target.value)}
+              placeholder="<p>At Kstore, client privacy is paramount. We encrypt all commercial transactions via TLS 1.3 and never sell personal information.</p>"
+              className="w-full px-3.5 py-2.5 rounded-xl border border-[#1A1C18]/15 text-xs text-[#1A1C18] font-mono leading-relaxed bg-white focus:outline-none focus:ring-2 focus:ring-[#1A1C18]"
+            />
+          </div>
+
+          {/* 4. Terms of Service */}
+          <div className="space-y-2 p-4 rounded-xl bg-[#FDFBF7] border border-[#1A1C18]/10">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+              <div className="flex items-center gap-2">
+                <FileText className="w-4 h-4 text-[#B78E69]" />
+                <label className="font-bold uppercase tracking-wider text-[#1A1C18] block">
+                  Terms of Service &amp; Craft Warranty (HTML allowed)
+                </label>
+              </div>
+              <a
+                href="/terms"
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-1 text-[11px] font-mono text-[#B78E69] hover:underline"
+              >
+                <span>Preview /terms</span>
+                <ExternalLink className="w-3 h-3" />
+              </a>
+            </div>
+            <p className="text-[11px] text-[#4A483E]/70 font-sans">
+              Published on `/terms`. Specifies commercial terms of sale, 30-day in-home trial rules, and 10-year craft warranty terms.
+            </p>
+            <textarea
+              rows={5}
+              value={draft.terms_html}
+              onChange={(e) => set("terms_html", e.target.value)}
+              placeholder="<p>Review our transparent terms of purchase, white-glove delivery schedules, 30-day in-home trial, and 10-year craft warranty.</p>"
+              className="w-full px-3.5 py-2.5 rounded-xl border border-[#1A1C18]/15 text-xs text-[#1A1C18] font-mono leading-relaxed bg-white focus:outline-none focus:ring-2 focus:ring-[#1A1C18]"
+            />
+          </div>
+        </div>
       </div>
-    </div>
-  </div>
     </div >
   );
 }

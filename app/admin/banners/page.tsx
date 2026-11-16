@@ -26,6 +26,30 @@ export default async function AdminBannersPage() {
       is_active: true,
     },
     {
+      id: "hero-2",
+      placement: "hero",
+      title: "Atmospheric Living, Simplified.",
+      subtitle: "Tactile timber joinery, quiet ambient lighting, and organic materials for intentional sanctuaries.",
+      image_url:
+        "https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?auto=format&fit=crop&w=2000&q=80",
+      cta_label: "Shop Living Room",
+      cta_href: "/rooms?room=living",
+      sort_order: 2,
+      is_active: true,
+    },
+    {
+      id: "hero-3",
+      placement: "hero",
+      title: "The Architecture of Daily Calm.",
+      subtitle: "Mastercrafted Scandinavian furniture designed to bring serenity and order to modern living spaces.",
+      image_url:
+        "https://images.unsplash.com/photo-1513506003901-1e6a229e2d15?auto=format&fit=crop&w=2000&q=80",
+      cta_label: "Discover New Arrivals",
+      cta_href: "/shop?sort=newest",
+      sort_order: 3,
+      is_active: true,
+    },
+    {
       id: "promo-1",
       placement: "promo",
       title: "Complimentary shipping on orders over $150.",

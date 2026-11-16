@@ -20,7 +20,7 @@ export async function updateSession(request: NextRequest) {
   }
 
   if (demoSession) {
-    if (demoSession.role === "admin") {
+    if (demoSession.role === "admin" || demoSession.role === "manager") {
       if (isAuthRoute) {
         const nextParam = request.nextUrl.searchParams.get("next");
         const url = request.nextUrl.clone();
@@ -119,7 +119,7 @@ export async function updateSession(request: NextRequest) {
         .eq("id", user.id)
         .maybeSingle();
 
-      if (profile?.role !== "admin") {
+      if (profile?.role !== "admin" && profile?.role !== "manager") {
         const url = request.nextUrl.clone();
         url.pathname = "/";
         return NextResponse.redirect(url);

@@ -145,6 +145,87 @@ html,
     scrollbar-width: none;
   }
 
+  /* Smooth Infinite Sliding Marquee Animations */
+  @keyframes marquee {
+    0% {
+      transform: translateX(0%);
+    }
+    100% {
+      transform: translateX(-50%);
+    }
+  }
+
+  .animate-marquee {
+    display: flex;
+    width: max-content;
+    will-change: transform;
+    animation: marquee 35s linear infinite;
+  }
+
+  .animate-marquee:hover,
+  .animate-marquee.is-paused {
+    animation-play-state: paused;
+  }
+
+  @keyframes review-slide {
+    0% {
+      transform: translateX(0%);
+    }
+    100% {
+      transform: translateX(-50%);
+    }
+  }
+
+  .animate-review-slide {
+    display: flex;
+    width: max-content;
+    will-change: transform;
+    animation: review-slide 42s linear infinite;
+  }
+
+  .animate-review-slide:hover,
+  .animate-review-slide.is-paused {
+    animation-play-state: paused;
+  }
+
+  /* Silky Scandinavian Micro-Animations */
+  @keyframes fadeUp {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes scaleIn {
+    from {
+      opacity: 0;
+      transform: scale(0.97);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  .animate-fade-up {
+    animation: fadeUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  .animate-scale-in {
+    animation: scaleIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  /* Tactile feedback for buttons */
+  button:active,
+  a[role="button"]:active {
+    transform: scale(0.985);
+    transition: transform 0.08s ease;
+  }
+
   /* Sticky footer: the app shell spans the viewport and the main region grows
    to fill it, so the footer always sits at the bottom on short pages. */
   .astryx-app-shell {

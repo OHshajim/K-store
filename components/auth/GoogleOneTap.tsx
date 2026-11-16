@@ -10,7 +10,17 @@ declare global {
       accounts: {
         id: {
           initialize: (config: Record<string, unknown>) => void;
-          prompt: () => void;
+          prompt: (
+            callback?: (notification: {
+              isNotDisplayed: () => boolean;
+              isSkippedMoment: () => boolean;
+              isDismissedMoment: () => boolean;
+              getNotDisplayedReason: () => string;
+              getSkippedReason: () => string;
+              getDismissedReason: () => string;
+            }) => void,
+          ) => void;
+          cancel: () => void;
         };
       };
     };
@@ -22,6 +32,7 @@ export function GoogleOneTap() {
   const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
 
   useEffect(() => {
+    // Skip if no client ID, if on admin routes, or if server-side
     if (
       !clientId ||
       !process.env.NEXT_PUBLIC_SUPABASE_URL ||
@@ -40,27 +51,59 @@ export function GoogleOneTap() {
         } = await supabase.auth.getUser();
         if (user || cancelled) return;
 
-        const script = document.createElement("script");
-        script.src = "https://accounts.google.com/gsi/client";
-        script.async = true;
-        script.onload = () => {
-          if (cancelled || !window.google) return;
-          window.google.accounts.id.initialize({
-            client_id: clientId,
-            callback: async (response: { credential?: string }) => {
-              if (!response.credential) return;
-              await supabase.auth.signInWithIdToken({
-                provider: "google",
-                token: response.credential,
-              });
-              window.location.reload();
-            },
-            auto_select: true,
-            cancel_on_tap_outside: true,
-          });
-          window.google.accounts.id.prompt();
+        // Ensure single script instance
+        let script = document.querySelector<HTMLScriptElement>(
+          'script[src="https://accounts.google.com/gsi/client"]'
+        );
+
+        const handleLoad = () => {
+          if (cancelled || !window.google?.accounts?.id) return;
+
+          try {
+            window.google.accounts.id.initialize({
+              client_id: clientId,
+              callback: async (response: { credential?: string }) => {
+                if (!response.credential) return;
+                try {
+                  await supabase.auth.signInWithIdToken({
+                    provider: "google",
+                    token: response.credential,
+                  });
+                  window.location.reload();
+                } catch (authErr) {
+                  console.warn("Google One Tap sign-in notice:", authErr);
+                }
+              },
+              // Disable auto_select: true which causes FedCM silent credential fetch NetworkError
+              auto_select: false,
+              cancel_on_tap_outside: true,
+              // Opt out of native FedCM browser prompt to prevent NetworkError in Chrome
+              use_fedcm_for_prompt: false,
+              itp_support: true,
+            });
+
+            window.google.accounts.id.prompt((notification) => {
+              if (notification.isNotDisplayed()) {
+                // Silently handled: user has no active Google session or suppressed prompt
+              }
+            });
+          } catch {
+            // Silently catch if third-party privacy shield or missing origin prevents initialization
+          }
         };
-        document.head.appendChild(script);
+
+        if (window.google?.accounts?.id) {
+          handleLoad();
+        } else if (!script) {
+          script = document.createElement("script");
+          script.src = "https://accounts.google.com/gsi/client";
+          script.async = true;
+          script.defer = true;
+          script.onload = handleLoad;
+          document.head.appendChild(script);
+        } else {
+          script.addEventListener("load", handleLoad);
+        }
       } catch {
         // One Tap is progressive enhancement.
       }
@@ -69,6 +112,9 @@ export function GoogleOneTap() {
     void boot();
     return () => {
       cancelled = true;
+      try {
+        window.google?.accounts?.id?.cancel();
+      } catch {}
     };
   }, [clientId, pathname]);
 

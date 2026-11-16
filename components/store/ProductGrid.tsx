@@ -47,8 +47,8 @@ export function ProductGrid({
 
   return (
     <div className={gridColsClass}>
-      {products.map((product) => (
-        <ProductCard key={product.id} product={product} />
+      {products.map((product, index) => (
+        <ProductCard key={product.id} product={product} priority={index < 4} />
       ))}
     </div>
   );

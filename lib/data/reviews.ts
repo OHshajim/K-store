@@ -147,7 +147,7 @@ export async function getAllReviews(): Promise<Review[]> {
   );
 }
 
-export async function getPublishedReviews(limit = 4): Promise<Review[]> {
+export async function getPublishedReviews(limit = 24): Promise<Review[]> {
   try {
     const supabase = await createClient();
     const { data } = await supabase

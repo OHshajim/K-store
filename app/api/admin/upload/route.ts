@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
-import { writeFile, mkdir } from "fs/promises";
-import { join } from "path";
 import { randomUUID } from "crypto";
 import { requireAdminProfile } from "@/lib/data/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
+
+export const dynamic = "force-dynamic";
 
 export async function POST(request: Request) {
   try {
@@ -11,19 +11,36 @@ export async function POST(request: Request) {
 
     const formData = await request.formData();
     const file = formData.get("file") as File | null;
+    const requestedBucket = formData.get("bucket") as string | null;
 
     if (!file) {
       return NextResponse.json({ error: "No file provided" }, { status: 400 });
     }
 
     // Validate mime type
-    const validTypes = ["image/jpeg", "image/png", "image/webp", "image/avif", "image/svg+xml"];
-    if (!validTypes.includes(file.type)) {
+    const validTypes = [
+      "image/jpeg",
+      "image/png",
+      "image/webp",
+      "image/avif",
+      "image/svg+xml",
+      "image/x-icon",
+      "image/vnd.microsoft.icon",
+      "image/ico",
+      "image/gif",
+    ];
+
+    const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
+    const isKnownExt = ["ico", "png", "jpg", "jpeg", "webp", "avif", "svg", "gif"].includes(ext);
+
+    if (!validTypes.includes(file.type) && !isKnownExt) {
       return NextResponse.json(
-        { error: "Invalid image format. Supported formats: JPEG, PNG, WebP, AVIF, SVG" },
+        { error: "Invalid image format. Supported formats: ICO, PNG, JPEG, WebP, AVIF, SVG, GIF" },
         { status: 400 },
       );
     }
+
+    const contentType = file.type || (ext === "ico" ? "image/x-icon" : `image/${ext}`);
 
     // Validate size (max 10MB)
     if (file.size > 10 * 1024 * 1024) {
@@ -34,72 +51,59 @@ export async function POST(request: Request) {
     }
 
     const buffer = Buffer.from(await file.arrayBuffer());
-    const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
     const filename = `${randomUUID()}.${ext}`;
 
-    // 1. Upload to Supabase Storage
-    try {
-      const admin = createAdminClient();
-      const bucketName = "products";
+    const admin = createAdminClient();
 
-      let { data: uploadData, error: uploadError } = await admin.storage
-        .from(bucketName)
+    // Determine target bucket: default to 'products', fallback to 'product-images'
+    const primaryBucket = requestedBucket === "banners" ? "products" : "products";
+
+    let uploadData;
+    let uploadError;
+    let activeBucket = primaryBucket;
+
+    const res1 = await admin.storage
+      .from(primaryBucket)
+      .upload(filename, buffer, {
+        contentType,
+        upsert: true,
+      });
+
+    uploadData = res1.data;
+    uploadError = res1.error;
+
+    if (uploadError) {
+      // Fallback to 'product-images' bucket if primary bucket returned error
+      activeBucket = "product-images";
+      const res2 = await admin.storage
+        .from("product-images")
         .upload(filename, buffer, {
-          contentType: file.type,
+          contentType,
           upsert: true,
         });
-
-      if (uploadError) {
-        // Fallback to product-images bucket if needed
-        const res2 = await admin.storage
-          .from("product-images")
-          .upload(filename, buffer, {
-            contentType: file.type,
-            upsert: true,
-          });
-        uploadData = res2.data;
-        uploadError = res2.error;
-      }
-
-      if (!uploadError && uploadData) {
-        const activeBucket = uploadData.path.includes("product-images")
-          ? "product-images"
-          : "products";
-        const { data: publicUrlData } = admin.storage
-          .from(activeBucket)
-          .getPublicUrl(filename);
-
-        return NextResponse.json({
-          url: publicUrlData.publicUrl,
-          filename,
-          success: true,
-          storage: "supabase",
-        });
-      }
-
-      if (uploadError) {
-        console.error("Supabase storage upload error:", uploadError);
-      }
-    } catch (sErr) {
-      console.error("Supabase storage connection error:", sErr);
+      uploadData = res2.data;
+      uploadError = res2.error;
     }
 
-    // 2. Fallback: Save to public/uploads directory for offline development & testing
-    const uploadDir = join(process.cwd(), "public", "uploads");
-    await mkdir(uploadDir, { recursive: true });
-    const localFilePath = join(uploadDir, filename);
-    await writeFile(localFilePath, buffer);
+    if (uploadError || !uploadData) {
+      console.error("Supabase storage upload error:", uploadError);
+      throw new Error(uploadError?.message || "Failed to upload image to Supabase Storage");
+    }
+
+    const { data: publicUrlData } = admin.storage
+      .from(activeBucket)
+      .getPublicUrl(filename);
 
     return NextResponse.json({
-      url: `/uploads/${filename}`,
+      url: publicUrlData.publicUrl,
       filename,
+      bucket: activeBucket,
       success: true,
-      storage: "local",
+      storage: "supabase",
     });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Failed to upload image";
+    const message = error instanceof Error ? error.message : "Failed to upload image to Supabase Storage";
     const status = message.includes("Admin") ? 403 : 500;
     return NextResponse.json({ error: message }, { status });
   }
 }
-

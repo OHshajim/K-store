@@ -17,25 +17,17 @@ export default async function HomePage() {
     getCategories(),
     getProducts({ bestsellers: true, limit: 8 }),
     getBanners("hero"),
-    getPublishedReviews(4),
+    getPublishedReviews(24),
     requireStoreSettings(),
   ]);
 
-  const activeHero = heroBanners[0];
-
   return (
     <div className="w-full space-y-0">
-      {/* Section C: Hero Section */}
+      {/* Section C: Hero Section Slider */}
       <HeroSection
-        headline={activeHero?.title || "Make room for what matters."}
-        description={
-          activeHero?.subtitle ||
-          settings.tagline ||
-          "Thoughtfully designed essentials for a more organized, beautiful home."
-        }
-        primaryCta={activeHero?.cta_label || "Explore Collection"}
-        secondaryCta="Discover Our Story"
-        imageUrl={activeHero?.image_url || undefined}
+        banners={heroBanners}
+        tagline={settings.tagline || undefined}
+        storeName={settings.store_name}
       />
 
       {/* Section D: Featured Collections */}

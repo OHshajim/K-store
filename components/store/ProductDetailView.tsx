@@ -139,6 +139,21 @@ export function ProductDetailView({
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  // Close image lightbox on Escape and lock body scroll
+  useEffect(() => {
+    if (!isZoomOpen) return;
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setIsZoomOpen(false);
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.body.style.overflow = prevOverflow;
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isZoomOpen]);
+
   const handleAddToCart = () => {
     addProduct(product, quantity, {
       selectedColor: selectedColor || undefined,
@@ -857,16 +872,24 @@ export function ProductDetailView({
 
       {/* Fullscreen Image Lightbox Modal */}
       {isZoomOpen && (
-        <div className="fixed inset-0 z-50 bg-[#1A1C18]/90 backdrop-blur-md flex items-center justify-center p-4">
+        <div
+          className="fixed inset-0 z-50 bg-[#1A1C18]/90 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-200"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setIsZoomOpen(false);
+          }}
+        >
           <button
             type="button"
             onClick={() => setIsZoomOpen(false)}
-            className="absolute top-6 right-6 p-3 bg-white/10 hover:bg-white/20 text-white rounded-full transition-colors cursor-pointer"
+            className="absolute top-6 right-6 p-3 bg-white/10 hover:bg-white/20 text-white rounded-full transition-colors cursor-pointer z-10"
             aria-label="Close image preview"
           >
             <X className="w-6 h-6" />
           </button>
-          <div className="relative max-w-4xl max-h-[85vh] w-full h-[80vh]">
+          <div
+            className="relative max-w-4xl max-h-[85vh] w-full h-[80vh]"
+            onClick={(e) => e.stopPropagation()}
+          >
             <Image
               src={images[selectedImage]}
               alt={product.name}

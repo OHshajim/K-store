@@ -1,5 +1,4 @@
 import { createAdminClient } from "@/lib/supabase/admin";
-import { createClient } from "@/lib/supabase/server";
 import { getOrderById } from "@/lib/data/orders";
 import type { DeliveryStatus, Order, PaymentStatus } from "@/lib/types";
 
@@ -224,29 +223,56 @@ export async function updateOrderStatus(input: {
 }
 
 export async function getCustomerSummaries() {
-  const defaults = [
-    { id: "usr-1", email: "elena.rostova@archloft.design", full_name: "Elena Rostova", role: "customer", order_count: 3, spent_cents: 102000, created_at: "2026-02-10T10:00:00Z" },
-    { id: "usr-2", email: "m.davies@kensington.co.uk", full_name: "Marcus Davies", role: "customer", order_count: 2, spent_cents: 49000, created_at: "2026-02-12T14:30:00Z" },
-    { id: "usr-3", email: "liam.oc@studiobase.ca", full_name: "Liam O'Connor", role: "customer", order_count: 1, spent_cents: 29500, created_at: "2026-02-15T09:15:00Z" },
-    { id: "usr-4", email: "clara.vance@techcorp.com", full_name: "Clara Vance", role: "customer", order_count: 2, spent_cents: 68000, created_at: "2026-02-20T18:00:00Z" },
-  ];
-
   try {
-    const supabase = await createClient();
-    const { data: profiles } = await supabase
-      .from("profiles")
-      .select("id, email, full_name, role, created_at")
-      .order("created_at", { ascending: false })
-      .limit(200);
+    const admin = createAdminClient();
+    const [profilesRes, ordersRes] = await Promise.all([
+      admin
+        .from("profiles")
+        .select("id, email, full_name, role, created_at")
+        .order("created_at", { ascending: false })
+        .limit(200),
+      admin
+        .from("orders")
+        .select("user_id, customer_email, total_cents, payment_status"),
+    ]);
 
-    if (profiles && profiles.length > 0) {
-      return profiles.map((p) => ({
-        ...p,
-        order_count: 1,
-        spent_cents: 25000,
-      }));
+    if (profilesRes.data && profilesRes.data.length > 0) {
+      const orders = ordersRes.data || [];
+      return profilesRes.data.map((p) => {
+        const userOrders = orders.filter(
+          (o) =>
+            o.user_id === p.id ||
+            (o.customer_email &&
+              p.email &&
+              o.customer_email.toLowerCase() === p.email.toLowerCase())
+        );
+        const order_count = userOrders.length;
+        const spent_cents = userOrders
+          .filter((o) => o.payment_status === "paid")
+          .reduce((sum, o) => sum + (o.total_cents || 0), 0);
+
+        const normalizedRole: "admin" | "manager" | "customer" =
+          p.role === "admin"
+            ? "admin"
+            : p.role === "manager"
+            ? "manager"
+            : "customer";
+
+        return {
+          id: p.id,
+          email: p.email,
+          full_name: p.full_name,
+          role: normalizedRole,
+          order_count,
+          spent_cents,
+          created_at: p.created_at,
+        };
+      });
     }
   } catch {}
 
-  return defaults;
+  return [
+    { id: "usr-1", email: "elena.rostova@archloft.design", full_name: "Elena Rostova", role: "customer" as const, order_count: 3, spent_cents: 102000, created_at: "2026-02-10T10:00:00Z" },
+    { id: "usr-2", email: "m.davies@kensington.co.uk", full_name: "Marcus Davies", role: "customer" as const, order_count: 2, spent_cents: 49000, created_at: "2026-02-12T14:30:00Z" },
+  ];
 }

@@ -61,68 +61,77 @@ export default async function PrivacyPage() {
 
       {/* 3. Document Body */}
       <div className="bg-white rounded-3xl p-6 sm:p-10 border border-[#1A1C18]/10 shadow-xs space-y-8 text-xs sm:text-sm text-[#4A483E] leading-relaxed">
-        <section className="space-y-2">
-          <h2 className="text-base sm:text-lg font-bold text-[#1A1C18] font-editorial">
-            1. Information We Collect
-          </h2>
-          <p>
-            When you interact with {storeName}, we collect only the information essential to providing exceptional architectural products and white-glove customer care:
-          </p>
-          <ul className="list-disc pl-5 space-y-1.5 text-xs text-[#4A483E]/85">
-            <li>
-              <strong>Direct Subscriptions:</strong> Your email address when subscribing to The Weekly Dispatch, seasonal furniture release previews, or architectural essays.
-            </li>
-            <li>
-              <strong>Commercial Fulfillment:</strong> Your name, delivery address, phone number, and billing details when purchasing furniture or design accessories.
-            </li>
-            <li>
-              <strong>Client Accounts:</strong> Saved preferences, room dimensions submitted to our {storeName} Fit Assistant, wishlists, and order verification history.
-            </li>
-          </ul>
-        </section>
+        {settings?.privacy_html ? (
+          <div
+            className="prose prose-stone max-w-none text-xs sm:text-sm leading-relaxed"
+            dangerouslySetInnerHTML={{ __html: settings.privacy_html }}
+          />
+        ) : (
+          <>
+            <section className="space-y-2">
+              <h2 className="text-base sm:text-lg font-bold text-[#1A1C18] font-editorial">
+                1. Information We Collect
+              </h2>
+              <p>
+                When you interact with {storeName}, we collect only the information essential to providing exceptional architectural products and white-glove customer care:
+              </p>
+              <ul className="list-disc pl-5 space-y-1.5 text-xs text-[#4A483E]/85">
+                <li>
+                  <strong>Direct Subscriptions:</strong> Your email address when subscribing to The Weekly Dispatch, seasonal furniture release previews, or architectural essays.
+                </li>
+                <li>
+                  <strong>Commercial Fulfillment:</strong> Your name, delivery address, phone number, and billing details when purchasing furniture or design accessories.
+                </li>
+                <li>
+                  <strong>Client Accounts:</strong> Saved preferences, room dimensions submitted to our {storeName} Fit Assistant, wishlists, and order verification history.
+                </li>
+              </ul>
+            </section>
 
-        <section className="space-y-2">
-          <h2 className="text-base sm:text-lg font-bold text-[#1A1C18] font-editorial">
-            2. How We Utilize Your Data
-          </h2>
-          <p>
-            Your information serves strictly operational purposes: processing your orders, coordinating white-glove delivery couriers, notifying you of tracking milestones, and delivering curated design newsletters you explicitly opted into. We do not engage in behavioral cross-site retargeting or unprompted third-party promotional campaigns.
-          </p>
-        </section>
+            <section className="space-y-2">
+              <h2 className="text-base sm:text-lg font-bold text-[#1A1C18] font-editorial">
+                2. How We Utilize Your Data
+              </h2>
+              <p>
+                Your information serves strictly operational purposes: processing your orders, coordinating white-glove delivery couriers, notifying you of tracking milestones, and delivering curated design newsletters you explicitly opted into. We do not engage in behavioral cross-site retargeting or unprompted third-party promotional campaigns.
+              </p>
+            </section>
 
-        <section className="space-y-2">
-          <h2 className="text-base sm:text-lg font-bold text-[#1A1C18] font-editorial">
-            3. Local Storage, Cookies &amp; Currency Preferences
-          </h2>
-          <p>
-            We utilize essential first-party cookies and browser local storage strictly to preserve your active shopping bag, remember your selected global currency (USD, CAD, or GBP), and maintain your authenticated session. You can manage or disable cookie preferences via your browser settings at any time without forfeiting access to our public catalog.
-          </p>
-        </section>
+            <section className="space-y-2">
+              <h2 className="text-base sm:text-lg font-bold text-[#1A1C18] font-editorial">
+                3. Local Storage, Cookies &amp; Currency Preferences
+              </h2>
+              <p>
+                We utilize essential first-party cookies and browser local storage strictly to preserve your active shopping bag, remember your selected global currency (USD, CAD, or GBP), and maintain your authenticated session. You can manage or disable cookie preferences via your browser settings at any time without forfeiting access to our public catalog.
+              </p>
+            </section>
 
-        <section className="space-y-2">
-          <h2 className="text-base sm:text-lg font-bold text-[#1A1C18] font-editorial">
-            4. Email Dispatches &amp; Instant Opt-Out
-          </h2>
-          <p>
-            Every newsletter or product preview email dispatched by {storeName} incorporates an automated, one-click unsubscribe mechanism in its footer. Upon confirming unsubscription, your email is immediately expunged from our marketing dispatch queue. You may also email{" "}
-            <a
-              href={`mailto:${supportEmail}`}
-              className="text-[#1A1C18] font-semibold underline hover:text-[#B78E69]"
-            >
-              {supportEmail}
-            </a>{" "}
-            with the subject &ldquo;Unsubscribe&rdquo; or &ldquo;Data Deletion Request&rdquo; to have all personal records permanently deleted.
-          </p>
-        </section>
+            <section className="space-y-2">
+              <h2 className="text-base sm:text-lg font-bold text-[#1A1C18] font-editorial">
+                4. Email Dispatches &amp; Instant Opt-Out
+              </h2>
+              <p>
+                Every newsletter or product preview email dispatched by {storeName} incorporates an automated, one-click unsubscribe mechanism in its footer. Upon confirming unsubscription, your email is immediately expunged from our marketing dispatch queue. You may also email{" "}
+                <a
+                  href={`mailto:${supportEmail}`}
+                  className="text-[#1A1C18] font-semibold underline hover:text-[#B78E69]"
+                >
+                  {supportEmail}
+                </a>{" "}
+                with the subject &ldquo;Unsubscribe&rdquo; or &ldquo;Data Deletion Request&rdquo; to have all personal records permanently deleted.
+              </p>
+            </section>
 
-        <section className="space-y-2">
-          <h2 className="text-base sm:text-lg font-bold text-[#1A1C18] font-editorial">
-            5. Payment Processing &amp; Security Compliance
-          </h2>
-          <p>
-            Payment transactions are conducted securely through PCI-DSS Level 1 certified gateways including Stripe and major credit card networks. {storeName} never stores, records, or has direct access to raw credit card numbers or banking security codes on our servers.
-          </p>
-        </section>
+            <section className="space-y-2">
+              <h2 className="text-base sm:text-lg font-bold text-[#1A1C18] font-editorial">
+                5. Payment Processing &amp; Security Compliance
+              </h2>
+              <p>
+                Payment transactions are conducted securely through PCI-DSS Level 1 certified gateways including Stripe and major credit card networks. {storeName} never stores, records, or has direct access to raw credit card numbers or banking security codes on our servers.
+              </p>
+            </section>
+          </>
+        )}
 
         <div className="pt-6 border-t border-[#1A1C18]/10 flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-xs text-[#8A927A]">
           <span>Effective Date: November 2026 · {storeName} Privacy Office</span>

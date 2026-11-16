@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import type { Category, Product } from "@/lib/types";
 import { slugify } from "@/lib/format";
+import { ConfirmationModal } from "@/components/shared/ConfirmationModal";
 
 const ROOM_OPTIONS = [
   { value: "living", label: "Living Room", icon: "🛋️" },
@@ -776,38 +777,37 @@ export function ProductForm({
 
             {product && (
               <div className="pt-2 border-t border-[#1A1C18]/10 text-center">
-                {!showDeleteConfirm ? (
-                  <button
-                    type="button"
-                    onClick={() => setShowDeleteConfirm(true)}
-                    className="text-[11px] text-rose-600 hover:text-rose-700 font-semibold transition-colors cursor-pointer"
-                  >
-                    Archive / Delete Product
-                  </button>
-                ) : (
-                  <div className="p-3 bg-rose-50 rounded-2xl border border-rose-200 space-y-2">
-                    <p className="text-[11px] text-rose-900 font-semibold">
-                      Are you sure you want to deactivate this product?
-                    </p>
-                    <div className="flex items-center justify-center gap-2">
-                      <button
-                        type="button"
-                        disabled={isDeleting}
-                        onClick={deleteProduct}
-                        className="px-3 py-1.5 bg-rose-600 text-white text-xs font-bold rounded-xl hover:bg-rose-700 cursor-pointer disabled:opacity-50"
-                      >
-                        {isDeleting ? "Deleting…" : "Yes, Delete"}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setShowDeleteConfirm(false)}
-                        className="px-3 py-1.5 bg-white border border-[#1A1C18]/15 text-xs font-semibold text-[#1A1C18] rounded-xl hover:bg-[#F4F0E8] cursor-pointer"
-                      >
-                        Cancel
-                      </button>
+                <button
+                  type="button"
+                  onClick={() => setShowDeleteConfirm(true)}
+                  className="text-[11px] text-rose-600 hover:text-rose-700 font-semibold transition-colors cursor-pointer"
+                >
+                  Archive / Delete Product
+                </button>
+
+                <ConfirmationModal
+                  isOpen={showDeleteConfirm}
+                  onClose={() => {
+                    if (!isDeleting) setShowDeleteConfirm(false);
+                  }}
+                  onConfirm={deleteProduct}
+                  isLoading={isDeleting}
+                  title="Archive / Delete Product"
+                  subtitle="Catalog Inventory Action"
+                  variant="danger"
+                  confirmText="Yes, Delete Product"
+                  cancelText="Keep Product"
+                  description={
+                    <div className="space-y-2">
+                      <p>
+                        Are you sure you want to delete <strong className="text-[#1A1C18]">&quot;{name || product.name}&quot;</strong>?
+                      </p>
+                      <div className="p-3 bg-rose-50 rounded-xl border border-rose-200 text-rose-900 text-xs">
+                        <strong>Permanent Action:</strong> This product will be deactivated and removed from the active catalog and customer room collections.
+                      </div>
                     </div>
-                  </div>
-                )}
+                  }
+                />
               </div>
             )}
           </div>

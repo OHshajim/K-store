@@ -13,6 +13,7 @@ import {
   Lock,
   Sparkles,
   Info,
+  AlertCircle,
 } from "lucide-react";
 import type { PaymentMethod, StoreSettings } from "@/lib/types";
 import { useCartStore } from "@/lib/cart/store";
@@ -43,17 +44,18 @@ export function CheckoutForm({
 
   // Form Fields
   const [email, setEmail] = useState(userEmail || "");
-  const [phone, setPhone] = useState("+1 (555) 019-2834");
+  const [phone, setPhone] = useState("");
   const [firstName, setFirstName] = useState(userName ? userName.split(" ")[0] : "");
   const [lastName, setLastName] = useState(userName ? userName.split(" ").slice(1).join(" ") : "");
-  const [address, setAddress] = useState("452 Scandinavian Way, Suite 4B");
-  const [city, setCity] = useState("New York");
+  const [address, setAddress] = useState("");
+  const [city, setCity] = useState("");
   const [country, setCountry] = useState("United States");
-  const [postalCode, setPostalCode] = useState("10012");
+  const [postalCode, setPostalCode] = useState("");
   const [deliveryOption, setDeliveryOption] = useState<"standard" | "express">("standard");
   const [shippingNotes, setShippingNotes] = useState("");
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("stripe");
 
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -66,9 +68,101 @@ export function CheckoutForm({
 
   const fullName = `${firstName} ${lastName}`.trim();
 
+  const validateStep1 = () => {
+    const errs: Record<string, string> = {};
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!email.trim()) {
+      errs.email = "Email address is required for order tracking.";
+    } else if (!emailRegex.test(email.trim())) {
+      errs.email = "Please enter a valid email address (e.g. name@domain.com).";
+    }
+
+    if (!phone.trim()) {
+      errs.phone = "Mobile phone number is required for courier dispatch.";
+    } else if (phone.trim().replace(/\D/g, "").length < 7) {
+      errs.phone = "Please enter a valid phone number (at least 7 digits).";
+    }
+
+    setFieldErrors((prev) => ({ ...prev, ...errs }));
+    return Object.keys(errs).length === 0;
+  };
+
+  const validateStep2 = () => {
+    const errs: Record<string, string> = {};
+    if (!firstName.trim()) {
+      errs.firstName = "First name is required.";
+    }
+    if (!lastName.trim()) {
+      errs.lastName = "Last name is required.";
+    }
+    if (!address.trim()) {
+      errs.address = "Street address and unit/suite are required.";
+    }
+    if (!city.trim()) {
+      errs.city = "City is required.";
+    }
+    if (!country.trim()) {
+      errs.country = "Country is required.";
+    }
+    if (!postalCode.trim()) {
+      errs.postalCode = "Postal or ZIP code is required.";
+    }
+
+    setFieldErrors((prev) => ({ ...prev, ...errs }));
+    return Object.keys(errs).length === 0;
+  };
+
+  const clearFieldError = (fieldName: string) => {
+    if (fieldErrors[fieldName]) {
+      setFieldErrors((prev) => {
+        const next = { ...prev };
+        delete next[fieldName];
+        return next;
+      });
+    }
+    if (error) setError(null);
+  };
+
+  const handleStepTransition = (targetStep: number) => {
+    if (targetStep < currentStep) {
+      // Navigating backwards is always allowed
+      setCurrentStep(targetStep);
+      setError(null);
+      return;
+    }
+
+    // Moving forward from or past Step 1 requires Step 1 validation
+    if (currentStep === 1 || targetStep > 1) {
+      if (!validateStep1()) {
+        setCurrentStep(1);
+        setError("Please complete all required contact fields before continuing.");
+        return;
+      }
+    }
+
+    // Moving forward past Step 2 requires Step 2 validation
+    if (targetStep > 2) {
+      if (!validateStep2()) {
+        setCurrentStep(2);
+        setError("Please complete all required shipping fields before continuing.");
+        return;
+      }
+    }
+
+    setError(null);
+    setCurrentStep(targetStep);
+  };
+
   const handleCreateOrder = async () => {
-    if (!email.includes("@") || !fullName || !address || !city) {
-      setError("Please complete all required shipping and contact details.");
+    if (!validateStep1()) {
+      setCurrentStep(1);
+      setError("Please complete your contact information before placing order.");
+      return;
+    }
+
+    if (!validateStep2()) {
+      setCurrentStep(2);
+      setError("Please complete all required shipping details before placing order.");
       return;
     }
 
@@ -180,7 +274,7 @@ export function CheckoutForm({
           <div className="flex items-center justify-between border-b border-[#292B27]/10 pb-4 text-xs font-semibold">
             <button
               type="button"
-              onClick={() => setCurrentStep(1)}
+              onClick={() => handleStepTransition(1)}
               className={`flex items-center gap-2 transition-colors cursor-pointer ${
                 currentStep === 1 ? "text-[#292B27] font-bold" : "text-[#77766E]"
               }`}
@@ -193,7 +287,7 @@ export function CheckoutForm({
             <div className="w-8 h-px bg-[#292B27]/20" />
             <button
               type="button"
-              onClick={() => setCurrentStep(2)}
+              onClick={() => handleStepTransition(2)}
               className={`flex items-center gap-2 transition-colors cursor-pointer ${
                 currentStep === 2 ? "text-[#292B27] font-bold" : "text-[#77766E]"
               }`}
@@ -206,7 +300,7 @@ export function CheckoutForm({
             <div className="w-8 h-px bg-[#292B27]/20" />
             <button
               type="button"
-              onClick={() => setCurrentStep(3)}
+              onClick={() => handleStepTransition(3)}
               className={`flex items-center gap-2 transition-colors cursor-pointer ${
                 currentStep === 3 ? "text-[#292B27] font-bold" : "text-[#77766E]"
               }`}
@@ -219,7 +313,7 @@ export function CheckoutForm({
             <div className="w-8 h-px bg-[#292B27]/20" />
             <button
               type="button"
-              onClick={() => setCurrentStep(4)}
+              onClick={() => handleStepTransition(4)}
               className={`flex items-center gap-2 transition-colors cursor-pointer ${
                 currentStep === 4 ? "text-[#292B27] font-bold" : "text-[#77766E]"
               }`}
@@ -246,13 +340,27 @@ export function CheckoutForm({
                     type="email"
                     required
                     value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    onChange={(e) => {
+                      setEmail(e.target.value);
+                      clearFieldError("email");
+                    }}
                     placeholder="name@domain.com"
-                    className="w-full px-4 py-3 rounded-xl border border-[#292B27]/20 focus:outline-none focus:ring-1 focus:ring-[#292B27]"
+                    className={`w-full px-4 py-3 rounded-xl border transition-colors focus:outline-none focus:ring-2 ${
+                      fieldErrors.email
+                        ? "border-rose-400 bg-rose-50/20 focus:ring-rose-400 text-rose-950"
+                        : "border-[#292B27]/20 focus:ring-[#292B27]"
+                    }`}
                   />
-                  <p className="text-[11px] text-[#77766E] mt-1">
-                    Guest checkout supported. We will never share your contact details.
-                  </p>
+                  {fieldErrors.email ? (
+                    <p className="text-[11px] text-rose-600 mt-1 flex items-center gap-1 font-medium">
+                      <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                      {fieldErrors.email}
+                    </p>
+                  ) : (
+                    <p className="text-[11px] text-[#77766E] mt-1">
+                      Guest checkout supported. We will never share your contact details.
+                    </p>
+                  )}
                 </div>
 
                 <div>
@@ -263,17 +371,30 @@ export function CheckoutForm({
                     type="tel"
                     required
                     value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
+                    onChange={(e) => {
+                      setPhone(e.target.value);
+                      clearFieldError("phone");
+                    }}
                     placeholder="+1 (555) 000-0000"
-                    className="w-full px-4 py-3 rounded-xl border border-[#292B27]/20 focus:outline-none focus:ring-1 focus:ring-[#292B27]"
+                    className={`w-full px-4 py-3 rounded-xl border transition-colors focus:outline-none focus:ring-2 ${
+                      fieldErrors.phone
+                        ? "border-rose-400 bg-rose-50/20 focus:ring-rose-400 text-rose-950"
+                        : "border-[#292B27]/20 focus:ring-[#292B27]"
+                    }`}
                   />
+                  {fieldErrors.phone && (
+                    <p className="text-[11px] text-rose-600 mt-1 flex items-center gap-1 font-medium">
+                      <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                      {fieldErrors.phone}
+                    </p>
+                  )}
                 </div>
               </div>
 
               <div className="flex justify-end pt-4">
                 <button
                   type="button"
-                  onClick={() => setCurrentStep(2)}
+                  onClick={() => handleStepTransition(2)}
                   className="px-8 py-3.5 bg-[#292B27] text-white text-xs font-semibold rounded-xl hover:bg-[#3d403a] transition-all flex items-center gap-2 cursor-pointer shadow-md"
                 >
                   Continue to Shipping Address
@@ -299,10 +420,23 @@ export function CheckoutForm({
                       type="text"
                       required
                       value={firstName}
-                      onChange={(e) => setFirstName(e.target.value)}
+                      onChange={(e) => {
+                        setFirstName(e.target.value);
+                        clearFieldError("firstName");
+                      }}
                       placeholder="Jane"
-                      className="w-full px-4 py-3 rounded-xl border border-[#292B27]/20 focus:outline-none focus:ring-1 focus:ring-[#292B27]"
+                      className={`w-full px-4 py-3 rounded-xl border transition-colors focus:outline-none focus:ring-2 ${
+                        fieldErrors.firstName
+                          ? "border-rose-400 bg-rose-50/20 focus:ring-rose-400 text-rose-950"
+                          : "border-[#292B27]/20 focus:ring-[#292B27]"
+                      }`}
                     />
+                    {fieldErrors.firstName && (
+                      <p className="text-[11px] text-rose-600 mt-1 flex items-center gap-1 font-medium">
+                        <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                        {fieldErrors.firstName}
+                      </p>
+                    )}
                   </div>
                   <div>
                     <label className="block font-bold text-[#292B27] mb-1.5 uppercase tracking-wider">
@@ -312,10 +446,23 @@ export function CheckoutForm({
                       type="text"
                       required
                       value={lastName}
-                      onChange={(e) => setLastName(e.target.value)}
+                      onChange={(e) => {
+                        setLastName(e.target.value);
+                        clearFieldError("lastName");
+                      }}
                       placeholder="Doe"
-                      className="w-full px-4 py-3 rounded-xl border border-[#292B27]/20 focus:outline-none focus:ring-1 focus:ring-[#292B27]"
+                      className={`w-full px-4 py-3 rounded-xl border transition-colors focus:outline-none focus:ring-2 ${
+                        fieldErrors.lastName
+                          ? "border-rose-400 bg-rose-50/20 focus:ring-rose-400 text-rose-950"
+                          : "border-[#292B27]/20 focus:ring-[#292B27]"
+                      }`}
                     />
+                    {fieldErrors.lastName && (
+                      <p className="text-[11px] text-rose-600 mt-1 flex items-center gap-1 font-medium">
+                        <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                        {fieldErrors.lastName}
+                      </p>
+                    )}
                   </div>
                 </div>
 
@@ -327,10 +474,23 @@ export function CheckoutForm({
                     type="text"
                     required
                     value={address}
-                    onChange={(e) => setAddress(e.target.value)}
+                    onChange={(e) => {
+                      setAddress(e.target.value);
+                      clearFieldError("address");
+                    }}
                     placeholder="123 Living St, Apt 4"
-                    className="w-full px-4 py-3 rounded-xl border border-[#292B27]/20 focus:outline-none focus:ring-1 focus:ring-[#292B27]"
+                    className={`w-full px-4 py-3 rounded-xl border transition-colors focus:outline-none focus:ring-2 ${
+                      fieldErrors.address
+                        ? "border-rose-400 bg-rose-50/20 focus:ring-rose-400 text-rose-950"
+                        : "border-[#292B27]/20 focus:ring-[#292B27]"
+                    }`}
                   />
+                  {fieldErrors.address && (
+                    <p className="text-[11px] text-rose-600 mt-1 flex items-center gap-1 font-medium">
+                      <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                      {fieldErrors.address}
+                    </p>
+                  )}
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -342,10 +502,23 @@ export function CheckoutForm({
                       type="text"
                       required
                       value={city}
-                      onChange={(e) => setCity(e.target.value)}
+                      onChange={(e) => {
+                        setCity(e.target.value);
+                        clearFieldError("city");
+                      }}
                       placeholder="New York"
-                      className="w-full px-4 py-3 rounded-xl border border-[#292B27]/20 focus:outline-none focus:ring-1 focus:ring-[#292B27]"
+                      className={`w-full px-4 py-3 rounded-xl border transition-colors focus:outline-none focus:ring-2 ${
+                        fieldErrors.city
+                          ? "border-rose-400 bg-rose-50/20 focus:ring-rose-400 text-rose-950"
+                          : "border-[#292B27]/20 focus:ring-[#292B27]"
+                      }`}
                     />
+                    {fieldErrors.city && (
+                      <p className="text-[11px] text-rose-600 mt-1 flex items-center gap-1 font-medium">
+                        <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                        {fieldErrors.city}
+                      </p>
+                    )}
                   </div>
                   <div>
                     <label className="block font-bold text-[#292B27] mb-1.5 uppercase tracking-wider">
@@ -353,7 +526,10 @@ export function CheckoutForm({
                     </label>
                     <select
                       value={country}
-                      onChange={(e) => setCountry(e.target.value)}
+                      onChange={(e) => {
+                        setCountry(e.target.value);
+                        clearFieldError("country");
+                      }}
                       className="w-full px-4 py-3 rounded-xl border border-[#292B27]/20 focus:outline-none focus:ring-1 focus:ring-[#292B27] bg-white cursor-pointer"
                     >
                       <option value="United States">United States (USD)</option>
@@ -369,10 +545,23 @@ export function CheckoutForm({
                       type="text"
                       required
                       value={postalCode}
-                      onChange={(e) => setPostalCode(e.target.value)}
+                      onChange={(e) => {
+                        setPostalCode(e.target.value);
+                        clearFieldError("postalCode");
+                      }}
                       placeholder="10001"
-                      className="w-full px-4 py-3 rounded-xl border border-[#292B27]/20 focus:outline-none focus:ring-1 focus:ring-[#292B27]"
+                      className={`w-full px-4 py-3 rounded-xl border transition-colors focus:outline-none focus:ring-2 ${
+                        fieldErrors.postalCode
+                          ? "border-rose-400 bg-rose-50/20 focus:ring-rose-400 text-rose-950"
+                          : "border-[#292B27]/20 focus:ring-[#292B27]"
+                      }`}
                     />
+                    {fieldErrors.postalCode && (
+                      <p className="text-[11px] text-rose-600 mt-1 flex items-center gap-1 font-medium">
+                        <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                        {fieldErrors.postalCode}
+                      </p>
+                    )}
                   </div>
                 </div>
 
@@ -393,14 +582,14 @@ export function CheckoutForm({
               <div className="flex items-center justify-between pt-4 border-t border-[#292B27]/10">
                 <button
                   type="button"
-                  onClick={() => setCurrentStep(1)}
+                  onClick={() => handleStepTransition(1)}
                   className="px-6 py-3 border border-[#292B27]/20 text-[#292B27] text-xs font-semibold rounded-xl hover:bg-[#F4F0E8] transition-colors flex items-center gap-1.5 cursor-pointer"
                 >
                   <ArrowLeft className="w-4 h-4" /> Back to Contact
                 </button>
                 <button
                   type="button"
-                  onClick={() => setCurrentStep(3)}
+                  onClick={() => handleStepTransition(3)}
                   className="px-8 py-3.5 bg-[#292B27] text-white text-xs font-semibold rounded-xl hover:bg-[#3d403a] transition-all flex items-center gap-2 cursor-pointer shadow-md"
                 >
                   Continue to Delivery Method
@@ -469,14 +658,14 @@ export function CheckoutForm({
               <div className="flex items-center justify-between pt-4 border-t border-[#292B27]/10">
                 <button
                   type="button"
-                  onClick={() => setCurrentStep(2)}
+                  onClick={() => handleStepTransition(2)}
                   className="px-6 py-3 border border-[#292B27]/20 text-[#292B27] text-xs font-semibold rounded-xl hover:bg-[#F4F0E8] transition-colors flex items-center gap-1.5 cursor-pointer"
                 >
                   <ArrowLeft className="w-4 h-4" /> Back to Shipping
                 </button>
                 <button
                   type="button"
-                  onClick={() => setCurrentStep(4)}
+                  onClick={() => handleStepTransition(4)}
                   className="px-8 py-3.5 bg-[#292B27] text-white text-xs font-semibold rounded-xl hover:bg-[#3d403a] transition-all flex items-center gap-2 cursor-pointer shadow-md"
                 >
                   Continue to Payment
@@ -556,7 +745,7 @@ export function CheckoutForm({
               <div className="flex items-center justify-between pt-4 border-t border-[#292B27]/10">
                 <button
                   type="button"
-                  onClick={() => setCurrentStep(3)}
+                  onClick={() => handleStepTransition(3)}
                   className="px-6 py-3 border border-[#292B27]/20 text-[#292B27] text-xs font-semibold rounded-xl hover:bg-[#F4F0E8] transition-colors flex items-center gap-1.5 cursor-pointer"
                 >
                   <ArrowLeft className="w-4 h-4" /> Back to Delivery

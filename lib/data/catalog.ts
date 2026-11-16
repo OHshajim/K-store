@@ -8,7 +8,11 @@ import {
   MOCK_STORE_SETTINGS,
 } from "./mockData";
 
+import { getPersistedSettings } from "./storeContent";
+
 export async function getStoreSettings(): Promise<StoreSettings> {
+  let settings: StoreSettings = MOCK_STORE_SETTINGS;
+
   try {
     const supabase = await createClient();
     const { data, error } = await supabase
@@ -18,12 +22,19 @@ export async function getStoreSettings(): Promise<StoreSettings> {
       .maybeSingle();
 
     if (!error && data) {
-      return data as StoreSettings;
+      settings = data as StoreSettings;
     }
   } catch {
     // Fall back to robust defaults
   }
-  return MOCK_STORE_SETTINGS;
+
+  // Merge with locally persisted settings (guarantees privacy_html, faq_html, about_html persistence)
+  try {
+    const persisted = getPersistedSettings();
+    settings = { ...settings, ...persisted };
+  } catch {}
+
+  return settings;
 }
 
 export async function requireStoreSettings(): Promise<StoreSettings> {

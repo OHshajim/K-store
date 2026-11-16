@@ -99,7 +99,7 @@ export const EDITORIAL_ARTICLES: EditorialArticle[] = [
     summary:
       "Tactile wool felt, concealed wire routing channels, and ergonomic sightlines that eliminate cognitive friction.",
     image:
-      "https://images.unsplash.com/photo-1581291518655-9523c932deb8?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1518455027359-f3f8164ba6bd?auto=format&fit=crop&w=1200&q=80",
     keyTakeaways: [
       "Elevate your primary monitor to eye level to prevent cervical spine curvature.",
       "Route all charging and peripheral cables beneath the timber desktop using anodized clamps.",

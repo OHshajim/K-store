@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Star, X, AlertCircle, MessageSquare } from "lucide-react";
 
 export function ReviewForm({
@@ -18,6 +18,23 @@ export function ReviewForm({
   const [comment, setComment] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Close modal on Escape and lock body scroll
+  useEffect(() => {
+    if (!isOpen) return;
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && !isSubmitting) {
+        setIsOpen(false);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.body.style.overflow = prevOverflow;
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isOpen, isSubmitting]);
 
   async function submit() {
     if (rating < 1) {
@@ -57,7 +74,12 @@ export function ReviewForm({
 
       {/* Modal Dialog */}
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in">
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in"
+          onClick={(e) => {
+            if (e.target === e.currentTarget && !isSubmitting) setIsOpen(false);
+          }}
+        >
           <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-lg w-full border border-[#1A1C18]/10 shadow-2xl space-y-6 relative">
             {/* Close Button */}
             <button

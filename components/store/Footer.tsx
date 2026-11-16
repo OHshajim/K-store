@@ -212,6 +212,11 @@ export function Footer({
                 </Link>
               </li>
               <li>
+                <Link href="/faq" className="hover:text-white transition-colors">
+                  Frequently Asked Questions (FAQ)
+                </Link>
+              </li>
+              <li>
                 <Link href="/privacy" className="hover:text-white transition-colors">
                   Privacy Policy
                 </Link>
@@ -294,8 +299,12 @@ export function Footer({
               Terms of Service
             </Link>
             <span className="hidden sm:inline text-white/20">·</span>
+            <Link href="/faq" className="hover:text-white transition-colors">
+              FAQ
+            </Link>
+            <span className="hidden sm:inline text-white/20">·</span>
             <Link href="/about" className="hover:text-white transition-colors">
-              Design Principles
+              Our Story
             </Link>
             <span className="hidden sm:inline text-white/20">·</span>
             <span className="text-white/60">Crafted for Architectural Living</span>

@@ -44,3 +44,8 @@ next-env.d.ts
 public/sw*
 public/swe-worker*
 .pw-browsers/
+
+# Supabase CLI Local Artifacts
+supabase/.temp/
+supabase/.branches/
+public/uploads/

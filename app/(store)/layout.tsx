@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { StoreShell } from "@/components/store/StoreShell";
 import { requireStoreSettings, getCategories, getBanners } from "@/lib/data/catalog";
+import { getCurrentProfile } from "@/lib/data/auth";
 
 export const dynamic = "force-dynamic";
 
@@ -9,10 +10,11 @@ export default async function StoreLayout({
 }: {
   children: ReactNode;
 }) {
-  const [settings, categories, promoBanners] = await Promise.all([
+  const [settings, categories, promoBanners, profile] = await Promise.all([
     requireStoreSettings(),
     getCategories(),
     getBanners("promo"),
+    getCurrentProfile(),
   ]);
 
   const activePromo = promoBanners[0];
@@ -30,6 +32,7 @@ export default async function StoreLayout({
       logoUrl={settings.logo_url}
       categories={categories}
       promoMessage={promoMessage}
+      profile={profile}
     >
       {children}
     </StoreShell>

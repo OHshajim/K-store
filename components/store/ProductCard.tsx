@@ -9,7 +9,13 @@ import { useCartStore } from "@/lib/cart/store";
 import { useWishlistStore } from "@/lib/wishlist/store";
 import { useCurrencyStore } from "@/lib/currency/store";
 
-export function ProductCard({ product }: { product: Product }) {
+export function ProductCard({
+  product,
+  priority = false,
+}: {
+  product: Product;
+  priority?: boolean;
+}) {
   const { addProduct } = useCartStore();
   const { toggleItem, isInWishlist } = useWishlistStore();
   const { formatPrice } = useCurrencyStore();
@@ -61,6 +67,7 @@ export function ProductCard({ product }: { product: Product }) {
             src={displayImage}
             alt={product.name}
             fill
+            priority={priority}
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
             className="object-cover object-center group-hover:scale-105 transition-transform duration-500 ease-out"
           />
