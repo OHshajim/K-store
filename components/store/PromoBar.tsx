@@ -22,7 +22,7 @@ export function PromoBar({
   const marqueeItems = [...adMessages, ...adMessages];
 
   return (
-    <div className="bg-[#1A1C18] text-white py-2 px-3 sm:px-4 text-xs font-sans border-b border-black/10 overflow-hidden relative select-none">
+    <div className="bg-[#1A1C18] text-white py-2 px-3 sm:px-4 text-xs font-sans border-b border-black/10 overflow-hidden relative select-none print:hidden">
       <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
         {/* Left Kicker Emblem (Desktop only) */}
         <div className="hidden lg:flex items-center gap-2 text-white/80 shrink-0">

@@ -87,7 +87,7 @@ export default async function AdminOrderPage({ params }: { params: Params }) {
             Instant Synced
           </span>
         </div>
-        <OrderAdminActions order={order} />
+        <OrderAdminActions order={order} settings={settings} />
       </div>
 
       {/* 3. Detailed Order Receipt & Breakdown */}

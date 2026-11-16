@@ -18,6 +18,7 @@ import {
   MegaphoneIcon,
   Squares2X2Icon,
   StarIcon,
+  TagIcon,
   TruckIcon,
   UsersIcon,
 } from "@heroicons/react/24/outline";
@@ -162,6 +163,19 @@ export function AdminShell({
                 counts?.orders !== undefined ? (
                   <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-[#B78E69] text-white">
                     {counts.orders}
+                  </span>
+                ) : null
+              }
+            />
+            <SideNavItem
+              label="Coupons"
+              href="/admin/coupons"
+              icon={TagIcon}
+              isSelected={pathname.startsWith("/admin/coupons")}
+              endContent={
+                counts?.coupons !== undefined && counts.coupons > 0 ? (
+                  <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-white/10 text-white">
+                    {counts.coupons}
                   </span>
                 ) : null
               }

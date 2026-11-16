@@ -14,6 +14,7 @@ import {
 import type { StoreSettings, Product } from "@/lib/types";
 import { useCartStore } from "@/lib/cart/store";
 import { useCurrencyStore } from "@/lib/currency/store";
+import { RecentlyViewed } from "@/components/store/RecentlyViewed";
 
 export function CartView({
   settings,
@@ -360,6 +361,12 @@ export function CartView({
           </div>
         </div>
       </div>
+
+      {/* Recently Viewed Pieces */}
+      <RecentlyViewed
+        title="Recently Inspected Pieces"
+        subtitle="Add another curated essential to complete your living space."
+      />
     </div>
   );
 }

@@ -52,7 +52,7 @@ export function Footer({
   };
 
   return (
-    <footer className="bg-[#1A1C18] text-white pt-16 pb-12 border-t border-black/20 font-sans">
+    <footer className="bg-[#1A1C18] text-white pt-16 pb-12 border-t border-black/20 font-sans print:hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Brand Value Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 pb-12 border-b border-white/10">

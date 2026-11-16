@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -18,12 +18,15 @@ import {
   X,
   Check,
   ArrowRight,
+  Share2,
 } from "lucide-react";
 import type { Product, StoreSettings, Review } from "@/lib/types";
 import { useCartStore } from "@/lib/cart/store";
 import { useWishlistStore } from "@/lib/wishlist/store";
 import { useCurrencyStore } from "@/lib/currency/store";
 import { ProductCard } from "@/components/store/ProductCard";
+import { RecentlyViewed } from "@/components/store/RecentlyViewed";
+import { recordRecentlyViewed } from "@/lib/storage/recentlyViewed";
 
 export function ProductDetailView({
   product,
@@ -98,9 +101,15 @@ export function ProductDetailView({
   };
 
   const isFavorited = isInWishlist(product.id);
-  const images = product.images.length > 0 ? product.images : [
-    "https://images.unsplash.com/photo-1594026112284-02bb6f3352fe?auto=format&fit=crop&w=1200&q=80"
-  ];
+  const images = useMemo(
+    () =>
+      product.images.length > 0
+        ? product.images
+        : [
+            "https://images.unsplash.com/photo-1594026112284-02bb6f3352fe?auto=format&fit=crop&w=1200&q=80",
+          ],
+    [product.images]
+  );
 
   const [selectedImage, setSelectedImage] = useState(0);
   const [selectedColor, setSelectedColor] = useState(
@@ -114,21 +123,59 @@ export function ProductDetailView({
   const [isZoomOpen, setIsZoomOpen] = useState(false);
   const [showStickyBar, setShowStickyBar] = useState(false);
   const [addedFeedback, setAddedFeedback] = useState(false);
+  const [shareNotice, setShareNotice] = useState<string | null>(null);
 
   const hasDiscount =
     product.compare_at_cents && product.compare_at_cents > product.price_cents;
 
-  // Track recently viewed products in sessionStorage
+  // Track recently viewed products in persistent storage
   useEffect(() => {
-    try {
-      const stored = sessionStorage.getItem("kstore_recently_viewed");
-      const list: string[] = stored ? JSON.parse(stored) : [];
-      if (!list.includes(product.id)) {
-        const updated = [product.id, ...list.slice(0, 4)];
-        sessionStorage.setItem("kstore_recently_viewed", JSON.stringify(updated));
-      }
-    } catch { }
-  }, [product.id]);
+    recordRecentlyViewed({
+      id: product.id,
+      name: product.name,
+      slug: product.slug,
+      price_cents: product.price_cents,
+      compare_at_cents: product.compare_at_cents,
+      image: images[0] || product.images?.[0] || "",
+      room: product.room,
+      material: product.material,
+    });
+  }, [product, images]);
+
+  // Handle native or clipboard sharing
+  const handleShare = async () => {
+    const shareData = {
+      title: `${product.name} | Kstore`,
+      text: `Explore ${product.name} crafted for modern living.`,
+      url: typeof window !== "undefined" ? window.location.href : "",
+    };
+    if (typeof navigator !== "undefined" && navigator.share && navigator.canShare?.(shareData)) {
+      try {
+        await navigator.share(shareData);
+        return;
+      } catch {}
+    }
+    if (typeof navigator !== "undefined" && navigator.clipboard) {
+      navigator.clipboard.writeText(window.location.href);
+      setShareNotice("Direct piece link copied to clipboard");
+      setTimeout(() => setShareNotice(null), 2500);
+    }
+  };
+
+  // Calculate dynamic delivery window (3 to 5 business days from today)
+  const getDeliveryEstimate = () => {
+    const start = new Date();
+    start.setDate(start.getDate() + 3);
+    const end = new Date();
+    end.setDate(end.getDate() + 5);
+
+    const formatOpts: Intl.DateTimeFormatOptions = {
+      weekday: "short",
+      month: "short",
+      day: "numeric",
+    };
+    return `${start.toLocaleDateString("en-US", formatOpts)} – ${end.toLocaleDateString("en-US", formatOpts)}`;
+  };
 
   // Sticky bottom bar visibility
   useEffect(() => {
@@ -416,7 +463,45 @@ export function ProductDetailView({
               >
                 <Heart className={`w-5 h-5 ${isFavorited ? "fill-current" : ""}`} />
               </button>
+
+              {/* Share Piece Button */}
+              <button
+                type="button"
+                onClick={handleShare}
+                className="p-3 rounded-xl border border-[#1A1C18]/20 bg-white text-[#1A1C18] hover:bg-[#F4F0E8] transition-all cursor-pointer"
+                title="Share this design"
+              >
+                <Share2 className="w-5 h-5" />
+              </button>
             </div>
+
+            {/* Share Feedback Toast */}
+            {shareNotice && (
+              <div className="text-[11px] text-emerald-800 bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-xl flex items-center gap-1.5 animate-in fade-in duration-150">
+                <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                <span>{shareNotice}</span>
+              </div>
+            )}
+          </div>
+
+          {/* Dynamic Estimated Delivery & Production Urgency */}
+          <div className="p-3.5 rounded-2xl bg-[#FAF9F5] border border-[#1A1C18]/8 flex items-center justify-between gap-3 text-xs">
+            <div className="flex items-center gap-2.5">
+              <Truck className="w-4 h-4 text-[#8A927A] shrink-0" />
+              <div>
+                <span className="font-semibold text-[#1A1C18] block">
+                  Estimated Delivery: {getDeliveryEstimate()}
+                </span>
+                <span className="text-[11px] text-[#77766E]">
+                  Complimentary white-glove courier dispatch
+                </span>
+              </div>
+            </div>
+            {product.stock <= 5 && product.stock > 0 && (
+              <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-amber-100 text-amber-900 border border-amber-200 shrink-0">
+                Only {product.stock} Left
+              </span>
+            )}
           </div>
 
           {/* Primary Action Buttons */}
@@ -820,6 +905,9 @@ export function ProductDetailView({
           </div>
         </section>
       )}
+
+      {/* Recently Viewed Browsing History */}
+      <RecentlyViewed currentProductId={product.id} />
 
       {/* Sticky Bottom Purchase Bar (Desktop) */}
       {showStickyBar && (

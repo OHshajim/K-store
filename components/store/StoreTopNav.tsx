@@ -77,7 +77,7 @@ export function StoreTopNav({
 
   return (
     <>
-      <header className="sticky top-0 z-40 bg-[#F4F0E8]/95 backdrop-blur-md border-b border-[#1A1C18]/10 transition-all">
+      <header className="sticky top-0 z-40 bg-[#F4F0E8]/95 backdrop-blur-md border-b border-[#1A1C18]/10 transition-all print:hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-20 gap-4">
             {/* Left: Mobile Hamburger & Brand Logo together */}

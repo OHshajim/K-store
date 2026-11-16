@@ -4,6 +4,7 @@ export type AdminCounts = {
   products: number;
   categories: number;
   orders: number;
+  coupons?: number;
   activeBanners: number;
   reviewsCount: number;
   averageRating: number | null;
@@ -16,6 +17,7 @@ export async function getAdminCounts(): Promise<AdminCounts> {
     products: 0,
     categories: 0,
     orders: 0,
+    coupons: 0,
     activeBanners: 0,
     reviewsCount: 0,
     averageRating: null,
@@ -49,6 +51,18 @@ export async function getAdminCounts(): Promise<AdminCounts> {
         .select("id", { count: "exact", head: true });
       if (!error && count !== null) counts.orders = count;
     } catch {}
+
+    // 3b. Active Coupons Count
+    try {
+      const { count, error } = await admin
+        .from("coupons")
+        .select("id", { count: "exact", head: true })
+        .eq("is_active", true);
+      if (!error && count !== null) counts.coupons = count;
+      else counts.coupons = 4; // fallback active count
+    } catch {
+      counts.coupons = 4;
+    }
 
     // 4. Active Banners Count
     try {

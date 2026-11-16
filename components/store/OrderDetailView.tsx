@@ -111,12 +111,36 @@ export function OrderDetailView({
   );
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 font-sans print:space-y-4 print:p-0">
+      {/* 0. Printable Invoice Header (Hidden on screen, visible when printing) */}
+      <div className="hidden print:block pb-6 mb-6 border-b-2 border-[#1A1C18]">
+        <div className="flex justify-between items-start">
+          <div>
+            <div className="text-2xl font-serif font-black uppercase text-[#1A1C18]">
+              {settings.store_name} Atelier
+            </div>
+            <div className="text-xs text-stone-600 uppercase tracking-widest mt-0.5">
+              Official Sales Receipt &amp; Proof of Purchase
+            </div>
+            <div className="text-xs text-stone-600 mt-1">
+              Support: {settings.support_email || "concierge@kstore.com"}
+            </div>
+          </div>
+          <div className="text-right font-mono text-xs">
+            <div className="font-bold text-sm text-[#1A1C18]">ORDER #{order.order_number}</div>
+            <div className="text-stone-600 mt-1">Date: {formatDateTime(order.created_at)}</div>
+            <div className="text-stone-600 font-semibold uppercase">
+              Status: {order.payment_status}
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* 1. Header & Badges */}
-      <div className="bg-white rounded-3xl p-6 sm:p-8 border border-[#1A1C18]/10 shadow-xs space-y-4">
+      <div className="bg-white rounded-3xl p-6 sm:p-8 border border-[#1A1C18]/10 shadow-xs space-y-4 print:border-none print:p-0 print:shadow-none">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <div className="flex items-center gap-2 text-xs font-mono text-[#8A927A] uppercase tracking-wider mb-1">
+            <div className="flex items-center gap-2 text-xs font-mono text-[#8A927A] uppercase tracking-wider mb-1 print:hidden">
               <span>Order Receipt</span>
               <span>·</span>
               <span className="text-[#1A1C18] font-bold">#{order.order_number}</span>
@@ -129,16 +153,16 @@ export function OrderDetailView({
                 </>
               )}
             </div>
-            <h1 className="font-editorial text-3xl sm:text-4xl font-bold tracking-tight text-[#1A1C18]">
+            <h1 className="font-editorial text-3xl sm:text-4xl font-bold tracking-tight text-[#1A1C18] print:hidden">
               Order #{order.order_number}
             </h1>
-            <p className="text-xs sm:text-sm text-[#4A483E]/80 mt-1 flex items-center gap-1.5 font-sans">
+            <p className="text-xs sm:text-sm text-[#4A483E]/80 mt-1 flex items-center gap-1.5 font-sans print:hidden">
               <Calendar className="w-3.5 h-3.5 text-[#8A927A]" />
               Placed on {formatDateTime(order.created_at)}
             </p>
 
             {/* Direct Tracking Link Bar */}
-            <div className="pt-2.5 flex flex-wrap items-center gap-2">
+            <div className="pt-2.5 flex flex-wrap items-center gap-2 print:hidden">
               <button
                 type="button"
                 onClick={() => {
@@ -213,7 +237,7 @@ export function OrderDetailView({
         </div>
 
         {/* 2. Visual Progress Bar */}
-        <div className="pt-4 border-t border-[#1A1C18]/10">
+        <div className="pt-4 border-t border-[#1A1C18]/10 print:hidden">
           <div className="flex items-center justify-between text-xs font-bold text-[#8A927A] uppercase tracking-wider mb-3 font-sans">
             <span className="flex items-center gap-1.5">
               <Truck className="w-3.5 h-3.5" />
@@ -270,7 +294,9 @@ export function OrderDetailView({
       </div>
 
       {/* Payment Action / Notice */}
-      <PaymentNotice order={order} trackingToken={trackingToken} />
+      <div className="print:hidden">
+        <PaymentNotice order={order} trackingToken={trackingToken} />
+      </div>
 
       {/* 2-Column Receipt Content */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
@@ -468,7 +494,7 @@ export function OrderDetailView({
 
           {/* Historical Timeline if present */}
           {order.events && order.events.length > 0 && (
-            <div className="bg-white rounded-3xl p-6 border border-[#1A1C18]/10 shadow-xs space-y-4">
+            <div className="bg-white rounded-3xl p-6 border border-[#1A1C18]/10 shadow-xs space-y-4 print:hidden">
               <h3 className="text-sm font-bold text-[#1A1C18] flex items-center gap-2 pb-2 border-b border-[#1A1C18]/10 font-sans">
                 <Clock className="w-4 h-4 text-[#8A927A]" />
                 Event Log History
@@ -490,6 +516,19 @@ export function OrderDetailView({
             </div>
           )}
         </div>
+      </div>
+
+      {/* Printable Invoice Footer (Print Only) */}
+      <div className="hidden print:block pt-8 mt-8 border-t-2 border-[#1A1C18] text-xs font-mono text-stone-600 text-center space-y-1">
+        <p className="font-bold text-[#1A1C18] uppercase tracking-wider">
+          {settings.store_name} · Handcrafted Architectural Living Essentials
+        </p>
+        <p>
+          All items carry our 10-Year Craft Integrity Warranty on timber joinery and structural components.
+        </p>
+        <p className="text-[10px] text-stone-500">
+          For white-glove assembly or warranty inquiries: {settings.support_email || "concierge@kstore.com"}
+        </p>
       </div>
     </div>
   );
