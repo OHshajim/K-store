@@ -31,6 +31,8 @@ alter table public.store_settings add column if not exists free_shipping_over_ce
 alter table public.store_settings add column if not exists delivery_notes text default 'Complimentary white-glove packaging. Dispatched from Vermont & Copenhagen fulfillment centers.';
 alter table public.store_settings add column if not exists logo_url text;
 alter table public.store_settings add column if not exists favicon_url text;
+alter table public.store_settings add column if not exists faq_items jsonb default '[]'::jsonb;
+alter table public.store_settings add column if not exists content_pages jsonb default '{}'::jsonb;
 
 -- 2. Categories Table
 create table if not exists public.categories (
@@ -366,3 +368,21 @@ insert into public.reviews (id, product_id, rating, comment, reviewer_name, is_p
   ('e0000000-0000-4000-8000-000000000003', 'a0000000-0000-4000-8000-000000000001', 5, 'The Minimal Table Lamp''s touch dimmer is wonderful. We carry it between our dining room and our outdoor balcony in London during evening dinners.', 'Charlotte Davies, Design Director (London)', true),
   ('e0000000-0000-4000-8000-000000000004', 'a0000000-0000-4000-8000-000000000001', 5, 'Stoneware canisters with real airtight oak lids. They keep our coffee fresh and look like sculptural pottery on the open shelf.', 'Soren Lindqvist, Product Designer (Copenhagen)', true)
 on conflict (id) do nothing;
+
+-- 10. Role Constraints Policy (Customer, Manager, Administrator)
+alter table public.profiles drop constraint if exists profiles_role_check;
+alter table public.profiles add constraint profiles_role_check check (role in ('customer', 'manager', 'admin'));
+
+-- 11. Two-Factor & Reset OTPs Table
+create table if not exists public.auth_otps (
+  id uuid primary key default gen_random_uuid(),
+  email text not null,
+  otp_hash text not null,
+  intent text not null default 'forgot_password',
+  attempts int not null default 0,
+  expires_at timestamptz not null,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists idx_auth_otps_lookup on public.auth_otps (email, intent, expires_at);
+

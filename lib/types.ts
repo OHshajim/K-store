@@ -81,6 +81,12 @@ export type Product = {
   review_count?: number;
 };
 
+export type FaqItem = {
+  question: string;
+  answer: string;
+  category?: string;
+};
+
 export type StoreSettings = {
   id: number;
   store_name: string;
@@ -95,6 +101,7 @@ export type StoreSettings = {
   terms_html: string | null;
   privacy_html?: string | null;
   faq_html?: string | null;
+  faq_items?: FaqItem[] | null;
   logo_url?: string | null;
   favicon_url?: string | null;
 };

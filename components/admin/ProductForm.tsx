@@ -19,6 +19,7 @@ import {
   ExternalLink,
   ChevronDown,
   Info,
+  Ruler,
 } from "lucide-react";
 import type { Category, Product } from "@/lib/types";
 import { slugify } from "@/lib/format";
@@ -62,6 +63,11 @@ export function ProductForm({
   const [material, setMaterial] = useState(product?.material ?? "Solid White Oak");
   const [room, setRoom] = useState(product?.room ?? "living");
   const [categoryId, setCategoryId] = useState(product?.category_id ?? "");
+
+  // Architectural Dimensions (for Kstore Fit Assistant)
+  const [widthCm, setWidthCm] = useState<number | "">(product?.dimensions?.width_cm ?? "");
+  const [depthCm, setDepthCm] = useState<number | "">(product?.dimensions?.depth_cm ?? "");
+  const [heightCm, setHeightCm] = useState<number | "">(product?.dimensions?.height_cm ?? "");
 
   // Toggles
   const [isActive, setIsActive] = useState(product?.is_active ?? true);
@@ -158,6 +164,22 @@ export function ProductForm({
     setError(null);
     setIsSaving(true);
     try {
+      const dimensions =
+        typeof widthCm === "number" && widthCm > 0
+          ? {
+              width_cm: widthCm,
+              depth_cm: typeof depthCm === "number" && depthCm > 0 ? depthCm : 0,
+              height_cm: typeof heightCm === "number" && heightCm > 0 ? heightCm : 0,
+              text: `${widthCm} × ${typeof depthCm === "number" && depthCm > 0 ? depthCm : 0} × ${
+                typeof heightCm === "number" && heightCm > 0 ? heightCm : 0
+              } cm (${(widthCm / 2.54).toFixed(1)}" × ${(
+                (typeof depthCm === "number" && depthCm > 0 ? depthCm : 0) / 2.54
+              ).toFixed(1)}" × ${(
+                (typeof heightCm === "number" && heightCm > 0 ? heightCm : 0) / 2.54
+              ).toFixed(1)}")`,
+            }
+          : null;
+
       const response = await fetch(
         product ? `/api/admin/products/${product.id}` : "/api/admin/products",
         {
@@ -174,6 +196,7 @@ export function ProductForm({
             sku: sku.trim() || null,
             material: material.trim() || null,
             room: room || null,
+            dimensions,
             images: imageList,
             is_active: isActive,
             is_featured: isFeatured,
@@ -695,6 +718,83 @@ export function ProductForm({
                 />
               </div>
             </div>
+          </div>
+
+          {/* Architectural Dimensions Card (Fit Assistant Engine) */}
+          <div className="bg-white rounded-3xl p-6 border border-[#1A1C18]/10 shadow-xs space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-[#1A1C18]/10">
+              <div className="flex items-center gap-2">
+                <div className="w-7 h-7 rounded-lg bg-[#F4F0E8] flex items-center justify-center text-[#8A927A]">
+                  <Ruler className="w-4 h-4" />
+                </div>
+                <h3 className="text-sm font-bold text-[#1A1C18]">Architectural Dimensions (cm)</h3>
+              </div>
+              <span className="text-[10px] font-mono text-[#8A927A] px-2 py-0.5 bg-[#8A927A]/10 rounded-full font-bold uppercase tracking-wider">
+                Fit Engine
+              </span>
+            </div>
+
+            <p className="text-xs text-[#4A483E]/70 font-sans">
+              Enter physical dimensions to enable precise clearance &amp; breathing room calculations in the Kstore Fit Assistant.
+            </p>
+
+            <div className="grid grid-cols-3 gap-3">
+              <div>
+                <label className="block text-[11px] font-bold text-[#1A1C18] uppercase tracking-wider mb-1 font-sans">
+                  Width (cm)
+                </label>
+                <input
+                  type="number"
+                  min={0}
+                  step={0.1}
+                  value={widthCm}
+                  onChange={(e) => setWidthCm(e.target.value === "" ? "" : parseFloat(e.target.value) || 0)}
+                  placeholder="e.g. 120"
+                  className="w-full px-3 py-2 bg-[#FDFBF7] border border-[#1A1C18]/15 rounded-xl text-xs font-mono font-bold text-[#1A1C18] focus:outline-none focus:ring-2 focus:ring-[#B78E69]/30 focus:border-[#B78E69]"
+                />
+              </div>
+              <div>
+                <label className="block text-[11px] font-bold text-[#1A1C18] uppercase tracking-wider mb-1 font-sans">
+                  Depth (cm)
+                </label>
+                <input
+                  type="number"
+                  min={0}
+                  step={0.1}
+                  value={depthCm}
+                  onChange={(e) => setDepthCm(e.target.value === "" ? "" : parseFloat(e.target.value) || 0)}
+                  placeholder="e.g. 32"
+                  className="w-full px-3 py-2 bg-[#FDFBF7] border border-[#1A1C18]/15 rounded-xl text-xs font-mono font-bold text-[#1A1C18] focus:outline-none focus:ring-2 focus:ring-[#B78E69]/30 focus:border-[#B78E69]"
+                />
+              </div>
+              <div>
+                <label className="block text-[11px] font-bold text-[#1A1C18] uppercase tracking-wider mb-1 font-sans">
+                  Height (cm)
+                </label>
+                <input
+                  type="number"
+                  min={0}
+                  step={0.1}
+                  value={heightCm}
+                  onChange={(e) => setHeightCm(e.target.value === "" ? "" : parseFloat(e.target.value) || 0)}
+                  placeholder="e.g. 85"
+                  className="w-full px-3 py-2 bg-[#FDFBF7] border border-[#1A1C18]/15 rounded-xl text-xs font-mono font-bold text-[#1A1C18] focus:outline-none focus:ring-2 focus:ring-[#B78E69]/30 focus:border-[#B78E69]"
+                />
+              </div>
+            </div>
+
+            {typeof widthCm === "number" && widthCm > 0 ? (
+              <div className="p-2.5 rounded-xl bg-[#F4F0E8] text-[#1A1C18] text-[11px] font-mono flex items-center justify-between border border-[#1A1C18]/10">
+                <span className="text-[#8A927A] font-bold">Auto Spec:</span>
+                <span>
+                  {widthCm} × {depthCm || 0} × {heightCm || 0} cm ({(widthCm / 2.54).toFixed(1)}&quot; × {(((depthCm as number) || 0) / 2.54).toFixed(1)}&quot; × {(((heightCm as number) || 0) / 2.54).toFixed(1)}&quot;)
+                </span>
+              </div>
+            ) : (
+              <p className="text-[11px] text-[#4A483E]/60 italic">
+                Leave empty for universal / tabletop accessories without rigid boundaries.
+              </p>
+            )}
           </div>
 
           {/* 5. Visibility & Badges Card */}

@@ -23,6 +23,15 @@ const bodySchema = z.object({
   material: z.string().nullable().optional(),
   room: z.string().nullable().optional(),
   sku: z.string().nullable().optional(),
+  dimensions: z
+    .object({
+      width_cm: z.number().nonnegative(),
+      depth_cm: z.number().nonnegative(),
+      height_cm: z.number().nonnegative(),
+      text: z.string(),
+    })
+    .nullable()
+    .optional(),
 });
 
 export async function PATCH(request: Request, { params }: Params) {
@@ -51,10 +60,11 @@ export async function PATCH(request: Request, { params }: Params) {
       if (res.error && res.error.code === "42703") {
         // Strip extended columns that might not exist yet
         const basePatch = { ...patch };
-        delete basePatch.material;
-        delete basePatch.room;
-        delete basePatch.sku;
-        delete basePatch.is_bestseller;
+        delete (basePatch as Record<string, unknown>).material;
+        delete (basePatch as Record<string, unknown>).room;
+        delete (basePatch as Record<string, unknown>).sku;
+        delete (basePatch as Record<string, unknown>).dimensions;
+        delete (basePatch as Record<string, unknown>).is_bestseller;
         res = await supabase
           .from("products")
           .update(basePatch)

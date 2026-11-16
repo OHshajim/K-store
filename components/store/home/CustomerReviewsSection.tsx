@@ -132,6 +132,7 @@ export function CustomerReviewsSection({
 }) {
   const [isHovered, setIsHovered] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const scrollPosRef = useRef(0);
   const isDraggingRef = useRef(false);
   const hasDraggedRef = useRef(false);
   const startXRef = useRef(0);
@@ -167,8 +168,13 @@ export function CustomerReviewsSection({
     const setInitialPosition = () => {
       if (!container) return;
       const setWidth = container.scrollWidth / 3;
-      if (setWidth > 0 && (container.scrollLeft === 0 || container.scrollLeft < setWidth * 0.3)) {
-        container.scrollLeft = setWidth;
+      if (setWidth > 0) {
+        if (container.scrollLeft === 0 || container.scrollLeft < setWidth * 0.3) {
+          container.scrollLeft = setWidth;
+          scrollPosRef.current = setWidth;
+        } else {
+          scrollPosRef.current = container.scrollLeft;
+        }
       }
     };
 
@@ -182,30 +188,34 @@ export function CustomerReviewsSection({
     };
   }, [isInfiniteSlider]);
 
-  // Silky continuous auto-slide loop - running gently and slowly (~18px/sec)
+  // Silky continuous auto-slide loop with high-precision float accumulation
   useEffect(() => {
     const container = scrollContainerRef.current;
     if (!container || !isInfiniteSlider) return;
 
     let lastTime = performance.now();
-    // Gentle, slow Scandinavian crawl: 0.30 (~18px/sec) so it's calm, pleasant, and easy to read
-    const speed = 0.30;
+    // Calibrated calm pace: 45 pixels per second for clear, smooth, readable gliding
+    const speed = 45;
 
     const tick = (now: number) => {
-      const delta = now - lastTime;
+      const delta = Math.min(now - lastTime, 64);
       lastTime = now;
 
-      // Only crawl when cursor is NOT hovering over the review cards and NOT dragging
-      if (!isHoveredRef.current && !isDraggingRef.current && container) {
-        container.scrollLeft += speed * (delta / 16.67);
-        const setWidth = container.scrollWidth / 3;
+      // Only crawl when cursor is NOT hovering over a review card and NOT dragging
+      if (!isHoveredRef.current && !isDraggingRef.current && scrollContainerRef.current) {
+        const c = scrollContainerRef.current;
+        scrollPosRef.current += speed * (delta / 1000);
+
+        const setWidth = c.scrollWidth / 3;
         if (setWidth > 0) {
-          if (container.scrollLeft >= setWidth * 2) {
-            container.scrollLeft -= setWidth;
-          } else if (container.scrollLeft <= setWidth * 0.1) {
-            container.scrollLeft += setWidth;
+          if (scrollPosRef.current >= setWidth * 2) {
+            scrollPosRef.current -= setWidth;
+          } else if (scrollPosRef.current <= setWidth * 0.1) {
+            scrollPosRef.current += setWidth;
           }
         }
+
+        c.scrollLeft = scrollPosRef.current;
       }
 
       animFrameIdRef.current = requestAnimationFrame(tick);
@@ -231,14 +241,18 @@ export function CustomerReviewsSection({
     if (!isDraggingRef.current || !scrollContainerRef.current) return;
     const x = e.pageX - scrollContainerRef.current.offsetLeft;
     const dist = x - startXRef.current;
-    if (Math.abs(dist) > 5) {
+    if (Math.abs(dist) > 3) {
       hasDraggedRef.current = true;
       scrollContainerRef.current.scrollLeft = scrollStartRef.current - dist;
+      scrollPosRef.current = scrollContainerRef.current.scrollLeft;
     }
   };
 
   const handleMouseUp = () => {
     isDraggingRef.current = false;
+    if (scrollContainerRef.current) {
+      scrollPosRef.current = scrollContainerRef.current.scrollLeft;
+    }
     setTimeout(() => {
       hasDraggedRef.current = false;
     }, 60);
@@ -258,17 +272,27 @@ export function CustomerReviewsSection({
     if (!isDraggingRef.current || !scrollContainerRef.current) return;
     const x = e.touches[0].pageX - scrollContainerRef.current.offsetLeft;
     const dist = x - startXRef.current;
-    if (Math.abs(dist) > 5) {
+    if (Math.abs(dist) > 3) {
       hasDraggedRef.current = true;
       scrollContainerRef.current.scrollLeft = scrollStartRef.current - dist;
+      scrollPosRef.current = scrollContainerRef.current.scrollLeft;
     }
   };
 
   const handleTouchEnd = () => {
     isDraggingRef.current = false;
+    if (scrollContainerRef.current) {
+      scrollPosRef.current = scrollContainerRef.current.scrollLeft;
+    }
     setTimeout(() => {
       hasDraggedRef.current = false;
     }, 60);
+  };
+
+  const handleScroll = () => {
+    if (scrollContainerRef.current && (isDraggingRef.current || isHoveredRef.current)) {
+      scrollPosRef.current = scrollContainerRef.current.scrollLeft;
+    }
   };
 
   return (
@@ -299,10 +323,7 @@ export function CustomerReviewsSection({
           {/* Smooth Continuous Infinite Scroll Track with Hidden Native Scrollbars */}
           <div
             ref={scrollContainerRef}
-            onMouseEnter={() => {
-              isHoveredRef.current = true;
-              setIsHovered(true);
-            }}
+            onScroll={handleScroll}
             onMouseLeave={() => {
               isHoveredRef.current = false;
               setIsHovered(false);
@@ -319,13 +340,21 @@ export function CustomerReviewsSection({
               scrollbarWidth: "none",
               msOverflowStyle: "none",
             }}
-            title="Hover to pause or swipe to browse patron reflections"
+            title="Hover on any review card to pause or swipe to browse"
           >
             {/* 3 identical sets of reviews for seamless infinite wrap */}
             {[...displayReviews, ...displayReviews, ...displayReviews].map((review, idx) => (
               <div
                 key={`${review.id}-${idx}`}
                 data-review-card
+                onMouseEnter={() => {
+                  isHoveredRef.current = true;
+                  setIsHovered(true);
+                }}
+                onMouseLeave={() => {
+                  isHoveredRef.current = false;
+                  setIsHovered(false);
+                }}
                 className="w-[310px] sm:w-[380px] shrink-0 bg-white p-7 sm:p-8 rounded-3xl border border-[#1A1C18]/12 shadow-xs hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col justify-between"
               >
                 <div>

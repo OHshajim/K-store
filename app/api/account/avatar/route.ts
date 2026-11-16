@@ -53,22 +53,35 @@ export async function POST(request: Request) {
     let avatarUrl = "";
     let uploadedToCloud = false;
 
-    // 1. Attempt upload to Supabase Storage ('avatars' or 'products' bucket)
+    // 1. Attempt upload to Supabase Storage ('avatars' or fallback 'products' bucket)
     const admin = createAdminClient();
     try {
-      const res = await admin.storage
+      let res = await admin.storage
         .from("avatars")
         .upload(filename, buffer, {
           contentType,
           upsert: true,
         });
 
+      // If 'avatars' bucket does not exist, try to auto-create it
+      if (res.error && res.error.message?.toLowerCase().includes("not found")) {
+        try {
+          await admin.storage.createBucket("avatars", { public: true });
+          res = await admin.storage
+            .from("avatars")
+            .upload(filename, buffer, {
+              contentType,
+              upsert: true,
+            });
+        } catch {}
+      }
+
       if (!res.error) {
         const { data } = admin.storage.from("avatars").getPublicUrl(filename);
         avatarUrl = data.publicUrl;
         uploadedToCloud = true;
       } else {
-        // Try fallback bucket 'products'
+        // Fallback to existing 'products' bucket under avatars/ folder
         const res2 = await admin.storage
           .from("products")
           .upload(`avatars/${filename}`, buffer, {

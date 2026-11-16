@@ -321,6 +321,7 @@ export async function getFitRecommendations(query: NordenFitQuery): Promise<FitR
       }
     } else {
       matchScore += 20;
+      reasons.push("Flexible scale: Suitable for tabletop or open surface placement.");
     }
 
     // 3. Material Match (20 points)

@@ -22,6 +22,15 @@ const bodySchema = z.object({
   material: z.string().nullable().optional(),
   room: z.enum(["living", "workspace", "kitchen", "bedroom", "bathroom", "lighting"]).nullable().optional(),
   sku: z.string().nullable().optional(),
+  dimensions: z
+    .object({
+      width_cm: z.number().nonnegative(),
+      depth_cm: z.number().nonnegative(),
+      height_cm: z.number().nonnegative(),
+      text: z.string(),
+    })
+    .nullable()
+    .optional(),
 });
 
 export async function POST(request: Request) {
@@ -50,6 +59,7 @@ export async function POST(request: Request) {
           material: body.material ?? null,
           room: body.room ?? null,
           sku: body.sku ?? null,
+          dimensions: body.dimensions ?? null,
         })
         .select("*")
         .single();

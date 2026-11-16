@@ -47,6 +47,50 @@ const COLOR_OPTIONS = [
   { id: "Bronze", name: "Brushed Bronze / Brass", hex: "#B78E69" },
 ];
 
+function resolveProductDimensions(product: Product): {
+  width_cm: number;
+  depth_cm: number;
+  height_cm: number;
+  text: string;
+  isExtracted?: boolean;
+} | null {
+  if (product.dimensions && product.dimensions.width_cm > 0) {
+    return product.dimensions;
+  }
+
+  // Heuristic: Search product description or details for dimensions if admin didn't set structured fields
+  const candidateText = `${product.description || ""} ${product.details || ""}`;
+  const match = candidateText.match(
+    /(\d+(?:\.\d+)?)\s*(?:[x×*]|by)\s*(\d+(?:\.\d+)?)(?:\s*(?:[x×*]|by)\s*(\d+(?:\.\d+)?))?\s*(cm|in|mm|["”])?/i
+  );
+
+  if (match) {
+    const raw1 = parseFloat(match[1]);
+    const raw2 = parseFloat(match[2]);
+    const raw3 = match[3] ? parseFloat(match[3]) : undefined;
+    const rawUnit = (match[4] || "cm").toLowerCase();
+    const isInch = rawUnit === "in" || rawUnit === '"' || rawUnit === '”';
+    const isMm = rawUnit === "mm";
+    const multiplier = isInch ? 2.54 : isMm ? 0.1 : 1;
+
+    const w = Math.round(raw1 * multiplier);
+    const d = raw3 ? Math.round(raw2 * multiplier) : 0;
+    const h = raw3 ? Math.round(raw3 * multiplier) : Math.round(raw2 * multiplier);
+
+    if (w > 0 && h > 0) {
+      return {
+        width_cm: w,
+        depth_cm: d,
+        height_cm: h,
+        text: `${w} × ${d ? d + " × " : ""}${h} cm (Detected from description)`,
+        isExtracted: true,
+      };
+    }
+  }
+
+  return null;
+}
+
 export function FitAssistantView({
   allProducts,
   storeName = "Kstore",
@@ -91,24 +135,28 @@ export function FitAssistantView({
 
         // 2. Dimensions Fit
         let dimensionsFit = true;
-        if (product.dimensions) {
-          const wFits = widthCm <= 0 || product.dimensions.width_cm <= widthCm;
-          const hFits = heightCm <= 0 || product.dimensions.height_cm <= heightCm;
+        const resolvedDims = resolveProductDimensions(product);
+
+        if (resolvedDims) {
+          const wFits = widthCm <= 0 || resolvedDims.width_cm <= widthCm;
+          const hFits = heightCm <= 0 || resolvedDims.height_cm <= heightCm;
 
           if (wFits && hFits) {
             score += 30;
-            const wDiff = (widthCm - product.dimensions.width_cm).toFixed(0);
+            const wDiff = (widthCm - resolvedDims.width_cm).toFixed(0);
             reasons.push(
-              `Clearance: ${product.dimensions.width_cm} cm wide leaves ${wDiff} cm breathing room`
+              `Clearance: ${resolvedDims.width_cm} cm wide leaves ${wDiff} cm breathing room`
             );
           } else {
             dimensionsFit = false;
             reasons.push(
-              `Exceeds boundary (${product.dimensions.width_cm} cm width vs ${widthCm.toFixed(0)} cm space)`
+              `Exceeds boundary (${resolvedDims.width_cm} cm width vs ${widthCm.toFixed(0)} cm space)`
             );
           }
         } else {
+          // Graceful Fallback: When admin hasn't added dimensions, award baseline neutrality
           score += 20;
+          reasons.push("Flexible scale: Studio piece suitable for tabletop or versatile open placement");
         }
 
         // 3. Material
@@ -560,11 +608,13 @@ export function FitAssistantView({
                     {/* Dimensions Comparison Pill */}
                     <div className="flex flex-wrap gap-2 pt-1 font-mono text-xs">
                       <span className="px-3 py-1 bg-[#F4F0E8] text-[#1A1C18] rounded-lg font-medium border border-[#1A1C18]/10">
-                        Dimensions: {product.dimensions?.text}
+                        Dimensions: {product.dimensions?.text || resolveProductDimensions(product)?.text || "Flexible / Studio Scale"}
                       </span>
-                      <span className="px-3 py-1 bg-[#F4F0E8] text-[#1A1C18] rounded-lg font-medium border border-[#1A1C18]/10">
-                        Material: {product.material}
-                      </span>
+                      {product.material && (
+                        <span className="px-3 py-1 bg-[#F4F0E8] text-[#1A1C18] rounded-lg font-medium border border-[#1A1C18]/10">
+                          Material: {product.material}
+                        </span>
+                      )}
                     </div>
 
                     {/* Deterministic Reasons */}

@@ -18,6 +18,16 @@ const bodySchema = z.object({
   terms_html: z.string().nullable().optional(),
   privacy_html: z.string().nullable().optional(),
   faq_html: z.string().nullable().optional(),
+  faq_items: z
+    .array(
+      z.object({
+        question: z.string(),
+        answer: z.string(),
+        category: z.string().optional(),
+      })
+    )
+    .nullable()
+    .optional(),
   logo_url: z.string().nullable().optional(),
   favicon_url: z.string().nullable().optional(),
 });
@@ -46,6 +56,7 @@ export async function PATCH(request: Request) {
         terms_html: body.terms_html ?? null,
         privacy_html: body.privacy_html ?? null,
         faq_html: body.faq_html ?? null,
+        faq_items: body.faq_items ?? null,
         logo_url: body.logo_url ?? null,
         favicon_url: body.favicon_url ?? null,
       })
