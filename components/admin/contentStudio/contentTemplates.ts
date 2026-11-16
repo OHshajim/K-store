@@ -185,7 +185,7 @@ export function parseFaqItemsFromHtml(html: string): FaqItem[] {
   const items: FaqItem[] = [];
 
   // Match <h3>...</h3> followed by <p>...</p>
-  const regex = /<h3[^>]*>(?:<span[^>]*>.*?<\/span>)?\s*(.*?)\s*<\/h3>\s*<p[^>]*>(.*?)<\/p>/gis;
+  const regex = /<h3[^>]*>(?:<span[^>]*>[\s\S]*?<\/span>)?\s*([\s\S]*?)\s*<\/h3>\s*<p[^>]*>([\s\S]*?)<\/p>/gi;
   let match: RegExpExecArray | null;
 
   while ((match = regex.exec(html)) !== null) {
