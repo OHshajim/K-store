@@ -127,6 +127,8 @@ export type OrderItem = {
   unit_price_cents: number;
   quantity: number;
   image_url: string | null;
+  selected_color?: string | null;
+  selected_material?: string | null;
 };
 
 export type OrderEvent = {

@@ -37,16 +37,18 @@ function pricedFromProduct(
   selectedColor?: string,
   selectedMaterial?: string
 ): PricedItem {
-  if (product.stock < quantity && product.stock > 0) {
-    // If stock is limited, clamp to stock rather than crash
-  }
+  const safeQuantity =
+    product.stock > 0
+      ? Math.min(product.stock, Math.max(1, quantity))
+      : Math.max(1, quantity);
+
   return {
     productId: product.id,
     slug: product.slug,
     name: product.name,
     priceCents: product.price_cents,
     image: product.images?.[0] ?? null,
-    quantity,
+    quantity: safeQuantity,
     stock: product.stock,
     selectedColor,
     selectedMaterial,

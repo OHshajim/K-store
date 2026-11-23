@@ -247,6 +247,17 @@ export function StoreTopNav({
               >
                 Journal
               </Link>
+
+              <Link
+                href="/contact"
+                className={`text-sm font-semibold transition-colors hover:text-[#B78E69] whitespace-nowrap shrink-0 ${
+                  pathname === "/contact"
+                    ? "text-[#1A1C18] underline underline-offset-8"
+                    : "text-[#1A1C18]/80"
+                }`}
+              >
+                Concierge
+              </Link>
             </nav>
 
             {/* Right: Header Action Buttons */}
@@ -432,6 +443,14 @@ export function StoreTopNav({
                   className="flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-semibold text-[#1A1C18] hover:bg-[#D8C9B5]/40 transition-colors"
                 >
                   <span>Journal: The Art of Living Well</span>
+                </Link>
+
+                <Link
+                  href="/contact"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-semibold text-[#1A1C18] hover:bg-[#D8C9B5]/40 transition-colors"
+                >
+                  <span>Concierge &amp; Studio Inquiries</span>
                 </Link>
               </div>
 

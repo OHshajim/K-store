@@ -9,6 +9,9 @@ import {
   CheckCircle2,
   AlertCircle,
   Eye,
+  Mail,
+  Send,
+  Server,
 } from "lucide-react";
 import Image from "next/image";
 import type { StoreSettings, FaqItem } from "@/lib/types";
@@ -40,6 +43,45 @@ export function SettingsForm({ settings }: { settings: StoreSettings }) {
   const [error, setError] = useState<string | null>(null);
   const [savedNotice, setSavedNotice] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+
+  const [testRecipient, setTestRecipient] = useState(draft.support_email || "");
+  const [isTestingEmail, setIsTestingEmail] = useState(false);
+  const [emailTestFeedback, setEmailTestFeedback] = useState<{
+    success: boolean;
+    message: string;
+  } | null>(null);
+
+  async function handleSendTestEmail() {
+    if (!testRecipient.trim()) {
+      setEmailTestFeedback({
+        success: false,
+        message: "Please enter a test recipient email address.",
+      });
+      return;
+    }
+    setIsTestingEmail(true);
+    setEmailTestFeedback(null);
+    try {
+      const res = await fetch("/api/admin/email/test", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: testRecipient.trim() }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to dispatch test email");
+      setEmailTestFeedback({
+        success: true,
+        message: data.message || "Diagnostic test email dispatched successfully via Nodemailer.",
+      });
+    } catch (err) {
+      setEmailTestFeedback({
+        success: false,
+        message: err instanceof Error ? err.message : "Error sending test email",
+      });
+    } finally {
+      setIsTestingEmail(false);
+    }
+  }
 
   function set<K extends keyof typeof draft>(key: K, value: string) {
     setDraft((current) => ({ ...current, [key]: value }));
@@ -356,6 +398,72 @@ export function SettingsForm({ settings }: { settings: StoreSettings }) {
               />
             </div>
           </div>
+      </div>
+
+      {/* 3. Section 2.5: Nodemailer & Email Transport Diagnostics */}
+      <div className="p-6 rounded-2xl bg-white border border-[#1A1C18]/10 shadow-[0_2px_8px_rgba(26,28,24,0.04)] space-y-4">
+        <div className="flex items-center justify-between pb-3 border-b border-[#1A1C18]/10">
+          <div className="flex items-center gap-2">
+            <Mail className="w-4 h-4 text-[#8A927A]" />
+            <h2 className="text-sm font-bold text-[#1A1C18]">Email Dispatch &amp; Nodemailer Transport</h2>
+          </div>
+          <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#8A927A]/15 text-[#8A927A] font-bold uppercase">
+            Active Module
+          </span>
+        </div>
+
+        <p className="text-xs text-[#4A483E] leading-relaxed">
+          Kstore utilizes <strong>Nodemailer</strong> for order confirmations, fulfillment status milestones, newsletter welcome vouchers (<code>WELCOME20</code>), concierge inquiries, and 6-digit OTP password recovery codes.
+        </p>
+
+        {emailTestFeedback && (
+          <div
+            className={`p-3.5 rounded-xl border flex items-start gap-2.5 text-xs ${
+              emailTestFeedback.success
+                ? "bg-emerald-50 border-emerald-200 text-emerald-900"
+                : "bg-red-50 border-red-200 text-red-900"
+            }`}
+          >
+            {emailTestFeedback.success ? (
+              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+            ) : (
+              <AlertCircle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
+            )}
+            <div>
+              <span className="font-bold block">
+                {emailTestFeedback.success ? "Dispatch Success" : "Dispatch Notice"}
+              </span>
+              <p className="mt-0.5">{emailTestFeedback.message}</p>
+            </div>
+          </div>
+        )}
+
+        <div className="bg-[#FAF9F6] p-4 rounded-xl border border-[#1A1C18]/10 space-y-3">
+          <label className="font-bold uppercase tracking-wider text-[#1A1C18] block text-[11px] font-mono">
+            Send Diagnostic Test Email
+          </label>
+          <div className="flex flex-col sm:flex-row items-center gap-3">
+            <input
+              type="email"
+              value={testRecipient}
+              onChange={(e) => setTestRecipient(e.target.value)}
+              placeholder="Enter your destination email..."
+              className="w-full sm:flex-1 px-3.5 py-2.5 rounded-xl border border-[#1A1C18]/15 text-xs text-[#1A1C18] bg-white font-mono"
+            />
+            <button
+              type="button"
+              disabled={isTestingEmail}
+              onClick={handleSendTestEmail}
+              className="w-full sm:w-auto px-5 py-2.5 bg-[#1A1C18] text-white text-xs font-bold uppercase tracking-wider rounded-xl hover:bg-[#32362F] transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 shrink-0"
+            >
+              <Send className="w-3.5 h-3.5 text-white" />
+              <span>{isTestingEmail ? "Testing..." : "Send Test Email"}</span>
+            </button>
+          </div>
+          <span className="text-[10px] text-[#77766E] block font-mono">
+            Uses Nodemailer SMTP transport configured in environment, with live development simulator fallback.
+          </span>
+        </div>
       </div>
 
       {/* 4. Section 3: Google Docs System for Brand Story, FAQ & Legal Policies */}

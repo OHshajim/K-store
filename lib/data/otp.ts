@@ -15,11 +15,20 @@ interface StoredOtp {
   createdAt: number;
 }
 
-// In-memory fallback cache so OTPs work 100% reliably even if Supabase DB is offline or mock mode
-const memoryOtpStore = new Map<string, StoredOtp>();
+declare global {
+  var __kstore_memory_otps__: Map<string, StoredOtp> | undefined;
+  var __kstore_otp_rate_limits__: Map<string, number> | undefined;
+}
+
+// In-memory fallback cache attached to globalThis so OTPs work reliably across Next.js route chunks
+const memoryOtpStore =
+  globalThis.__kstore_memory_otps__ ??
+  (globalThis.__kstore_memory_otps__ = new Map<string, StoredOtp>());
 
 // Rate limit tracker: minimum 25 seconds between OTP requests per email
-const rateLimitTracker = new Map<string, number>();
+const rateLimitTracker =
+  globalThis.__kstore_otp_rate_limits__ ??
+  (globalThis.__kstore_otp_rate_limits__ = new Map<string, number>());
 
 /**
  * Generate a secure 6-digit numeric OTP and dispatch it via email

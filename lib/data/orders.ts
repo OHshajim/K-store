@@ -80,6 +80,8 @@ export async function createOrder(input: CheckoutInput): Promise<Order> {
           unit_price_cents: item.priceCents,
           quantity: item.quantity,
           image_url: item.image,
+          selected_color: item.selectedColor ?? null,
+          selected_material: item.selectedMaterial ?? null,
         })),
       );
 
@@ -137,6 +139,8 @@ export async function createOrder(input: CheckoutInput): Promise<Order> {
       unit_price_cents: item.priceCents,
       quantity: item.quantity,
       image_url: item.image,
+      selected_color: item.selectedColor ?? null,
+      selected_material: item.selectedMaterial ?? null,
     })),
     events: [
       {
@@ -377,28 +381,32 @@ export async function markOrderPaid(
   orderId: string,
   stripeSessionId: string,
 ): Promise<Order | null> {
+  const mem = inMemoryOrders.get(orderId);
+  if (mem) {
+    mem.payment_status = "paid";
+    mem.stripe_session_id = stripeSessionId;
+    mem.events = mem.events || [];
+    mem.events.push({
+      id: randomUUID(),
+      order_id: orderId,
+      kind: "payment",
+      message: "Payment received via Stripe (Test Mode).",
+      created_at: new Date().toISOString(),
+    });
+  }
+
   try {
     const admin = createAdminClient();
-    await admin
+    const { error } = await admin
       .from("orders")
       .update({ payment_status: "paid", stripe_session_id: stripeSessionId })
       .eq("id", orderId);
 
-    return fetchFullOrder(admin, orderId);
-  } catch {
-    const mem = inMemoryOrders.get(orderId);
-    if (mem) {
-      mem.payment_status = "paid";
-      mem.stripe_session_id = stripeSessionId;
-      mem.events?.push({
-        id: randomUUID(),
-        order_id: orderId,
-        kind: "payment",
-        message: "Payment received via Stripe (Test Mode).",
-        created_at: new Date().toISOString(),
-      });
-      return mem;
+    if (!error) {
+      const full = await fetchFullOrder(admin, orderId);
+      if (full) return full;
     }
-  }
-  return null;
+  } catch { }
+
+  return mem ?? null;
 }

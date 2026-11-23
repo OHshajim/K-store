@@ -219,9 +219,12 @@ export function PackingSlipModal({
                       </td>
                       <td className="px-4 py-3">
                         <div className="font-bold text-[#1A1C18]">{item.product_name}</div>
-                        {item.product_slug && (
-                          <div className="text-[11px] text-[#77766E] font-mono mt-0.5">
-                            SKU / Slug: {item.product_slug}
+                        {(item.selected_color || item.selected_material || item.product_slug) && (
+                          <div className="text-[11px] text-[#77766E] font-mono mt-0.5 space-x-1">
+                            {item.selected_color && <span>Color: {item.selected_color}</span>}
+                            {item.selected_color && item.selected_material && <span>·</span>}
+                            {item.selected_material && <span>Finish: {item.selected_material}</span>}
+                            {item.product_slug && <span className="text-stone-400">({item.product_slug})</span>}
                           </div>
                         )}
                       </td>

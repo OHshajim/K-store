@@ -334,6 +334,13 @@ export function OrderDetailView({
                     <h4 className="text-sm font-bold text-[#1A1C18] truncate">
                       {item.product_name}
                     </h4>
+                    {(item.selected_color || item.selected_material) && (
+                      <p className="text-[11px] text-[#8A927A] font-mono mt-0.5">
+                        {item.selected_color && `Color: ${item.selected_color}`}
+                        {item.selected_color && item.selected_material && " · "}
+                        {item.selected_material && `Finish: ${item.selected_material}`}
+                      </p>
+                    )}
                     <p className="text-xs text-[#4A483E]/70 mt-0.5">
                       Quantity: <span className="font-semibold text-[#1A1C18]">{item.quantity}</span> ×{" "}
                       {formatMoney(

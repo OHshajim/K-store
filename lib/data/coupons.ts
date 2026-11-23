@@ -14,7 +14,7 @@ export const FALLBACK_COUPONS: Coupon[] = [
     id: "d0000000-0000-4000-8000-000000000002",
     code: "WELCOME20",
     discount_percent: 20,
-    min_spend_cents: 15000,
+    min_spend_cents: 25000,
     is_active: true,
     expires_at: null,
   },
@@ -22,7 +22,7 @@ export const FALLBACK_COUPONS: Coupon[] = [
     id: "d0000000-0000-4000-8000-000000000003",
     code: "SIMPLIFIED",
     discount_percent: 15,
-    min_spend_cents: 12000,
+    min_spend_cents: 0,
     is_active: true,
     expires_at: null,
   },
@@ -58,4 +58,49 @@ export async function getAdminCoupons(): Promise<Coupon[]> {
     console.warn("Coupons query exception, using fallbacks:", err);
     return FALLBACK_COUPONS;
   }
+}
+
+export async function validateCouponCode(
+  code: string,
+  subtotalCents: number
+): Promise<{
+  valid: boolean;
+  message: string;
+  coupon?: Coupon;
+  discountCents?: number;
+}> {
+  const cleanCode = String(code || "").trim().toUpperCase();
+  if (!cleanCode) {
+    return { valid: false, message: "Please provide a coupon code." };
+  }
+
+  const coupons = await getAdminCoupons();
+  const matched = coupons.find(
+    (c) => c.code.toUpperCase() === cleanCode && c.is_active
+  );
+
+  if (!matched) {
+    return { valid: false, message: "Invalid or expired promotional code." };
+  }
+
+  if (matched.expires_at && new Date(matched.expires_at).getTime() < Date.now()) {
+    return { valid: false, message: "This promotional code has expired." };
+  }
+
+  if (subtotalCents < matched.min_spend_cents) {
+    const minDollars = (matched.min_spend_cents / 100).toFixed(2);
+    return {
+      valid: false,
+      message: `Minimum order spend of $${minDollars} required for this promotion.`,
+    };
+  }
+
+  const discountCents = Math.round((subtotalCents * matched.discount_percent) / 100);
+
+  return {
+    valid: true,
+    message: `${matched.discount_percent}% promotional privilege applied!`,
+    coupon: matched,
+    discountCents,
+  };
 }

@@ -137,7 +137,15 @@ export function Footer({
             </p>
             <div className="pt-2 text-xs text-[#D8C9B5]/70 space-y-1">
               <p>Studios in Småland, Vermont & Copenhagen.</p>
-              <p>Contact: {supportEmail}</p>
+              <p>
+                Contact:{" "}
+                <Link
+                  href="/contact"
+                  className="hover:text-white underline decoration-[#D8C9B5]/40 transition-colors"
+                >
+                  {supportEmail}
+                </Link>
+              </p>
             </div>
           </div>
 
@@ -194,6 +202,11 @@ export function Footer({
               <li>
                 <Link href="/about" className="hover:text-white transition-colors">
                   Our Story & Design Principles
+                </Link>
+              </li>
+              <li>
+                <Link href="/contact" className="hover:text-white transition-colors">
+                  Concierge &amp; Client Services
                 </Link>
               </li>
               <li>

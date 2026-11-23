@@ -6,12 +6,22 @@ import { createAdminClient } from "@/lib/supabase/admin";
 
 export const dynamic = "force-dynamic";
 
-const bodySchema = z.object({
-  email: z.string().email("Please provide a valid email address"),
-  otp: z.string().length(6, "Verification code must be exactly 6 digits"),
-  newPassword: z.string().min(8, "Password must be at least 8 characters long"),
-  intent: z.enum(["forgot_password", "password_change"]).default("forgot_password"),
-});
+const bodySchema = z
+  .object({
+    email: z.string().email("Please provide a valid email address"),
+    otp: z.string().optional(),
+    otpCode: z.string().optional(),
+    newPassword: z.string().min(8, "Password must be at least 8 characters long"),
+    intent: z.enum(["forgot_password", "password_change"]).default("forgot_password"),
+  })
+  .transform((data) => ({
+    ...data,
+    otp: (data.otp || data.otpCode || "").trim(),
+  }))
+  .refine((data) => data.otp.length === 6, {
+    message: "Verification code must be exactly 6 digits",
+    path: ["otp"],
+  });
 
 export async function POST(request: Request) {
   try {

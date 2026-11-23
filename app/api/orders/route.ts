@@ -12,6 +12,8 @@ import { sendOrderPlacedEmail } from "@/lib/email/mailer";
 const itemSchema = z.object({
   productId: z.string(),
   quantity: z.number().int().positive(),
+  selectedColor: z.string().optional(),
+  selectedMaterial: z.string().optional(),
 });
 
 const bodySchema = z.object({

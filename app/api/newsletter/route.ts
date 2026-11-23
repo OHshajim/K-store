@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { requireStoreSettings } from "@/lib/data/catalog";
+import { sendNewsletterWelcomeEmail } from "@/lib/email/mailer";
 
 const newsletterSchema = z.object({
   email: z.string().trim().email("Please provide a valid email address"),
@@ -10,6 +12,8 @@ export async function POST(request: Request) {
   try {
     const raw = await request.json().catch(() => ({}));
     const { email } = newsletterSchema.parse(raw);
+
+    const settings = await requireStoreSettings();
 
     try {
       const admin = createAdminClient();
@@ -26,16 +30,22 @@ export async function POST(request: Request) {
             alreadySubscribed: true,
           });
         }
-        // If table doesn't exist yet, we still return friendly success for patron UX
         console.warn("newsletter insert warning:", error.message);
       }
     } catch (dbErr) {
       console.warn("newsletter db fallback:", dbErr);
     }
 
+    // Dispatch luxury welcome email with WELCOME20 coupon code via Nodemailer
+    try {
+      await sendNewsletterWelcomeEmail(email, settings);
+    } catch (mailErr) {
+      console.warn("newsletter email dispatch non-fatal warning:", mailErr);
+    }
+
     return NextResponse.json({
       success: true,
-      message: "Thank you for joining our private collector circle.",
+      message: "Thank you for joining our private collector circle. Welcome voucher sent to your inbox.",
     });
   } catch (err) {
     const message =

@@ -2,10 +2,16 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { getOrderById } from "@/lib/data/orders";
 
-const lookupSchema = z.object({
-  orderNumber: z.string().min(1, "Order number is required"),
-  email: z.string().email("Invalid email format").optional().or(z.literal("")),
-});
+const lookupSchema = z
+  .object({
+    orderNumber: z.string().min(1, "Order number is required"),
+    email: z.string().optional(),
+    customerEmail: z.string().optional(),
+  })
+  .transform((data) => ({
+    orderNumber: data.orderNumber,
+    email: (data.email || data.customerEmail || "").trim(),
+  }));
 
 export async function POST(request: Request) {
   try {
@@ -22,9 +28,9 @@ export async function POST(request: Request) {
       );
     }
 
-    // If an email was provided, check whether it matches either customer_email or shipping
-    if (email && email.trim()) {
-      const cleanEmail = email.trim().toLowerCase();
+    // If an email was provided, check whether it matches customer_email
+    if (email) {
+      const cleanEmail = email.toLowerCase();
       const orderEmail = (order.customer_email || "").toLowerCase();
       if (orderEmail && orderEmail !== cleanEmail) {
         return NextResponse.json(
@@ -44,6 +50,7 @@ export async function POST(request: Request) {
         created_at: order.created_at,
         total_cents: order.total_cents,
         item_count: order.items?.length ?? 0,
+        events: order.events ?? [],
       },
       redirectUrl: `/orders/${order.id}`,
     });

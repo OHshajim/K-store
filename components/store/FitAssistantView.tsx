@@ -113,6 +113,18 @@ export function FitAssistantView({
   const { addProduct } = useCartStore();
   const { formatPrice } = useCurrencyStore();
 
+  const handleUnitToggle = (newUnit: "cm" | "in") => {
+    if (newUnit === unit) return;
+    if (newUnit === "in") {
+      setAvailableWidth((prev) => Math.max(12, Math.min(86, Math.round(prev / 2.54))));
+      setAvailableHeight((prev) => Math.max(12, Math.min(86, Math.round(prev / 2.54))));
+    } else {
+      setAvailableWidth((prev) => Math.max(30, Math.min(220, Math.round(prev * 2.54))));
+      setAvailableHeight((prev) => Math.max(30, Math.min(220, Math.round(prev * 2.54))));
+    }
+    setUnit(newUnit);
+  };
+
   const handleCalculateFit = () => {
     setIsCalculating(true);
 
@@ -244,13 +256,12 @@ export function FitAssistantView({
           {[1, 2, 3].map((s) => (
             <div key={s} className="flex items-center gap-2">
               <div
-                className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-mono font-bold transition-all ${
-                  step === s
-                    ? "bg-[#292B27] text-white ring-4 ring-[#D8C9B5]/40"
-                    : step > s
+                className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-mono font-bold transition-all ${step === s
+                  ? "bg-[#292B27] text-white ring-4 ring-[#D8C9B5]/40"
+                  : step > s
                     ? "bg-[#8A927A] text-white"
                     : "bg-white text-[#77766E] border border-[#292B27]/20"
-                }`}
+                  }`}
               >
                 {step > s ? <Check className="w-4 h-4" /> : s}
               </div>
@@ -276,11 +287,10 @@ export function FitAssistantView({
                 key={room.id}
                 type="button"
                 onClick={() => setRoomType(room.id)}
-                className={`p-5 rounded-2xl text-left border-2 transition-all cursor-pointer ${
-                  roomType === room.id
-                    ? "border-[#292B27] bg-[#F4F0E8] shadow-md"
-                    : "border-[#292B27]/10 hover:border-[#292B27]/30 hover:bg-[#F4F0E8]/40"
-                }`}
+                className={`p-5 rounded-2xl text-left border-2 transition-all cursor-pointer ${roomType === room.id
+                  ? "border-[#292B27] bg-[#F4F0E8] shadow-md"
+                  : "border-[#292B27]/10 hover:border-[#292B27]/30 hover:bg-[#F4F0E8]/40"
+                  }`}
               >
                 <div className="text-2xl mb-2">{room.icon}</div>
                 <h3 className="font-editorial text-xl font-bold text-[#292B27]">
@@ -317,19 +327,17 @@ export function FitAssistantView({
             <div className="flex items-center bg-[#F4F0E8] p-1 rounded-lg border border-[#292B27]/10 text-xs font-mono font-bold">
               <button
                 type="button"
-                onClick={() => setUnit("cm")}
-                className={`px-3 py-1 rounded-md transition-all cursor-pointer ${
-                  unit === "cm" ? "bg-white text-[#292B27] shadow-xs" : "text-[#77766E]"
-                }`}
+                onClick={() => handleUnitToggle("cm")}
+                className={`px-3 py-1 rounded-md transition-all cursor-pointer ${unit === "cm" ? "bg-white text-[#292B27] shadow-xs" : "text-[#77766E]"
+                  }`}
               >
                 Centimeters (cm)
               </button>
               <button
                 type="button"
-                onClick={() => setUnit("in")}
-                className={`px-3 py-1 rounded-md transition-all cursor-pointer ${
-                  unit === "in" ? "bg-white text-[#292B27] shadow-xs" : "text-[#77766E]"
-                }`}
+                onClick={() => handleUnitToggle("in")}
+                className={`px-3 py-1 rounded-md transition-all cursor-pointer ${unit === "in" ? "bg-white text-[#292B27] shadow-xs" : "text-[#77766E]"
+                  }`}
               >
                 Inches (in)
               </button>
@@ -433,11 +441,10 @@ export function FitAssistantView({
                     key={m.id}
                     type="button"
                     onClick={() => setPreferredMaterial(m.id)}
-                    className={`py-3 px-4 rounded-xl text-xs font-semibold text-center border-2 transition-all cursor-pointer ${
-                      preferredMaterial === m.id
-                        ? "border-[#292B27] bg-[#F4F0E8] text-[#292B27] shadow-xs"
-                        : "border-[#292B27]/10 text-[#77766E] hover:border-[#292B27]/30"
-                    }`}
+                    className={`py-3 px-4 rounded-xl text-xs font-semibold text-center border-2 transition-all cursor-pointer ${preferredMaterial === m.id
+                      ? "border-[#292B27] bg-[#F4F0E8] text-[#292B27] shadow-xs"
+                      : "border-[#292B27]/10 text-[#77766E] hover:border-[#292B27]/30"
+                      }`}
                   >
                     {m.name}
                   </button>
@@ -456,11 +463,10 @@ export function FitAssistantView({
                     key={c.id}
                     type="button"
                     onClick={() => setPreferredColor(c.id)}
-                    className={`p-3 rounded-xl text-xs font-semibold flex items-center gap-3 border-2 transition-all cursor-pointer ${
-                      preferredColor === c.id
-                        ? "border-[#292B27] bg-[#F4F0E8] text-[#292B27] shadow-xs"
-                        : "border-[#292B27]/10 text-[#77766E] hover:border-[#292B27]/30"
-                    }`}
+                    className={`p-3 rounded-xl text-xs font-semibold flex items-center gap-3 border-2 transition-all cursor-pointer ${preferredColor === c.id
+                      ? "border-[#292B27] bg-[#F4F0E8] text-[#292B27] shadow-xs"
+                      : "border-[#292B27]/10 text-[#77766E] hover:border-[#292B27]/30"
+                      }`}
                   >
                     <span
                       className="w-4 h-4 rounded-full border border-black/20 shrink-0"
