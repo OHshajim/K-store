@@ -59,7 +59,7 @@ export async function POST(request: Request) {
           material: body.material ?? null,
           room: body.room ?? null,
           sku: body.sku ?? null,
-          dimensions: body.dimensions ?? null,
+          dimensions: body.dimensions ?? undefined,
         })
         .select("*")
         .single();
@@ -109,14 +109,14 @@ export async function POST(request: Request) {
       price_cents: body.price_cents,
       compare_at_cents: body.compare_at_cents ?? null,
       stock: body.stock,
-      images: body.images.length > 0 ? body.images : ["https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&w=800&q=80"],
+      images: body.images,
       is_active: body.is_active,
       is_featured: body.is_featured,
       is_bestseller: body.is_bestseller,
       sku: body.sku ?? `KST-${Math.floor(1000 + Math.random() * 9000)}`,
       material: body.material ?? "Solid White Oak",
       room: body.room ?? "living",
-      dimensions: { width_cm: 120, height_cm: 75, depth_cm: 40, text: "120 × 75 × 40 cm" },
+      dimensions: body.dimensions ?? undefined,
       weight_kg: 18.5,
       color_variants: [{ name: "Natural Oak", hex: "#D8C9B5", in_stock: true }],
       specifications: { "Craft Heritage": "Quarter-sawn solid timber", "Joinery": "Mortise & tenon" },

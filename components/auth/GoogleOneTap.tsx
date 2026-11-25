@@ -32,12 +32,22 @@ export function GoogleOneTap() {
   const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
 
   useEffect(() => {
-    // Skip if no client ID, if on admin routes, or if server-side
+    // Skip if no client ID or on admin routes
     if (
       !clientId ||
       !process.env.NEXT_PUBLIC_SUPABASE_URL ||
       pathname?.startsWith("/admin")
     ) {
+      return;
+    }
+
+    // Google One Tap logs "[GSI_LOGGER]: The given origin is not allowed for the given client ID."
+    // on localhost/127.0.0.1 unless those origins are added in Google Cloud Console.
+    // Keep One Tap disabled on local hosts unless explicitly opted in.
+    const isLocalHost =
+      window.location.hostname === "localhost" ||
+      window.location.hostname === "127.0.0.1";
+    if (isLocalHost && process.env.NEXT_PUBLIC_GOOGLE_ONE_TAP_LOCALHOST !== "true") {
       return;
     }
 

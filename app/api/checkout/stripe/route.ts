@@ -21,13 +21,13 @@ export async function POST(request: Request) {
     const order = body.trackingToken
       ? await getOrderByTracking(body.orderId, body.trackingToken)
       : profile
-      ? await getOrderById(body.orderId, profile.id)
+      ? await getOrderById(body.orderId, profile.id, false, undefined, profile.email)
       : await getOrderById(body.orderId, undefined, true);
 
     if (!order) {
       return NextResponse.json({ error: "Order not found" }, { status: 404 });
     }
-    if (order.payment_status !== "pending") {
+    if (order.payment_status !== "pending" && order.payment_status !== "awaiting_payment") {
       return NextResponse.json(
         { error: "This order is not awaiting payment" },
         { status: 400 },
@@ -45,6 +45,22 @@ export async function POST(request: Request) {
     }
 
     const stripe = getStripe();
+    const discountCents = Math.max(
+      0,
+      order.subtotal_cents + order.shipping_cents - order.total_cents
+    );
+
+    let discounts: Array<{ coupon: string }> | undefined;
+    if (discountCents > 0) {
+      const coupon = await stripe.coupons.create({
+        amount_off: discountCents,
+        currency: settings.currency.toLowerCase(),
+        duration: "once",
+        name: "Promotional Privilege",
+      });
+      discounts = [{ coupon: coupon.id }];
+    }
+
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
       customer_email: order.customer_email,
@@ -57,18 +73,23 @@ export async function POST(request: Request) {
             product_data: { name: item.product_name },
           },
         })),
-        {
-          quantity: 1,
-          price_data: {
-            currency: settings.currency.toLowerCase(),
-            unit_amount: order.shipping_cents,
-            product_data: { name: "Delivery" },
-          },
-        },
+        ...(order.shipping_cents > 0
+          ? [
+              {
+                quantity: 1,
+                price_data: {
+                  currency: settings.currency.toLowerCase(),
+                  unit_amount: order.shipping_cents,
+                  product_data: { name: "White-Glove Delivery" },
+                },
+              },
+            ]
+          : []),
       ],
+      ...(discounts ? { discounts } : {}),
       success_url: `${site}/api/checkout/stripe/confirm?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${site}${
-        order.user_id
+        order.user_id && order.user_id !== "86f1777f-552c-4211-bfd4-8bffc3a77abb"
           ? `/orders/${order.id}`
           : `/track/${order.order_number}?t=${order.tracking_token}`
       }`,

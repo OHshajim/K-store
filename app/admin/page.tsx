@@ -17,17 +17,26 @@ import {
   Truck,
 } from "lucide-react";
 import { getAllOrders } from "@/lib/data/orderAdmin";
-import { getProducts, getStoreSettings } from "@/lib/data/catalog";
+import { getAdminCounts } from "@/lib/data/adminStats";
+import { getAdminProducts, getCategories, getStoreSettings } from "@/lib/data/catalog";
 import { formatMoney } from "@/lib/format";
 import { PaymentStatusBadge } from "@/components/shared/StatusBadge";
 import { CommercialTrajectoryChart, type DailyPoint } from "@/components/admin/CommercialTrajectoryChart";
 
 export default async function AdminDashboardPage() {
-  const [orders, products, settings] = await Promise.all([
+  const [orders, products, categories, counts, settings] = await Promise.all([
     getAllOrders(),
-    getProducts(),
+    getAdminProducts(),
+    getCategories(),
+    getAdminCounts(),
     getStoreSettings(),
   ]);
+
+  const activeProductsCount = products.filter((p) => p.is_active).length;
+  const inStockPercent = products.length
+    ? Math.round((products.filter((p) => p.stock > 0).length / products.length) * 100)
+    : 100;
+  const categoriesCount = categories.length || counts.categories || 0;
 
   const money = (cents: number) =>
   formatMoney(
@@ -146,7 +155,7 @@ export default async function AdminDashboardPage() {
             </span>
             <span className="text-xs text-[#1A1C18]/30">·</span>
             <span className="text-xs text-[#4A483E] font-medium">
-              30 Published Essentials
+              {activeProductsCount} Published Essentials
             </span>
           </div>
 
@@ -260,10 +269,10 @@ export default async function AdminDashboardPage() {
             <div className="flex items-center gap-1.5 mt-2">
               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#1A1C18]/10 text-[#1A1C18] text-[11px] font-bold">
                 <Layers className="w-3 h-3" />
-                6 Spatial Rooms
+                {categoriesCount} Spatial Rooms
               </span>
               <span className="text-[11px] text-[#4A483E]/70 font-medium">
-                100% in stock
+                {inStockPercent}% in stock
               </span>
             </div>
           </div>
@@ -518,7 +527,7 @@ export default async function AdminDashboardPage() {
                                                                                   Categories
                                                                                 </h4>
                                                                                 <p className="text-[10px] text-[#4A483E]/70 font-mono">
-                                                                                  6 Spatial Rooms
+                                                                                  {categoriesCount} Spatial Rooms
                                                                                 </p>
                                                                               </Link>
 
@@ -548,7 +557,9 @@ export default async function AdminDashboardPage() {
                                                                                   Reviews
                                                                                 </h4>
                                                                                 <p className="text-[10px] text-[#4A483E]/70 font-mono">
-                                                                                  4.9 ★ Rating
+                                                                                  {counts.averageRating !== null
+                                                                                    ? `${counts.averageRating.toFixed(1)} ★ Rating`
+                                                                                    : `${counts.reviewsCount} Reviews`}
                                                                                 </p>
                                                                               </Link>
 

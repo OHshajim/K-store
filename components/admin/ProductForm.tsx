@@ -76,11 +76,7 @@ export function ProductForm({
 
   // Image management
   const [imageList, setImageList] = useState<string[]>(
-    product?.images && product.images.length > 0
-      ? product.images
-      : [
-          "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&w=1200&q=80",
-        ]
+    product?.images && product.images.length > 0 ? product.images : []
   );
   const [newImageUrl, setNewImageUrl] = useState("");
   const [isUploading, setIsUploading] = useState(false);
@@ -158,6 +154,10 @@ export function ProductForm({
     }
     if (price <= 0) {
       setError("Please set a valid retail price greater than zero.");
+      return;
+    }
+    if (imageList.length === 0) {
+      setError("Please upload or add at least one product image.");
       return;
     }
 

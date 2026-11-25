@@ -16,7 +16,7 @@ export default async function AccountPage({
 
   const { reset } = await searchParams;
   const [orders, reviewable, reviews] = await Promise.all([
-    getOrdersForUser(profile.id),
+    getOrdersForUser(profile.id, profile.email),
     getReviewableProducts(profile.id),
     getUserReviews(profile.id),
   ]);

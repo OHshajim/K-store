@@ -10,48 +10,8 @@ export async function updateSession(request: NextRequest) {
   const isAuthRoute = path.startsWith("/login");
   const isAccountRoute = path.startsWith("/account");
 
-  // 1. Check for kstore_session fast-access cookie
-  const demoCookie = request.cookies.get("kstore_session")?.value;
-  let demoSession: { role?: string; email?: string } | null = null;
-  if (demoCookie) {
-    try {
-      demoSession = JSON.parse(demoCookie);
-    } catch {}
-  }
-
-  if (demoSession) {
-    if (demoSession.role === "admin" || demoSession.role === "manager") {
-      if (isAuthRoute) {
-        const nextParam = request.nextUrl.searchParams.get("next");
-        const url = request.nextUrl.clone();
-        url.pathname =
-          nextParam && nextParam.startsWith("/") ? nextParam : "/admin";
-        url.searchParams.delete("next");
-        return NextResponse.redirect(url);
-      }
-      return supabaseResponse;
-    }
-
-    if (demoSession.role === "customer") {
-      if (isAdminRoute) {
-        const url = request.nextUrl.clone();
-        url.pathname = "/";
-        return NextResponse.redirect(url);
-      }
-      if (isAuthRoute) {
-        const nextParam = request.nextUrl.searchParams.get("next");
-        const url = request.nextUrl.clone();
-        url.pathname =
-          nextParam &&
-          nextParam.startsWith("/") &&
-          !nextParam.startsWith("/admin")
-            ? nextParam
-            : "/account";
-        url.searchParams.delete("next");
-        return NextResponse.redirect(url);
-      }
-      return supabaseResponse;
-    }
+  if (request.cookies.has("kstore_session")) {
+    supabaseResponse.cookies.delete("kstore_session");
   }
 
   if (!hasSupabaseEnv()) {

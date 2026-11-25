@@ -31,22 +31,24 @@ const ROOM_OPTIONS = [
 ];
 
 const MATERIAL_OPTIONS = [
-  "Solid White Oak",
-  "Anodized Aluminum",
-  "High-Fire Ceramic",
-  "Borosilicate Glass",
-  "Stainless Steel",
-  "Wool Felt",
-  "Plantation Teak",
-  "Travertine Stone",
+  "White Oak",
+  "Walnut",
+  "Ash",
+  "Beech",
+  "Stoneware",
+  "Belgian Linen",
+  "Organic Aegean Cotton",
+  "Travertine",
+  "Spun Steel",
+  "Carrera Marble",
 ];
 
-const COLOR_OPTIONS = [
-  { name: "Natural Sand", hex: "#D8C9B5" },
-  { name: "Matte Charcoal", hex: "#1A1C18" },
-  { name: "Chalk White", hex: "#F4F0E8" },
+const FALLBACK_COLOR_OPTIONS = [
+  { name: "Natural White Oak", hex: "#D8C9B5" },
+  { name: "Matte Charcoal", hex: "#292B27" },
+  { name: "Warm Ivory", hex: "#F4F0E8" },
   { name: "Sage Mist", hex: "#8A927A" },
-  { name: "Brushed Bronze", hex: "#B78E69" },
+  { name: "American Walnut", hex: "#5C4033" },
 ];
 
 export function ShopView({
@@ -64,13 +66,36 @@ export function ShopView({
   initialRoom?: string;
   initialQuery?: string;
 }) {
+  const catalogMaxPrice = useMemo(() => {
+    const highest = Math.max(
+      0,
+      ...initialProducts.map((p) => Math.ceil((p.price_cents || 0) / 100)),
+    );
+    return Math.max(1200, Math.ceil(highest / 100) * 100);
+  }, [initialProducts]);
+
+  const colorOptions = useMemo(() => {
+    const seen = new Map<string, { name: string; hex: string }>();
+    for (const p of initialProducts) {
+      for (const variant of p.color_variants ?? []) {
+        if (variant?.name && !seen.has(variant.name)) {
+          seen.set(variant.name, {
+            name: variant.name,
+            hex: variant.hex || "#D8C9B5",
+          });
+        }
+      }
+    }
+    return seen.size > 0 ? Array.from(seen.values()).slice(0, 10) : FALLBACK_COLOR_OPTIONS;
+  }, [initialProducts]);
+
   const [searchQuery, setSearchQuery] = useState(initialQuery || "");
   const [selectedCategory, setSelectedCategory] = useState<string>(initialCategory || "all");
   const [selectedRoom, setSelectedRoom] = useState<string>(initialRoom || "all");
   const [selectedSort, setSelectedSort] = useState<string>("featured");
   const [selectedMaterial, setSelectedMaterial] = useState<string>("all");
   const [selectedColor, setSelectedColor] = useState<string>("all");
-  const [maxPrice, setMaxPrice] = useState<number>(750);
+  const [maxPrice, setMaxPrice] = useState<number>(catalogMaxPrice);
   const [inStockOnly, setInStockOnly] = useState<boolean>(false);
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState<boolean>(false);
   const [isSortOpen, setIsSortOpen] = useState<boolean>(false);
@@ -194,7 +219,7 @@ export function ShopView({
     selectedMaterial !== "all" ||
     selectedColor !== "all" ||
     inStockOnly ||
-    maxPrice < 750;
+    maxPrice < catalogMaxPrice;
 
   const handleClearFilters = () => {
     setSearchQuery("");
@@ -202,7 +227,7 @@ export function ShopView({
     setSelectedRoom("all");
     setSelectedMaterial("all");
     setSelectedColor("all");
-    setMaxPrice(750);
+    setMaxPrice(catalogMaxPrice);
     setInStockOnly(false);
   };
 
@@ -521,7 +546,7 @@ export function ShopView({
               >
                 All
               </button>
-              {COLOR_OPTIONS.map((col) => (
+              {colorOptions.map((col) => (
                 <button
                   key={col.name}
                   type="button"
@@ -552,7 +577,7 @@ export function ShopView({
             <input
               type="range"
               min={50}
-              max={750}
+              max={catalogMaxPrice}
               step={25}
               value={maxPrice}
               onChange={(e) => setMaxPrice(Number(e.target.value))}
@@ -560,7 +585,7 @@ export function ShopView({
             />
             <div className="flex justify-between text-[11px] text-[#4A483E] font-mono">
               <span>$50</span>
-              <span>$750+</span>
+              <span>${catalogMaxPrice}+</span>
             </div>
           </div>
 
@@ -590,7 +615,7 @@ export function ShopView({
         </aside>
 
         {/* Product Grid Area */}
-        <main className="lg:col-span-3 space-y-6">
+        <div className="lg:col-span-3 space-y-6">
           {/* Active Filter Indicators & Count */}
           <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-[#4A483E] pb-2">
             <div>
@@ -644,11 +669,11 @@ export function ShopView({
                     </button>
                   </span>
                 )}
-                {maxPrice < 750 && (
+                {maxPrice < catalogMaxPrice && (
                   <span className="inline-flex items-center gap-1 px-3 py-1 bg-white border border-[#1A1C18]/15 rounded-full text-xs font-medium text-[#1A1C18] shadow-2xs">
                     Under ${maxPrice}
                     <button
-                      onClick={() => setMaxPrice(750)}
+                      onClick={() => setMaxPrice(catalogMaxPrice)}
                       className="hover:text-red-600 ml-1 text-sm cursor-pointer"
                     >
                       ×
@@ -678,7 +703,7 @@ export function ShopView({
 
           {/* The Product Grid (3 generous columns next to sidebar) */}
           <ProductGrid products={filteredProducts} settings={settings} columns={3} />
-        </main>
+        </div>
       </div>
 
       {/* Mobile Filter Drawer Modal */}
@@ -742,7 +767,7 @@ export function ShopView({
                 <input
                   type="range"
                   min={50}
-                  max={750}
+                  max={catalogMaxPrice}
                   step={25}
                   value={maxPrice}
                   onChange={(e) => setMaxPrice(Number(e.target.value))}

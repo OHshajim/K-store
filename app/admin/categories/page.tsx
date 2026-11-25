@@ -1,12 +1,12 @@
 import { CategoryManager } from "@/components/admin/CategoryManager";
-import { getCategories, getProducts } from "@/lib/data/catalog";
+import { getAdminProducts, getCategories } from "@/lib/data/catalog";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminCategoriesPage() {
   const [categories, products] = await Promise.all([
     getCategories(),
-    getProducts(),
+    getAdminProducts(),
   ]);
 
   const productCounts: Record<string, number> = {};

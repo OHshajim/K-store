@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import {
   DollarSign,
@@ -50,6 +50,27 @@ export function SettingsForm({ settings }: { settings: StoreSettings }) {
     success: boolean;
     message: string;
   } | null>(null);
+  const [smtpStatus, setSmtpStatus] = useState<{
+    isConfigured: boolean;
+    host: string | null;
+    port: number;
+    user: string | null;
+    passConfigured: boolean;
+    connection?: { configured: boolean; connected: boolean; message: string };
+  } | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    fetch("/api/admin/email/test")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (active && data) setSmtpStatus(data);
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, []);
 
   async function handleSendTestEmail() {
     if (!testRecipient.trim()) {
@@ -407,14 +428,42 @@ export function SettingsForm({ settings }: { settings: StoreSettings }) {
             <Mail className="w-4 h-4 text-[#8A927A]" />
             <h2 className="text-sm font-bold text-[#1A1C18]">Email Dispatch &amp; Nodemailer Transport</h2>
           </div>
-          <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#8A927A]/15 text-[#8A927A] font-bold uppercase">
-            Active Module
+          <span
+            className={`text-[10px] font-mono px-2 py-0.5 rounded font-bold uppercase ${
+              smtpStatus?.connection?.connected
+                ? "bg-emerald-500/15 text-emerald-700"
+                : smtpStatus?.isConfigured
+                  ? "bg-amber-500/15 text-amber-700"
+                  : "bg-[#8A927A]/15 text-[#8A927A]"
+            }`}
+          >
+            {smtpStatus?.connection?.connected
+              ? "Live SMTP Connected"
+              : smtpStatus?.isConfigured
+                ? "SMTP Configured (Verify Failed)"
+                : "Simulation Mode"}
           </span>
         </div>
 
         <p className="text-xs text-[#4A483E] leading-relaxed">
           Kstore utilizes <strong>Nodemailer</strong> for order confirmations, fulfillment status milestones, newsletter welcome vouchers (<code>WELCOME20</code>), concierge inquiries, and 6-digit OTP password recovery codes.
         </p>
+
+        {smtpStatus && (
+          <div className="p-3.5 rounded-xl bg-[#FAF9F6] border border-[#1A1C18]/10 text-xs space-y-1.5 font-mono">
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[#1A1C18]">
+              <span className="inline-flex items-center gap-1.5 font-semibold">
+                <Server className="w-3.5 h-3.5 text-[#8A927A]" />
+                Host: {smtpStatus.host || "unset"}:{smtpStatus.port}
+              </span>
+              <span>User: {smtpStatus.user ? smtpStatus.user : "Missing (SMTP_USER)"}</span>
+              <span>Pass: {smtpStatus.passConfigured ? "Set" : "Missing (SMTP_PASS)"}</span>
+            </div>
+            {smtpStatus.connection?.message && (
+              <p className="text-[11px] text-[#4A483E]">{smtpStatus.connection.message}</p>
+            )}
+          </div>
+        )}
 
         {emailTestFeedback && (
           <div

@@ -3,6 +3,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { getCurrentProfile } from "@/lib/data/auth";
 import { getStoreSettings } from "@/lib/data/catalog";
+import { validateCouponCode } from "@/lib/data/coupons";
 import { createOrder } from "@/lib/data/orders";
 import { resolvePricedItems, subtotalOfCents } from "@/lib/data/pricing";
 import { sendOrderPlacedEmail } from "@/lib/email/mailer";
@@ -24,6 +25,8 @@ const bodySchema = z.object({
   shipping_city: z.string().min(2),
   shipping_notes: z.string().nullable().optional(),
   payment_method: z.enum(["stripe", "cash_on_delivery"]),
+  couponCode: z.string().nullable().optional(),
+  deliveryOption: z.enum(["standard", "express"]).default("standard"),
   items: z.array(itemSchema).min(1),
 });
 
@@ -38,11 +41,22 @@ export async function POST(request: Request) {
 
     const items = await resolvePricedItems(body.items);
     const subtotal = subtotalOfCents(items);
-    const shippingCents =
+
+    let discountCents = 0;
+    if (body.couponCode && body.couponCode.trim()) {
+      const couponResult = await validateCouponCode(body.couponCode, subtotal);
+      if (couponResult.valid && couponResult.discountCents) {
+        discountCents = couponResult.discountCents;
+      }
+    }
+
+    const baseShippingCents =
       settings.free_shipping_over_cents !== null &&
       subtotal >= settings.free_shipping_over_cents
         ? 0
         : settings.shipping_flat_cents;
+    const expressSurchargeCents = body.deliveryOption === "express" ? 2500 : 0;
+    const shippingCents = baseShippingCents + expressSurchargeCents;
 
     const order = await createOrder({
       userId: profile?.id ?? null,
@@ -55,6 +69,7 @@ export async function POST(request: Request) {
       paymentMethod: body.payment_method,
       items,
       shippingCents,
+      discountCents,
     });
 
     try {

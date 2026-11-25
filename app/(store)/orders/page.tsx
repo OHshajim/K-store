@@ -12,7 +12,7 @@ export default async function OrdersPage() {
   const user = await getCurrentUser();
   const settings = await requireStoreSettings();
 
-  const orders = user ? await getOrdersForUser(user.id) : [];
+  const orders = user ? await getOrdersForUser(user.id, user.email) : [];
 
   return (
     <div className="max-w-5xl mx-auto py-10 sm:py-16 px-4 sm:px-6 lg:px-8 space-y-10 min-h-[75vh]">

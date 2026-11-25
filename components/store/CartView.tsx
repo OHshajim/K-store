@@ -71,10 +71,12 @@ export function CartView({
         </p>
         <Link
           href="/shop"
-          className="inline-flex items-center gap-2 px-8 py-4 bg-[#292B27] text-white text-sm font-semibold rounded-xl hover:bg-[#3d403a] transition-all shadow-md"
+          data-btn="dark"
+          style={{ color: "#FFFFFF", backgroundColor: "#1A1C18" }}
+          className="inline-flex items-center gap-2 px-8 py-4 bg-[#1A1C18] text-white text-sm font-semibold rounded-xl hover:bg-[#3d403a] transition-all shadow-md"
         >
-          Explore Collection
-          <ArrowRight className="w-4 h-4" />
+          <span style={{ color: "#FFFFFF" }}>Explore Collection</span>
+          <ArrowRight className="w-4 h-4 text-white" style={{ color: "#FFFFFF" }} />
         </Link>
       </div>
     );
@@ -124,9 +126,11 @@ export function CartView({
 
           {/* Items Table */}
           <div className="bg-white rounded-2xl border border-[#292B27]/10 divide-y divide-[#292B27]/10 shadow-xs overflow-hidden">
-            {items.map((item) => (
+            {items.map((item) => {
+              const variantKey = `${item.productId}::${item.selectedColor ?? ""}::${item.selectedMaterial ?? ""}`;
+              return (
               <div
-                key={`${item.productId}-${item.selectedColor ?? "default"}`}
+                key={variantKey}
                 className="p-5 sm:p-6 flex flex-col sm:flex-row gap-5 items-start sm:items-center justify-between"
               >
                 {/* Image & Title */}
@@ -176,7 +180,7 @@ export function CartView({
                     <button
                       type="button"
                       onClick={() =>
-                        setQuantity(item.productId, item.quantity - 1, item.selectedColor)
+                        setQuantity(item.productId, item.quantity - 1, variantKey)
                       }
                       className="w-8 h-8 flex items-center justify-center text-sm font-bold text-[#292B27] hover:bg-[#F4F0E8] rounded-lg cursor-pointer"
                     >
@@ -188,7 +192,7 @@ export function CartView({
                     <button
                       type="button"
                       onClick={() =>
-                        setQuantity(item.productId, item.quantity + 1, item.selectedColor)
+                        setQuantity(item.productId, item.quantity + 1, variantKey)
                       }
                       className="w-8 h-8 flex items-center justify-center text-sm font-bold text-[#292B27] hover:bg-[#F4F0E8] rounded-lg cursor-pointer"
                     >
@@ -202,7 +206,7 @@ export function CartView({
                     </div>
                     <button
                       type="button"
-                      onClick={() => removeItem(item.productId, item.selectedColor)}
+                      onClick={() => removeItem(item.productId, variantKey)}
                       className="text-xs text-[#77766E] hover:text-red-600 transition-colors inline-flex items-center gap-1 mt-1 cursor-pointer"
                     >
                       <Trash2 className="w-3.5 h-3.5" /> Remove
@@ -210,7 +214,7 @@ export function CartView({
                   </div>
                 </div>
               </div>
-            ))}
+            );})}
           </div>
 
           {/* Curated Upsells Section */}
@@ -228,7 +232,7 @@ export function CartView({
                     <div className="flex gap-3 items-center mb-2">
                       <div className="relative w-12 h-12 rounded-lg overflow-hidden bg-[#F4F0E8] shrink-0">
                         <Image
-                          src={rec.images?.[0] || "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&w=600&q=80"}
+                          src={rec.images?.[0] || "/images/products/nordic-oak-tambour-credenza.jpg"}
                           alt={rec.name}
                           fill
                           className="object-cover"
@@ -292,9 +296,11 @@ export function CartView({
                     />
                     <button
                       type="submit"
-                      className="px-4 py-2.5 bg-[#292B27] text-white text-xs font-semibold rounded-xl hover:bg-[#3d403a] transition-colors cursor-pointer"
+                      data-btn="dark"
+                      style={{ color: "#FFFFFF", backgroundColor: "#1A1C18" }}
+                      className="px-4 py-2.5 bg-[#1A1C18] text-white text-xs font-semibold rounded-xl hover:bg-[#3d403a] transition-colors cursor-pointer"
                     >
-                      Apply
+                      <span style={{ color: "#FFFFFF" }}>Apply</span>
                     </button>
                   </div>
                   {couponMsg && (
@@ -342,10 +348,12 @@ export function CartView({
             {/* Checkout Action */}
             <Link
               href="/checkout"
-              className="w-full py-4 bg-[#292B27] text-white hover:bg-[#3d403a] text-sm font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2 cursor-pointer"
+              data-btn="dark"
+              style={{ color: "#FFFFFF", backgroundColor: "#1A1C18" }}
+              className="w-full py-4 bg-[#1A1C18] text-white hover:bg-[#3d403a] text-sm font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2 cursor-pointer"
             >
-              Proceed to Secure Checkout
-              <ArrowRight className="w-4 h-4" />
+              <span style={{ color: "#FFFFFF" }}>Proceed to Secure Checkout</span>
+              <ArrowRight className="w-4 h-4 text-white" style={{ color: "#FFFFFF" }} />
             </Link>
 
             <div className="space-y-2 text-xs text-[#77766E] pt-2 border-t border-[#292B27]/10">

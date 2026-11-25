@@ -87,15 +87,17 @@ export const useCartStore = create<CartState>()(
           items:
             quantity <= 0
               ? state.items.filter((item) => {
-                  const matches =
-                    item.productId === productId &&
-                    (!variantKey || item.selectedColor === variantKey);
+                  const composite = `${item.productId}::${item.selectedColor ?? ""}::${item.selectedMaterial ?? ""}`;
+                  const matches = variantKey
+                    ? composite === variantKey || (item.productId === productId && item.selectedColor === variantKey)
+                    : item.productId === productId;
                   return !matches;
                 })
               : state.items.map((item) => {
-                  const matches =
-                    item.productId === productId &&
-                    (!variantKey || item.selectedColor === variantKey);
+                  const composite = `${item.productId}::${item.selectedColor ?? ""}::${item.selectedMaterial ?? ""}`;
+                  const matches = variantKey
+                    ? composite === variantKey || (item.productId === productId && item.selectedColor === variantKey)
+                    : item.productId === productId;
                   return matches
                     ? { ...item, quantity: Math.min(item.stock, quantity) }
                     : item;
@@ -106,9 +108,10 @@ export const useCartStore = create<CartState>()(
       removeItem(productId, variantKey) {
         set((state) => ({
           items: state.items.filter((item) => {
-            const matches =
-              item.productId === productId &&
-              (!variantKey || item.selectedColor === variantKey);
+            const composite = `${item.productId}::${item.selectedColor ?? ""}::${item.selectedMaterial ?? ""}`;
+            const matches = variantKey
+              ? composite === variantKey || (item.productId === productId && item.selectedColor === variantKey)
+              : item.productId === productId;
             return !matches;
           }),
         }));

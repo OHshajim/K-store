@@ -1,11 +1,11 @@
-import { getProducts, requireStoreSettings } from "@/lib/data/catalog";
+import { getAdminProducts, requireStoreSettings } from "@/lib/data/catalog";
 import { ProductListManager } from "@/components/admin/ProductListManager";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminProductsPage() {
   const [products, settings] = await Promise.all([
-    getProducts(),
+    getAdminProducts(),
     requireStoreSettings(),
   ]);
 

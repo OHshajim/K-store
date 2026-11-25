@@ -21,10 +21,13 @@ export async function GET() {
 
     return NextResponse.json({
       isConfigured: isSmtpConfigured(),
-      host: process.env.SMTP_HOST || null,
+      host: process.env.SMTP_HOST?.trim() || null,
       port: Number(process.env.SMTP_PORT || 587),
-      service: process.env.SMTP_SERVICE || null,
-      from: process.env.SMTP_FROM || null,
+      secure: process.env.SMTP_SECURE === "true" || Number(process.env.SMTP_PORT || 587) === 465,
+      service: process.env.SMTP_SERVICE?.trim() || null,
+      user: process.env.SMTP_USER?.trim() || null,
+      passConfigured: Boolean(process.env.SMTP_PASS?.trim()),
+      from: process.env.SMTP_FROM?.trim() || process.env.SMTP_USER?.trim() || null,
       connection,
       history,
     });

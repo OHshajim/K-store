@@ -167,7 +167,11 @@ export function OrderDetailView({
                 type="button"
                 onClick={() => {
                   if (typeof window !== "undefined") {
-                    const url = `${window.location.origin}/orders/${order.id}`;
+                    const url = trackingToken
+                      ? `${window.location.origin}/track/${order.order_number}?t=${trackingToken}`
+                      : order.tracking_token
+                        ? `${window.location.origin}/track/${order.order_number}?t=${order.tracking_token}`
+                        : `${window.location.origin}/orders/${order.id}`;
                     void navigator.clipboard.writeText(url);
                     setCopiedLink(true);
                     setTimeout(() => setCopiedLink(false), 2500);
@@ -321,7 +325,7 @@ export function OrderDetailView({
                     <Image
                       src={
                         item.image_url ||
-                        "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&w=400&q=80"
+                        "/images/products/nordic-oak-tambour-credenza.jpg"
                       }
                       alt={item.product_name}
                       fill

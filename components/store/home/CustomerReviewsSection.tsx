@@ -13,115 +13,115 @@ import type { Review } from "@/lib/types";
 const CURATED_REFLECTIONS: Review[] = [
   {
     id: "curated-1",
-    product_id: "prod-1",
+    product_id: "a0000000-0000-4000-8000-000000000001",
     user_id: "user-1",
     order_id: "order-1",
     rating: 5,
     comment:
-      "The solid oak sideboard has completely anchored our living room. Tactile joinery and a serene minimalist presence that invites daily pause.",
+      "The solid oak tambour credenza has completely anchored our living room. Smooth sliding joinery and a serene minimalist presence that invites daily pause.",
     is_published: true,
     created_at: "2026-02-10T12:00:00Z",
     updated_at: "2026-02-10T12:00:00Z",
     reviewer_name: "Astrid Lindgren, Stockholm Residence",
-    product: { name: "Architectural Low Oak Credenza", slug: "low-oak-credenza" },
+    product: { name: "Klinte Solid Oak Tambour Credenza", slug: "klinte-oak-tambour-credenza" },
   },
   {
     id: "curated-2",
-    product_id: "prod-2",
+    product_id: "a0000000-0000-4000-8000-000000000011",
     user_id: "user-2",
     order_id: "order-2",
     rating: 5,
     comment:
-      "Atmospheric 2700K warm lighting with zero glare. It transforms evening hours into a deeply calming Scandinavian sanctuary.",
+      "Atmospheric 2700K warm task lighting with zero glare. The solid brass pivot joint transforms evening desk hours into a calming ritual.",
     is_published: true,
     created_at: "2026-02-12T14:30:00Z",
     updated_at: "2026-02-12T14:30:00Z",
     reviewer_name: "Henrik Berg, Copenhagen Studio",
-    product: { name: "Honed Terracotta Pendant Lamp", slug: "terracotta-pendant" },
+    product: { name: "Kalmar Matte Architectural Task Lamp", slug: "kalmar-architectural-task-lamp" },
   },
   {
     id: "curated-3",
-    product_id: "prod-3",
+    product_id: "a0000000-0000-4000-8000-000000000005",
     user_id: "user-3",
     order_id: "order-3",
     rating: 5,
     comment:
-      "Exceptional stoneware and Belgian linen craftsmanship. Every detail feels intentional and enduring. Courier delivery was flawless.",
+      "Exceptional wheel-thrown stoneware and airtight beechwood seals. Every countertop detail feels intentional and enduring.",
     is_published: true,
     created_at: "2026-02-14T09:15:00Z",
     updated_at: "2026-02-14T09:15:00Z",
     reviewer_name: "Freja Møller, Oslo Apartment",
-    product: { name: "Stoneware Everyday Dining Set", slug: "stoneware-dining-set" },
+    product: { name: "Vättern Glazed Stoneware Canister Trio", slug: "vattern-stoneware-canister-trio" },
   },
   {
     id: "curated-4",
-    product_id: "prod-4",
+    product_id: "a0000000-0000-4000-8000-000000000003",
     user_id: "user-4",
     order_id: "order-4",
     rating: 5,
     comment:
-      "The quiet desk organization tools brought immediate focus and visual peace to my creative workspace. Unmatched timber grain.",
+      "The CNC-milled walnut desk caddy and wool felt inserts brought immediate calm and organization to my workspace.",
     is_published: true,
     created_at: "2026-02-16T16:45:00Z",
     updated_at: "2026-02-16T16:45:00Z",
     reviewer_name: "Elias Vang, Helsinki Loft",
-    product: { name: "Precision Walnut Desk Architecture", slug: "walnut-desk-set" },
+    product: { name: "Gotland Walnut & Wool Felt Desk Caddy", slug: "gotland-walnut-desk-caddy" },
   },
   {
     id: "curated-5",
-    product_id: "prod-5",
+    product_id: "a0000000-0000-4000-8000-000000000002",
     user_id: "user-5",
     order_id: "order-5",
     rating: 5,
     comment:
-      "A masterclass in restraint. Natural wool texture, rounded bevels, and proportions that balance generous comfort with architectural precision.",
+      "A study in restraint. The turned solid ash tray lip and powder-coated tripod stance balance daily function with sculptural lightness.",
     is_published: true,
     created_at: "2026-02-18T11:20:00Z",
     updated_at: "2026-02-18T11:20:00Z",
     reviewer_name: "Karin Holmberg, Gothenburg Villa",
-    product: { name: "Bouclé Lounge Armchair", slug: "boucle-lounge-armchair" },
+    product: { name: "Södermalm Turned Ash Side Table", slug: "sodermalm-turned-ash-side-table" },
   },
   {
     id: "curated-6",
-    product_id: "prod-6",
+    product_id: "a0000000-0000-4000-8000-000000000012",
     user_id: "user-6",
     order_id: "order-6",
     rating: 5,
     comment:
-      "Finding furnishings that honor both functional minimalism and warm tactile organic materials is rare. Kstore delivered on every count.",
+      "Finding lighting that honors both architectural proportion and heavy honed Carrera marble weight is rare. Truly heirloom grade.",
     is_published: true,
     created_at: "2026-02-20T18:10:00Z",
     updated_at: "2026-02-20T18:10:00Z",
     reviewer_name: "Jonas Dahl, Malmö Gallery",
-    product: { name: "Brushed Brass Sconce Luminaire", slug: "brass-sconce" },
+    product: { name: "Åre Carrera Marble Arc Floor Lamp", slug: "are-carrera-marble-floor-lamp" },
   },
   {
     id: "curated-7",
-    product_id: "prod-7",
+    product_id: "a0000000-0000-4000-8000-000000000008",
     user_id: "user-7",
     order_id: "order-7",
     rating: 5,
     comment:
-      "The tactile feel of the washed Belgian linen bedding is second to none. Crisp, breathable, and washes softer with every cycle.",
+      "The removable Belgian linen liner keeps knit blankets snag-free while the seagrass weave warms up our bedroom corner.",
     is_published: true,
     created_at: "2026-02-22T13:00:00Z",
     updated_at: "2026-02-22T13:00:00Z",
     reviewer_name: "Signe Nygård, Bergen Waterfront",
-    product: { name: "Washed Belgian Linen Duvet Set", slug: "belgian-linen-duvet" },
+    product: { name: "Visby Braided Seagrass & Linen Basket", slug: "visby-braided-linen-basket" },
   },
   {
     id: "curated-8",
-    product_id: "prod-8",
+    product_id: "a0000000-0000-4000-8000-000000000007",
     user_id: "user-8",
     order_id: "order-8",
     rating: 5,
     comment:
-      "Unboxing felt like visiting a private exhibition in Småland. The joinery tolerances and organic finish are museum grade.",
+      "Wall-mounting this solid white oak nightstand freed our floor space cleanly, and the concealed cord channel keeps charging hidden.",
     is_published: true,
     created_at: "2026-02-24T15:40:00Z",
     updated_at: "2026-02-24T15:40:00Z",
     reviewer_name: "Lukas Lindqvist, Aarhus Atelier",
-    product: { name: "Solid Ash Low Coffee Table", slug: "ash-coffee-table" },
+    product: { name: "Leksand Floating Oak Nightstand", slug: "leksand-floating-oak-nightstand" },
   },
 ];
 
@@ -388,7 +388,7 @@ export function CustomerReviewsSection({
                   {review.product && (
                     <div className="pt-2">
                       <Link
-                        href={`/products/${review.product.slug}`}
+                        href={`/product/${review.product.slug}`}
                         onClick={(e) => {
                           if (hasDraggedRef.current) e.preventDefault();
                         }}

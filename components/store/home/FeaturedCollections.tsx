@@ -67,8 +67,10 @@ const CATEGORY_EDITORIAL: Record<
 
 export function FeaturedCollections({
   categories,
+  productCounts,
 }: {
   categories: Category[];
+  productCounts?: Record<string, number>;
 }) {
   return (
     <section className="py-20 sm:py-28 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
@@ -121,6 +123,11 @@ export function FeaturedCollections({
               const img: string =
                 (isBroken ? editorial.image : cat.image_url) || editorial.image;
 
+              const count =
+                productCounts?.[cat.slug] ??
+                productCounts?.[cat.id] ??
+                editorial.pieceCount;
+
               return (
                 <Link
                   key={cat.id || cat.slug}
@@ -148,7 +155,7 @@ export function FeaturedCollections({
                     </span>
 
                     <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-white/85 backdrop-blur-md text-[#1A1C18] text-[10px] font-mono font-bold tracking-wider border border-[#1A1C18]/10 shadow-xs">
-                      {editorial.pieceCount} Essentials
+                      {count} {count === 1 ? "Essential" : "Essentials"}
                     </span>
                   </div>
 

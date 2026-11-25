@@ -11,5 +11,9 @@ export const metadata = {
 export default async function AdminCouponsPage() {
   const coupons = await getAdminCoupons();
 
-  return <CouponManager initialCoupons={coupons} />;
+  return (
+    <div className="p-6 sm:p-8 max-w-7xl mx-auto">
+      <CouponManager initialCoupons={coupons} />
+    </div>
+  );
 }

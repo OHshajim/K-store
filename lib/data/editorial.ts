@@ -48,9 +48,9 @@ export const EDITORIAL_ARTICLES: EditorialArticle[] = [
       "As you curate your own sanctuary, remember that the goal is not perfection, but harmony. Choose objects that reward touch, celebrate natural material variance, and will still feel grounded and timeless twenty years from this moment.",
     ],
     relatedProductSlugs: [
-      "modular-storage-shelf",
-      "minimalist-side-table",
-      "countertop-organizer",
+      "klinte-oak-tambour-credenza",
+      "sodermalm-turned-ash-side-table",
+      "trosa-travertine-vanity-set",
     ],
   },
   {
@@ -81,8 +81,8 @@ export const EDITORIAL_ARTICLES: EditorialArticle[] = [
       "When specifying luminaires, prioritize 2700 Kelvin warm-white illumination with a high Color Rendering Index (CRI > 90). The resulting glow brings out the rich amber undertones in oak woodwork and imparts a restful, candlelit ambiance to dusk conversations.",
     ],
     relatedProductSlugs: [
-      "ambient-floor-lamp",
-      "minimalist-desk-lamp",
+      "are-carrera-marble-floor-lamp",
+      "kalmar-architectural-task-lamp",
     ],
   },
   {
@@ -113,8 +113,8 @@ export const EDITORIAL_ARTICLES: EditorialArticle[] = [
       "At the conclusion of each day, execute a two-minute closing ritual: dock peripherals, return pens to their turned timber tray, and leave the workspace clear. Tomorrow's creative focus begins the moment you step up to an uncluttered desk.",
     ],
     relatedProductSlugs: [
-      "oak-desk-organizer",
-      "minimalist-desk-lamp",
+      "gotland-walnut-desk-caddy",
+      "uppsala-curved-beech-monitor-riser",
     ],
   },
 ];

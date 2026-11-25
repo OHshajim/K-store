@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { randomUUID } from "crypto";
+import { mkdir, writeFile } from "fs/promises";
+import path from "path";
 import { requireAdminProfile } from "@/lib/data/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -53,56 +55,67 @@ export async function POST(request: Request) {
     const buffer = Buffer.from(await file.arrayBuffer());
     const filename = `${randomUUID()}.${ext}`;
 
-    const admin = createAdminClient();
+    try {
+      const admin = createAdminClient();
+      const primaryBucket = requestedBucket === "banners" ? "products" : "products";
 
-    // Determine target bucket: default to 'products', fallback to 'product-images'
-    const primaryBucket = requestedBucket === "banners" ? "products" : "products";
+      let uploadData;
+      let uploadError;
+      let activeBucket = primaryBucket;
 
-    let uploadData;
-    let uploadError;
-    let activeBucket = primaryBucket;
-
-    const res1 = await admin.storage
-      .from(primaryBucket)
-      .upload(filename, buffer, {
-        contentType,
-        upsert: true,
-      });
-
-    uploadData = res1.data;
-    uploadError = res1.error;
-
-    if (uploadError) {
-      // Fallback to 'product-images' bucket if primary bucket returned error
-      activeBucket = "product-images";
-      const res2 = await admin.storage
-        .from("product-images")
+      const res1 = await admin.storage
+        .from(primaryBucket)
         .upload(filename, buffer, {
           contentType,
           upsert: true,
         });
-      uploadData = res2.data;
-      uploadError = res2.error;
+
+      uploadData = res1.data;
+      uploadError = res1.error;
+
+      if (uploadError) {
+        activeBucket = "product-images";
+        const res2 = await admin.storage
+          .from("product-images")
+          .upload(filename, buffer, {
+            contentType,
+            upsert: true,
+          });
+        uploadData = res2.data;
+        uploadError = res2.error;
+      }
+
+      if (!uploadError && uploadData) {
+        const { data: publicUrlData } = admin.storage
+          .from(activeBucket)
+          .getPublicUrl(filename);
+
+        return NextResponse.json({
+          url: publicUrlData.publicUrl,
+          filename,
+          bucket: activeBucket,
+          success: true,
+          storage: "supabase",
+        });
+      }
+    } catch (storageErr) {
+      console.warn("Supabase storage upload unavailable, saving to local public/uploads:", storageErr);
     }
 
-    if (uploadError || !uploadData) {
-      console.error("Supabase storage upload error:", uploadError);
-      throw new Error(uploadError?.message || "Failed to upload image to Supabase Storage");
-    }
-
-    const { data: publicUrlData } = admin.storage
-      .from(activeBucket)
-      .getPublicUrl(filename);
+    // Local filesystem fallback for offline/dev environments
+    const uploadDir = path.join(process.cwd(), "public", "uploads");
+    await mkdir(uploadDir, { recursive: true });
+    await writeFile(path.join(uploadDir, filename), buffer);
 
     return NextResponse.json({
-      url: publicUrlData.publicUrl,
+      url: `/uploads/${filename}`,
       filename,
-      bucket: activeBucket,
+      bucket: "local",
       success: true,
-      storage: "supabase",
+      storage: "local",
     });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Failed to upload image to Supabase Storage";
+    const message = error instanceof Error ? error.message : "Failed to upload image";
     const status = message.includes("Admin") ? 403 : 500;
     return NextResponse.json({ error: message }, { status });
   }

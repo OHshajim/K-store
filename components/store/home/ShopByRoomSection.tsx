@@ -39,7 +39,11 @@ const ROOM_PILLARS = [
   },
 ];
 
-export function ShopByRoomSection() {
+export function ShopByRoomSection({
+  roomCounts,
+}: {
+  roomCounts?: Record<string, number>;
+} = {}) {
   return (
     <section className="py-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
       {/* Header */}
@@ -80,7 +84,14 @@ export function ShopByRoomSection() {
             <div className="relative z-10 text-white space-y-2">
               <div className="flex items-center justify-between text-xs font-mono text-[#D8C9B5] uppercase tracking-wider mb-1">
                 <span>{room.room}</span>
-                <span>{room.itemCount}</span>
+                <span>
+                  {(() => {
+                    const count = roomCounts?.[room.slug];
+                    return count !== undefined
+                      ? `${count} ${count === 1 ? "Essential" : "Essentials"}`
+                      : room.itemCount;
+                  })()}
+                </span>
               </div>
 
               <h3 className="font-editorial text-2xl sm:text-4xl font-bold text-white group-hover:text-[#D8C9B5] transition-colors">

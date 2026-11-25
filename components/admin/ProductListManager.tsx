@@ -338,7 +338,7 @@ export function ProductListManager({
                   filteredProducts.map((product) => {
                     const img =
                       product.images?.[0] ||
-                      "https://images.unsplash.com/photo-1594026112284-02bb6f3352fe?auto=format&fit=crop&w=300&q=80";
+                      "/images/products/nordic-oak-tambour-credenza.jpg";
                     const isLowStock = product.stock <= 10 && product.stock > 0;
                     const isOutOfStock = product.stock === 0;
 
@@ -501,7 +501,7 @@ export function ProductListManager({
           {filteredProducts.map((product) => {
             const img =
               product.images?.[0] ||
-              "https://images.unsplash.com/photo-1594026112284-02bb6f3352fe?auto=format&fit=crop&w=400&q=80";
+              "/images/products/nordic-oak-tambour-credenza.jpg";
 
             return (
               <div

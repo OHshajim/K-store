@@ -64,6 +64,8 @@ export async function getProductReviews(productId: string): Promise<Review[]> {
 // Products from the user's paid or delivered orders that they haven't
 // reviewed yet — the "To review" list on the account dashboard.
 export async function getReviewableProducts(userId: string) {
+  const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(userId);
+  if (!isUuid) return [];
   try {
     const supabase = await createClient();
     const { data: orders } = await supabase
@@ -104,6 +106,8 @@ export async function getReviewableProducts(userId: string) {
 }
 
 export async function getUserReviews(userId: string): Promise<Review[]> {
+  const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(userId);
+  if (!isUuid) return [];
   try {
     const supabase = await createClient();
     const { data } = await supabase
@@ -173,19 +177,24 @@ export async function createReview(input: {
 }
 
 export async function getAllReviews(): Promise<Review[]> {
-  const admin = createAdminClient();
-  const { data } = await admin
-    .from("reviews")
-    .select("*, product:products(name, slug), reviewer_name:profiles(full_name)")
-    .order("created_at", { ascending: false })
-    .limit(100);
+  try {
+    const admin = createAdminClient();
+    const { data, error } = await admin
+      .from("reviews")
+      .select("*, product:products(name, slug), reviewer_name:profiles(full_name)")
+      .order("created_at", { ascending: false })
+      .limit(100);
 
-  return ((data ?? []) as Array<Review & { reviewer_name: { full_name: string | null } | null }>).map(
-    (review) => ({
-      ...review,
-      reviewer_name: review.reviewer_name?.full_name ?? null,
-    }),
-  );
+    if (!error && data && data.length > 0) {
+      return ((data ?? []) as Array<Review & { reviewer_name: { full_name: string | null } | null }>).map(
+        (review) => ({
+          ...review,
+          reviewer_name: review.reviewer_name?.full_name ?? null,
+        }),
+      );
+    }
+  } catch { }
+  return inMemoryReviews;
 }
 
 export async function getPublishedReviews(limit = 24): Promise<Review[]> {
@@ -200,26 +209,42 @@ export async function getPublishedReviews(limit = 24): Promise<Review[]> {
 
     if (data && data.length > 0) return data as Review[];
   } catch { }
-  return [];
+  return inMemoryReviews.filter((r) => r.is_published).slice(0, limit);
 }
 
 export async function setReviewPublished(
   reviewId: string,
   isPublished: boolean,
 ): Promise<void> {
-  const admin = createAdminClient();
-  const { error } = await admin
-    .from("reviews")
-    .update({ is_published: isPublished })
-    .eq("id", reviewId);
-  if (error) throw new Error(error.message);
+  const memIdx = inMemoryReviews.findIndex((r) => r.id === reviewId);
+  if (memIdx !== -1) {
+    inMemoryReviews[memIdx] = { ...inMemoryReviews[memIdx], is_published: isPublished };
+  }
+  try {
+    const admin = createAdminClient();
+    const { error } = await admin
+      .from("reviews")
+      .update({ is_published: isPublished })
+      .eq("id", reviewId);
+    if (error && memIdx === -1) throw new Error(error.message);
+  } catch (err) {
+    if (memIdx === -1) throw err;
+  }
 }
 
 export async function deleteReview(reviewId: string): Promise<void> {
-  const admin = createAdminClient();
-  const { error } = await admin
-    .from("reviews")
-    .delete()
-    .eq("id", reviewId);
-  if (error) throw new Error(error.message);
+  const memIdx = inMemoryReviews.findIndex((r) => r.id === reviewId);
+  if (memIdx !== -1) {
+    inMemoryReviews.splice(memIdx, 1);
+  }
+  try {
+    const admin = createAdminClient();
+    const { error } = await admin
+      .from("reviews")
+      .delete()
+      .eq("id", reviewId);
+    if (error && memIdx === -1) throw new Error(error.message);
+  } catch (err) {
+    if (memIdx === -1) throw err;
+  }
 }

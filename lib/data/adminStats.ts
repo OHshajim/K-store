@@ -34,7 +34,14 @@ export async function getAdminCounts(): Promise<AdminCounts> {
         .from("products")
         .select("id", { count: "exact", head: true });
       if (!error && count !== null) counts.products = count;
-    } catch {}
+      else {
+        const { MOCK_PRODUCTS } = await import("@/lib/data/mockData");
+        counts.products = MOCK_PRODUCTS.length;
+      }
+    } catch {
+      const { MOCK_PRODUCTS } = await import("@/lib/data/mockData");
+      counts.products = MOCK_PRODUCTS.length;
+    }
 
     // 2. Categories Count
     try {
@@ -42,7 +49,14 @@ export async function getAdminCounts(): Promise<AdminCounts> {
         .from("categories")
         .select("id", { count: "exact", head: true });
       if (!error && count !== null) counts.categories = count;
-    } catch {}
+      else {
+        const { MOCK_CATEGORIES } = await import("@/lib/data/mockData");
+        counts.categories = MOCK_CATEGORIES.length;
+      }
+    } catch {
+      const { MOCK_CATEGORIES } = await import("@/lib/data/mockData");
+      counts.categories = MOCK_CATEGORIES.length;
+    }
 
     // 3. Orders Count
     try {
@@ -50,7 +64,14 @@ export async function getAdminCounts(): Promise<AdminCounts> {
         .from("orders")
         .select("id", { count: "exact", head: true });
       if (!error && count !== null) counts.orders = count;
-    } catch {}
+      else {
+        const { getAllOrders } = await import("@/lib/data/orderAdmin");
+        counts.orders = (await getAllOrders()).length;
+      }
+    } catch {
+      const { getAllOrders } = await import("@/lib/data/orderAdmin");
+      counts.orders = (await getAllOrders()).length;
+    }
 
     // 3b. Active Coupons Count
     try {
@@ -59,9 +80,13 @@ export async function getAdminCounts(): Promise<AdminCounts> {
         .select("id", { count: "exact", head: true })
         .eq("is_active", true);
       if (!error && count !== null) counts.coupons = count;
-      else counts.coupons = 4; // fallback active count
+      else {
+        const { MOCK_COUPONS } = await import("@/lib/data/mockData");
+        counts.coupons = MOCK_COUPONS.filter((c) => c.is_active).length;
+      }
     } catch {
-      counts.coupons = 4;
+      const { MOCK_COUPONS } = await import("@/lib/data/mockData");
+      counts.coupons = MOCK_COUPONS.filter((c) => c.is_active).length;
     }
 
     // 4. Active Banners Count
@@ -71,7 +96,14 @@ export async function getAdminCounts(): Promise<AdminCounts> {
         .select("id", { count: "exact", head: true })
         .eq("is_active", true);
       if (!error && count !== null) counts.activeBanners = count;
-    } catch {}
+      else {
+        const { MOCK_BANNERS } = await import("@/lib/data/mockData");
+        counts.activeBanners = MOCK_BANNERS.filter((b) => b.is_active).length;
+      }
+    } catch {
+      const { MOCK_BANNERS } = await import("@/lib/data/mockData");
+      counts.activeBanners = MOCK_BANNERS.filter((b) => b.is_active).length;
+    }
 
     // 5. Users / Profiles Count
     try {
@@ -79,7 +111,14 @@ export async function getAdminCounts(): Promise<AdminCounts> {
         .from("profiles")
         .select("id", { count: "exact", head: true });
       if (!error && count !== null) counts.users = count;
-    } catch {}
+      else {
+        const { getCustomerSummaries } = await import("@/lib/data/orderAdmin");
+        counts.users = (await getCustomerSummaries()).length;
+      }
+    } catch {
+      const { getCustomerSummaries } = await import("@/lib/data/orderAdmin");
+      counts.users = (await getCustomerSummaries()).length;
+    }
 
     // 6. Journal Articles Count
     try {
@@ -105,16 +144,30 @@ export async function getAdminCounts(): Promise<AdminCounts> {
       const { data, error } = await admin
         .from("reviews")
         .select("rating");
-      if (!error && data && data.length > 0) {
+      if (!error && Array.isArray(data)) {
         counts.reviewsCount = data.length;
-        const total = data.reduce((sum, r) => sum + (Number(r.rating) || 5), 0);
-        counts.averageRating = Number((total / data.length).toFixed(1));
+        if (data.length > 0) {
+          const total = data.reduce((sum, r) => sum + (Number(r.rating) || 5), 0);
+          counts.averageRating = Number((total / data.length).toFixed(1));
+        }
       } else {
-        // Default clean state if no reviews yet
-        counts.reviewsCount = 0;
-        counts.averageRating = null;
+        const { getAllReviews } = await import("@/lib/data/reviews");
+        const revs = await getAllReviews();
+        counts.reviewsCount = revs.length;
+        if (revs.length > 0) {
+          const total = revs.reduce((sum, r) => sum + (Number(r.rating) || 5), 0);
+          counts.averageRating = Number((total / revs.length).toFixed(1));
+        }
       }
-    } catch {}
+    } catch {
+      const { getAllReviews } = await import("@/lib/data/reviews");
+      const revs = await getAllReviews();
+      counts.reviewsCount = revs.length;
+      if (revs.length > 0) {
+        const total = revs.reduce((sum, r) => sum + (Number(r.rating) || 5), 0);
+        counts.averageRating = Number((total / revs.length).toFixed(1));
+      }
+    }
 
     return counts;
   } catch (err) {

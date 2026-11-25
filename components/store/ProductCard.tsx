@@ -31,7 +31,7 @@ export function ProductCard({
     isHovered && product.images.length > 1
       ? product.images[1]
       : product.images[0] ||
-        "https://images.unsplash.com/photo-1594026112284-02bb6f3352fe?auto=format&fit=crop&w=800&q=80";
+        "/images/products/nordic-oak-tambour-credenza.jpg";
 
   const hasDiscount =
     Boolean(product.compare_at_cents && product.compare_at_cents > product.price_cents);

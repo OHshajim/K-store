@@ -10,16 +10,32 @@ import { EditorialInspiration } from "@/components/store/home/EditorialInspirati
 import { CustomerReviewsSection } from "@/components/store/home/CustomerReviewsSection";
 import { NewsletterSection } from "@/components/store/home/NewsletterSection";
 
-export const revalidate = 60;
+export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
-  const [categories, bestSellers, heroBanners, reviews, settings] = await Promise.all([
+  const [categories, allProducts, bestSellers, heroBanners, reviews, settings] = await Promise.all([
     getCategories(),
+    getProducts(),
     getProducts({ bestsellers: true, limit: 8 }),
     getBanners("hero"),
     getPublishedReviews(24),
     requireStoreSettings(),
   ]);
+
+  const categoryCounts: Record<string, number> = {};
+  const roomCounts: Record<string, number> = {};
+  for (const prod of allProducts) {
+    if (prod.category?.slug) {
+      categoryCounts[prod.category.slug] = (categoryCounts[prod.category.slug] ?? 0) + 1;
+    }
+    if (prod.category_id) {
+      categoryCounts[prod.category_id] = (categoryCounts[prod.category_id] ?? 0) + 1;
+    }
+    if (prod.room) {
+      const r = prod.room.toLowerCase();
+      roomCounts[r] = (roomCounts[r] ?? 0) + 1;
+    }
+  }
 
   return (
     <div className="w-full space-y-0">
@@ -31,7 +47,7 @@ export default async function HomePage() {
       />
 
       {/* Section D: Featured Collections */}
-      <FeaturedCollections categories={categories} />
+      <FeaturedCollections categories={categories} productCounts={categoryCounts} />
 
       {/* Section E: Best Sellers */}
       <BestSellersSection products={bestSellers} />
@@ -43,7 +59,7 @@ export default async function HomePage() {
       />
 
       {/* Section G: Shop by Room */}
-      <ShopByRoomSection />
+      <ShopByRoomSection roomCounts={roomCounts} />
 
       {/* Section H: Brand Benefits */}
       <BrandBenefitsSection />

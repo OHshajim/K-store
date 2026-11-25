@@ -115,7 +115,7 @@ export function StoreTopNav({
             </div>
 
             {/* Center: Desktop Navigation Links (All strictly whitespace-nowrap) */}
-            <nav className="hidden lg:flex items-center space-x-4 xl:space-x-7 shrink-0">
+            <nav className="hidden lg:flex items-center space-x-3 xl:space-x-6 shrink-0">
               <Link
                 href="/shop"
                 className={`text-sm font-semibold transition-colors hover:text-[#B78E69] whitespace-nowrap ${
@@ -221,7 +221,7 @@ export function StoreTopNav({
               >
                 <Compass className="w-4 h-4 text-[#8A927A] shrink-0" />
                 <span className="whitespace-nowrap">Fit Assistant</span>
-                <span className="text-[10px] bg-[#8A927A]/20 text-[#8A927A] font-bold px-1.5 py-0.5 rounded-full font-sans whitespace-nowrap">
+                <span className="hidden xl:inline-block text-[10px] bg-[#8A927A]/20 text-[#8A927A] font-bold px-1.5 py-0.5 rounded-full font-sans whitespace-nowrap">
                   Interactive
                 </span>
               </Link>

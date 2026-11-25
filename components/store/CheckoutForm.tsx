@@ -181,6 +181,8 @@ export function CheckoutForm({
           shipping_city: city,
           shipping_notes: shippingNotes || (deliveryOption === "express" ? "Express White-Glove Request" : null),
           payment_method: paymentMethod,
+          couponCode: appliedCoupon?.code ?? null,
+          deliveryOption,
           items: items.map((i) => ({
             productId: i.productId,
             quantity: i.quantity,
@@ -209,16 +211,20 @@ export function CheckoutForm({
         });
 
         const payData = await payRes.json();
-        if (payRes.ok && payData.url) {
-          clear();
-          window.location.assign(payData.url);
-          return;
+        if (!payRes.ok || !payData.url) {
+          throw new Error(payData.error || "Unable to initiate Stripe payment session.");
         }
+        clear();
+        window.location.assign(payData.url);
+        return;
       }
 
       // Cash on delivery or direct confirmation
       clear();
-      if (order.user_id) {
+      const isGuestSystem =
+        !order.user_id ||
+        order.user_id === "86f1777f-552c-4211-bfd4-8bffc3a77abb";
+      if (!isGuestSystem) {
         router.push(`/orders/${order.id}?confirmed=1`);
       } else {
         router.push(`/track/${order.order_number}?t=${order.tracking_token}&confirmed=1`);
@@ -271,58 +277,39 @@ export function CheckoutForm({
         {/* Left: Step Form Flow */}
         <div className="lg:col-span-7 space-y-8">
           {/* Progress Tabs */}
-          <div className="flex items-center justify-between border-b border-[#292B27]/10 pb-4 text-xs font-semibold">
-            <button
-              type="button"
-              onClick={() => handleStepTransition(1)}
-              className={`flex items-center gap-2 transition-colors cursor-pointer ${
-                currentStep === 1 ? "text-[#292B27] font-bold" : "text-[#77766E]"
-              }`}
-            >
-              <span className="w-6 h-6 rounded-full bg-[#292B27] text-white flex items-center justify-center text-[11px] font-mono">
-                1
-              </span>
-              Contact
-            </button>
-            <div className="w-8 h-px bg-[#292B27]/20" />
-            <button
-              type="button"
-              onClick={() => handleStepTransition(2)}
-              className={`flex items-center gap-2 transition-colors cursor-pointer ${
-                currentStep === 2 ? "text-[#292B27] font-bold" : "text-[#77766E]"
-              }`}
-            >
-              <span className="w-6 h-6 rounded-full bg-[#292B27] text-white flex items-center justify-center text-[11px] font-mono">
-                2
-              </span>
-              Shipping
-            </button>
-            <div className="w-8 h-px bg-[#292B27]/20" />
-            <button
-              type="button"
-              onClick={() => handleStepTransition(3)}
-              className={`flex items-center gap-2 transition-colors cursor-pointer ${
-                currentStep === 3 ? "text-[#292B27] font-bold" : "text-[#77766E]"
-              }`}
-            >
-              <span className="w-6 h-6 rounded-full bg-[#292B27] text-white flex items-center justify-center text-[11px] font-mono">
-                3
-              </span>
-              Delivery
-            </button>
-            <div className="w-8 h-px bg-[#292B27]/20" />
-            <button
-              type="button"
-              onClick={() => handleStepTransition(4)}
-              className={`flex items-center gap-2 transition-colors cursor-pointer ${
-                currentStep === 4 ? "text-[#292B27] font-bold" : "text-[#77766E]"
-              }`}
-            >
-              <span className="w-6 h-6 rounded-full bg-[#292B27] text-white flex items-center justify-center text-[11px] font-mono">
-                4
-              </span>
-              Payment
-            </button>
+          <div className="flex items-center justify-between gap-1 border-b border-[#292B27]/10 pb-4 text-[11px] sm:text-xs font-semibold">
+            {[
+              { step: 1, label: "Contact" },
+              { step: 2, label: "Shipping" },
+              { step: 3, label: "Delivery" },
+              { step: 4, label: "Payment" },
+            ].map((item, idx) => {
+              const isActive = currentStep === item.step;
+              const isCompleted = currentStep > item.step;
+              return (
+                <div key={item.step} className="contents">
+                  {idx > 0 && <div className="flex-1 max-w-[28px] h-px bg-[#292B27]/20" />}
+                  <button
+                    type="button"
+                    onClick={() => handleStepTransition(item.step)}
+                    className={`flex flex-col sm:flex-row items-center gap-1 sm:gap-2 transition-colors cursor-pointer shrink-0 ${
+                      isActive ? "text-[#292B27] font-bold" : "text-[#77766E]"
+                    }`}
+                  >
+                    <span
+                      className={`w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-mono transition-colors ${
+                        isActive || isCompleted
+                          ? "bg-[#292B27] text-white"
+                          : "bg-[#F4F0E8] text-[#77766E] border border-[#292B27]/20"
+                      }`}
+                    >
+                      {item.step}
+                    </span>
+                    <span>{item.label}</span>
+                  </button>
+                </div>
+              );
+            })}
           </div>
 
           {/* Step 1: Contact Information */}
@@ -785,7 +772,7 @@ export function CheckoutForm({
           <div className="divide-y divide-[#292B27]/10 max-h-72 overflow-y-auto pr-1">
             {items.map((item) => (
               <div
-                key={`${item.productId}-${item.selectedColor ?? "default"}`}
+                key={`${item.productId}::${item.selectedColor ?? ""}::${item.selectedMaterial ?? ""}`}
                 className="py-3 flex items-center gap-3.5"
               >
                 <div className="relative w-14 h-14 rounded-lg overflow-hidden bg-[#F4F0E8] shrink-0 border border-[#292B27]/10">

@@ -1,5 +1,6 @@
 import { createAdminClient } from "@/lib/supabase/admin";
-import { getOrderById } from "@/lib/data/orders";
+import { getOrderById, getInMemoryOrdersList } from "@/lib/data/orders";
+import { DELIVERY_STATUS_LABELS, PAYMENT_STATUS_LABELS } from "@/lib/constants";
 import type { DeliveryStatus, Order, PaymentStatus } from "@/lib/types";
 
 export const DEMO_ADMIN_ORDERS: Order[] = [
@@ -28,22 +29,22 @@ export const DEMO_ADMIN_ORDERS: Order[] = [
       {
         id: "item-101",
         order_id: "ord-demo-101",
-        product_id: "prod-lr-1",
-        product_name: "Modular Storage Shelf",
-        product_slug: "modular-storage-shelf",
-        unit_price_cents: 34000,
-        quantity: 2,
-        image_url: "https://images.unsplash.com/photo-1594026112284-02bb6f3352fe?auto=format&fit=crop&w=600&q=80",
+        product_id: "a0000000-0000-4000-8000-000000000001",
+        product_name: "Klinte Solid Oak Tambour Credenza",
+        product_slug: "klinte-oak-tambour-credenza",
+        unit_price_cents: 89000,
+        quantity: 1,
+        image_url: "/images/products/nordic-oak-tambour-credenza.jpg",
       },
       {
         id: "item-102",
         order_id: "ord-demo-101",
-        product_id: "prod-lr-2",
-        product_name: "Minimalist Side Table",
-        product_slug: "minimalist-side-table",
-        unit_price_cents: 18500,
+        product_id: "a0000000-0000-4000-8000-000000000002",
+        product_name: "Södermalm Turned Ash Side Table",
+        product_slug: "sodermalm-turned-ash-side-table",
+        unit_price_cents: 24500,
         quantity: 1,
-        image_url: "https://images.unsplash.com/photo-1532372320572-cda25653a26d?auto=format&fit=crop&w=600&q=80",
+        image_url: "/images/products/aalto-turned-ash-side-table.jpg",
       },
     ],
     events: [
@@ -67,9 +68,9 @@ export const DEMO_ADMIN_ORDERS: Order[] = [
     payment_status: "paid",
     stripe_session_id: "cs_test_481029482",
     delivery_status: "out_for_delivery",
-    subtotal_cents: 49000,
+    subtotal_cents: 52000,
     shipping_cents: 0,
-    total_cents: 49000,
+    total_cents: 52000,
     admin_notes: "Courier dispatched via Royal Mail Special Delivery.",
     created_at: "2026-03-03T09:40:00Z",
     updated_at: "2026-03-06T08:30:00Z",
@@ -77,12 +78,12 @@ export const DEMO_ADMIN_ORDERS: Order[] = [
       {
         id: "item-103",
         order_id: "ord-demo-102",
-        product_id: "prod-lt-3",
-        product_name: "Ambient Floor Lamp",
-        product_slug: "ambient-floor-lamp",
-        unit_price_cents: 49000,
+        product_id: "a0000000-0000-4000-8000-000000000012",
+        product_name: "Åre Carrera Marble Arc Floor Lamp",
+        product_slug: "are-carrera-marble-floor-lamp",
+        unit_price_cents: 52000,
         quantity: 1,
-        image_url: "https://images.unsplash.com/photo-1513506003901-1e6a229e2d15?auto=format&fit=crop&w=600&q=80",
+        image_url: "/images/products/are-marble-arch-floor-lamp.jpg",
       },
     ],
   },
@@ -101,9 +102,9 @@ export const DEMO_ADMIN_ORDERS: Order[] = [
     payment_status: "cod_pending",
     stripe_session_id: null,
     delivery_status: "packed",
-    subtotal_cents: 29500,
+    subtotal_cents: 28000,
     shipping_cents: 0,
-    total_cents: 29500,
+    total_cents: 28000,
     admin_notes: "Collect exact cash at doorstep upon handover.",
     created_at: "2026-03-05T16:10:00Z",
     updated_at: "2026-03-06T10:00:00Z",
@@ -111,22 +112,22 @@ export const DEMO_ADMIN_ORDERS: Order[] = [
       {
         id: "item-104",
         order_id: "ord-demo-103",
-        product_id: "prod-ws-5",
-        product_name: "Minimalist Desk Lamp",
-        product_slug: "minimalist-desk-lamp",
-        unit_price_cents: 21000,
+        product_id: "a0000000-0000-4000-8000-000000000011",
+        product_name: "Kalmar Matte Architectural Task Lamp",
+        product_slug: "kalmar-architectural-task-lamp",
+        unit_price_cents: 16500,
         quantity: 1,
-        image_url: "https://images.unsplash.com/photo-1507473885765-e6ed057f782c?auto=format&fit=crop&w=600&q=80",
+        image_url: "/images/products/kalmar-portable-brass-table-lamp.jpg",
       },
       {
         id: "item-105",
         order_id: "ord-demo-103",
-        product_id: "prod-ws-1",
-        product_name: "Oak Desk Organizer",
-        product_slug: "oak-desk-organizer",
-        unit_price_cents: 8500,
+        product_id: "a0000000-0000-4000-8000-000000000003",
+        product_name: "Gotland Walnut & Wool Felt Desk Caddy",
+        product_slug: "gotland-walnut-desk-caddy",
+        unit_price_cents: 11500,
         quantity: 1,
-        image_url: "https://images.unsplash.com/photo-1581291518655-9523c932deb8?auto=format&fit=crop&w=600&q=80",
+        image_url: "/images/products/vermont-walnut-desk-valet.jpg",
       },
     ],
   },
@@ -145,9 +146,9 @@ export const DEMO_ADMIN_ORDERS: Order[] = [
     payment_status: "paid",
     stripe_session_id: "cs_test_99218204",
     delivery_status: "confirmed",
-    subtotal_cents: 68000,
+    subtotal_cents: 39000,
     shipping_cents: 0,
-    total_cents: 68000,
+    total_cents: 39000,
     admin_notes: "Awaiting final timber crate packaging.",
     created_at: "2026-03-06T11:25:00Z",
     updated_at: "2026-03-06T12:00:00Z",
@@ -155,18 +156,19 @@ export const DEMO_ADMIN_ORDERS: Order[] = [
       {
         id: "item-106",
         order_id: "ord-demo-104",
-        product_id: "prod-lr-3",
-        product_name: "Oak Storage Cabinet",
-        product_slug: "oak-storage-cabinet",
-        unit_price_cents: 68000,
+        product_id: "a0000000-0000-4000-8000-000000000007",
+        product_name: "Leksand Floating Oak Nightstand",
+        product_slug: "leksand-floating-oak-nightstand",
+        unit_price_cents: 39000,
         quantity: 1,
-        image_url: "https://images.unsplash.com/photo-1595428774223-ef52624120d2?auto=format&fit=crop&w=600&q=80",
+        image_url: "/images/products/leksand-floating-oak-nightstand.jpg",
       },
     ],
   },
 ];
 
 export async function getAllOrders(): Promise<Order[]> {
+  const memoryOrders = getInMemoryOrdersList();
   try {
     const admin = createAdminClient();
     const { data, error } = await admin
@@ -176,7 +178,10 @@ export async function getAllOrders(): Promise<Order[]> {
       .limit(200);
 
     if (!error && Array.isArray(data)) {
-      return data as Order[];
+      const dbOrders = data as Order[];
+      const seen = new Set(dbOrders.map((o) => o.id));
+      const extras = memoryOrders.filter((o) => !seen.has(o.id));
+      return [...extras, ...dbOrders];
     }
     if (error) {
       console.error("Error fetching orders from Supabase:", error);
@@ -185,7 +190,7 @@ export async function getAllOrders(): Promise<Order[]> {
     console.error("Supabase connection error in getAllOrders:", err);
   }
 
-  return [];
+  return [...memoryOrders, ...DEMO_ADMIN_ORDERS];
 }
 
 export async function updateOrderStatus(input: {
@@ -202,14 +207,56 @@ export async function updateOrderStatus(input: {
     if (input.deliveryStatus) patch.delivery_status = input.deliveryStatus;
     if (input.adminNotes !== undefined) patch.admin_notes = input.adminNotes;
 
-    await admin
+    const { error } = await admin
       .from("orders")
       .update(patch)
       .eq("id", input.orderId);
 
-    const full = await getOrderById(input.orderId, undefined, true);
-    if (full) return full;
+    if (!error) {
+      const eventRows: Array<{ order_id: string; kind: string; message: string }> = [];
+      if (input.paymentStatus) {
+        eventRows.push({
+          order_id: input.orderId,
+          kind: "payment",
+          message: `Payment status updated to ${PAYMENT_STATUS_LABELS[input.paymentStatus] || input.paymentStatus}.`,
+        });
+      }
+      if (input.deliveryStatus) {
+        eventRows.push({
+          order_id: input.orderId,
+          kind: "delivery",
+          message: `Fulfillment status updated to ${DELIVERY_STATUS_LABELS[input.deliveryStatus] || input.deliveryStatus}.`,
+        });
+      }
+      if (eventRows.length > 0) {
+        try {
+          await admin.from("order_events").insert(eventRows);
+        } catch {}
+      }
+
+      const full = await getOrderById(input.orderId, undefined, true);
+      if (full) return full;
+    }
   } catch {}
+
+  const memOrder = getInMemoryOrdersList().find((o) => o.id === input.orderId);
+  if (memOrder) {
+    if (input.paymentStatus) memOrder.payment_status = input.paymentStatus;
+    if (input.deliveryStatus) memOrder.delivery_status = input.deliveryStatus;
+    if (input.adminNotes !== undefined) memOrder.admin_notes = input.adminNotes;
+    memOrder.updated_at = new Date().toISOString();
+    memOrder.events = memOrder.events || [];
+    if (input.deliveryStatus) {
+      memOrder.events.push({
+        id: `ev-${Date.now()}`,
+        order_id: memOrder.id,
+        kind: "delivery",
+        message: `Fulfillment status updated to ${DELIVERY_STATUS_LABELS[input.deliveryStatus] || input.deliveryStatus}.`,
+        created_at: new Date().toISOString(),
+      });
+    }
+    return memOrder;
+  }
 
   const demo = DEMO_ADMIN_ORDERS.find((o) => o.id === input.orderId);
   if (demo) {

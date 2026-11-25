@@ -6,7 +6,7 @@ import { LoginForm } from "@/components/auth/LoginForm";
 import { APP_NAME } from "@/lib/constants";
 
 export const metadata = {
-  title: `Sign In · ${APP_NAME}`,
+  title: "Sign In",
   description: `Access your ${APP_NAME} sanctuary, track bespoke living orders, and manage account preferences.`,
 };
 

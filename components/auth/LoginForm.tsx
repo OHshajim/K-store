@@ -95,72 +95,17 @@ export function LoginForm() {
     });
   }
 
-  async function handleFastLogin(role: "admin" | "customer") {
-    await run(async () => {
-      const demoEmail =
-        role === "admin" ? "admin@kstore.com" : "demo.collector@kstore.com";
-      const res = await fetch("/api/auth/demo-login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ role, email: demoEmail }),
-      });
-      const data = await res.json();
-      if (!res.ok || !data.success) {
-        throw new Error(data.error || "Failed to establish demo session");
-      }
-      const target =
-        role === "admin"
-          ? next.startsWith("/admin")
-            ? next
-            : "/admin"
-          : next.startsWith("/admin")
-          ? "/account"
-          : next;
-      window.location.href = target;
-    });
-  }
-
   function signInWithPassword(e?: React.FormEvent) {
     if (e) e.preventDefault();
     void run(async () => {
-      try {
-        const { createClient } = await import("@/lib/supabase/client");
-        const supabase = createClient();
-        const { error: signInError } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
-        if (signInError) throw signInError;
-        window.location.href = next;
-      } catch (err) {
-        // Fallback for demonstration / local preview if Supabase user is unseeded or offline
-        const isDemoAdmin = email.toLowerCase().includes("admin");
-        const isDemo =
-          isDemoAdmin ||
-          email.toLowerCase().includes("demo") ||
-          email.includes("@");
-        if (isDemo) {
-          const role = isDemoAdmin ? "admin" : "customer";
-          const res = await fetch("/api/auth/demo-login", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ role, email }),
-          });
-          const data = await res.json();
-          if (res.ok && data.success) {
-            window.location.href =
-              role === "admin"
-                ? next.startsWith("/admin")
-                  ? next
-                  : "/admin"
-                : next.startsWith("/admin")
-                ? "/account"
-                : next;
-            return;
-          }
-        }
-        throw err;
-      }
+      const { createClient } = await import("@/lib/supabase/client");
+      const supabase = createClient();
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+      if (signInError) throw signInError;
+      window.location.href = next;
     });
   }
 
@@ -562,39 +507,6 @@ export function LoginForm() {
           )}
         </button>
       </form>
-
-      {/* Demonstration Access Helper */}
-      {mode === "signin" && (
-        <div className="p-4 rounded-2xl bg-[#F4F0E8] border border-[#1A1C18]/10 space-y-2.5 text-left">
-          <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider text-[#4A483E]">
-            <Sparkles className="w-3.5 h-3.5 text-[#B78E69]" />
-            <span>Demonstration Fast-Access</span>
-          </div>
-          <p className="text-[11px] text-[#4A483E]/80 leading-relaxed font-sans">
-            Instant 1-click preview access (no credentials needed):
-          </p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-0.5">
-            <button
-              type="button"
-              disabled={isBusy}
-              onClick={() => handleFastLogin("customer")}
-              className="px-3.5 py-2.5 bg-white hover:bg-[#D8C9B5]/40 text-xs font-semibold text-[#1A1C18] rounded-xl border border-[#1A1C18]/12 transition-all shadow-2xs hover:shadow-xs text-left flex items-center justify-between cursor-pointer"
-            >
-              <span>👤 Customer Demo</span>
-              <span className="text-[10px] font-mono text-[#8A927A] font-bold">1-Click</span>
-            </button>
-            <button
-              type="button"
-              disabled={isBusy}
-              onClick={() => handleFastLogin("admin")}
-              className="px-3.5 py-2.5 bg-white hover:bg-[#D8C9B5]/40 text-xs font-semibold text-[#1A1C18] rounded-xl border border-[#1A1C18]/12 transition-all shadow-2xs hover:shadow-xs text-left flex items-center justify-between cursor-pointer"
-            >
-              <span>🛡️ Store Admin</span>
-              <span className="text-[10px] font-mono text-[#B78E69] font-bold">1-Click</span>
-            </button>
-          </div>
-        </div>
-      )}
 
       {/* Switch Mode Footer */}
       <div className="pt-2 border-t border-[#1A1C18]/10 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-[#4A483E]">

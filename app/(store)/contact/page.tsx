@@ -1,7 +1,5 @@
 import { Metadata } from "next";
-import Link from "next/link";
-import { requireStoreSettings, getCategories } from "@/lib/data/catalog";
-import { StoreShell } from "@/components/store/StoreShell";
+import { requireStoreSettings } from "@/lib/data/catalog";
 import { ContactView } from "@/components/store/ContactView";
 
 export const metadata: Metadata = {
@@ -11,20 +9,7 @@ export const metadata: Metadata = {
 };
 
 export default async function ContactPage() {
-  const [settings, categories] = await Promise.all([
-    requireStoreSettings(),
-    getCategories(),
-  ]);
+  const settings = await requireStoreSettings();
 
-  return (
-    <StoreShell
-      storeName={settings.store_name}
-      tagline={settings.tagline}
-      supportEmail={settings.support_email}
-      logoUrl={settings.logo_url}
-      categories={categories}
-    >
-      <ContactView settings={settings} />
-    </StoreShell>
-  );
+  return <ContactView settings={settings} />;
 }

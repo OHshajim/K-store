@@ -1,177 +1,180 @@
--- KStore v2 seed: catalog, hero slides, promo banner, store settings.
--- Run after the init + policies migrations.
+-- KStore v2 seed: real Scandinavian furniture & home living catalog (12 curated items),
+-- categories, hero/promo banners, coupons, and store settings.
+-- Run after schema + RLS migrations.
 
 insert into public.categories (id, name, slug, description, sort_order) values
-  ('11111111-1111-1111-1111-111111111101', 'Home', 'home', 'Warm textures and quiet corners', 1),
-  ('11111111-1111-1111-1111-111111111102', 'Kitchen', 'kitchen', 'Made to be used every day', 2),
-  ('11111111-1111-1111-1111-111111111103', 'Care', 'care', 'Small rituals, gentle formulas', 3)
-on conflict (slug) do nothing;
+  ('c0000000-0000-4000-8000-000000000001', 'Living Room', 'living-room', 'Architectural storage, cantilevered side tables, and solid white oak credenzas for serene shared spaces.', 1),
+  ('c0000000-0000-4000-8000-000000000002', 'Workspace', 'workspace', 'Quiet focus tools, CNC-milled walnut desk caddies, and curved beech monitor risers for calm productivity.', 2),
+  ('c0000000-0000-4000-8000-000000000003', 'Kitchen', 'kitchen', 'Airtight glazed stoneware canisters and carved European walnut platters crafted for everyday culinary ritual.', 3),
+  ('c0000000-0000-4000-8000-000000000004', 'Bedroom', 'bedroom', 'Floating solid oak nightstands and hand-woven Belgian linen storage baskets for restorative rest.', 4),
+  ('c0000000-0000-4000-8000-000000000005', 'Bathroom', 'bathroom', 'Honed Italian travertine vanity ensembles and organic GOTS-certified Turkish cotton bath towels.', 5),
+  ('c0000000-0000-4000-8000-000000000006', 'Lighting', 'lighting', 'Sculptural architectural task lamps and Carrara marble arc floor luminaires that cast warm glare-free light.', 6)
+on conflict (slug) do update set
+  name = excluded.name,
+  description = excluded.description,
+  sort_order = excluded.sort_order;
 
 insert into public.products (
-  name, slug, description, details, price_cents, compare_at_cents, stock, images, is_active, is_featured, category_id
+  id, category_id, name, slug, description, details, price_cents, compare_at_cents, stock, images, is_active, is_featured, is_bestseller, sku, material, room
 ) values
   (
-    'Solstice Mug',
-    'solstice-mug',
-    'A hand-thrown 12 oz mug with a quiet reactive glaze — the kind that keeps coffee hot through a long morning. Comfortable handle, chip-resistant finish.',
-    'Stoneware · Dishwasher & microwave safe
-Height 9.5 cm · Capacity 350 ml',
-    3200, 3900, 24,
-    array['https://images.unsplash.com/photo-1514228742587-6b1558fcca3d?auto=format&fit=crop&w=800&q=80']::text[],
-    true, true,
-    '11111111-1111-1111-1111-111111111102'
+    'a0000000-0000-4000-8000-000000000001', 'c0000000-0000-4000-8000-000000000001',
+    'Klinte Solid Oak Tambour Credenza', 'klinte-oak-tambour-credenza',
+    'Low-profile European white oak media sideboard featuring vertical fluted sliding tambour doors and turned solid brass pulls.',
+    'Precision-milled in Smaland from FSC-certified solid white oak with curved timber tambour tracks.',
+    89000, 105000, 7,
+    array['/images/products/nordic-oak-tambour-credenza.jpg', '/images/products/nordic-oak-tambour-credenza-2.jpg']::text[],
+    true, true, true, 'KS-LR-101', 'FSC Solid White Oak & Brushed Brass', 'living'
   ),
   (
-    'Ember Bowl',
-    'ember-bowl',
-    'A generous cereal bowl with a soft sage glaze that pools darker at the rim. Heavy enough to feel steady, light enough for every day.',
-    'Stoneware · 16 cm diameter · Food-safe glaze',
-    2800, null, 18,
-    array['https://images.unsplash.com/photo-1610128361323-6e941c97f023?auto=format&fit=crop&w=800&q=80']::text[],
-    true, true,
-    '11111111-1111-1111-1111-111111111102'
+    'a0000000-0000-4000-8000-000000000002', 'c0000000-0000-4000-8000-000000000001',
+    'Södermalm Turned Ash Side Table', 'sodermalm-turned-ash-side-table',
+    'Minimalist Scandinavian coffee and sofa-side accent table pairing a lathe-turned solid ash tray top with tapered powder-coated steel legs.',
+    'Three-point tripod stance with raised gallery lip prevents spills.',
+    24500, 29000, 12,
+    array['/images/products/aalto-turned-ash-side-table.jpg']::text[],
+    true, true, false, 'KS-LR-102', 'Turned Solid Ash & Powder-Coated Steel', 'living'
   ),
   (
-    'Pour-Over Coffee Set',
-    'pour-over-coffee-set',
-    'Everything for a slow brew: a ceramic dripper, matching carafe and reusable filter. Makes two cups and one very good smell.',
-    'Ceramic dripper · 600 ml borosilicate carafe · Reusable steel filter',
-    5400, 6200, 9,
-    array['https://images.unsplash.com/photo-1758221052634-33f352d1318b?auto=format&fit=crop&w=800&q=80']::text[],
-    true, true,
-    '11111111-1111-1111-1111-111111111102'
+    'a0000000-0000-4000-8000-000000000003', 'c0000000-0000-4000-8000-000000000002',
+    'Gotland Walnut & Wool Felt Desk Caddy', 'gotland-walnut-desk-caddy',
+    'CNC-milled solid American walnut desk organizer with merino wool felt dividers, brass pen groove, and wireless charging cable slot.',
+    'Hand-rubbed plant oil finish protects the deep chocolate grain.',
+    11500, 13500, 19,
+    array['/images/products/vermont-walnut-desk-valet.jpg', '/images/products/vermont-walnut-desk-valet-2.jpg']::text[],
+    true, true, true, 'KS-WS-201', 'Solid American Walnut & Merino Wool Felt', 'workspace'
   ),
   (
-    'Olive Wood Serving Board',
-    'olive-wood-serving-board',
-    'Cut from a single olive plank, grain swirling differently on every board. Serve bread and cheese on it — then hang it on the wall between dinners.',
-    'Solid olive wood · 38 × 20 cm · Food-safe oil finish',
-    4600, null, 7,
-    array['https://images.unsplash.com/photo-1547592180-85f173990554?auto=format&fit=crop&w=800&q=80']::text[],
-    true, true,
-    '11111111-1111-1111-1111-111111111102'
+    'a0000000-0000-4000-8000-000000000004', 'c0000000-0000-4000-8000-000000000002',
+    'Uppsala Curved Beech Monitor Riser', 'uppsala-curved-beech-monitor-riser',
+    'Steam-bent laminated beechwood display shelf elevating dual monitors to eye level while stowing a mechanical keyboard underneath.',
+    '9-ply beechwood arch tested to 25 kg static load with cork feet.',
+    15800, null, 14,
+    array['/images/products/bent-beech-monitor-riser.jpg']::text[],
+    true, false, false, 'KS-WS-202', 'Steam-Bent 9-Ply Beech & Natural Cork', 'workspace'
   ),
   (
-    'Stoneware Dinner Plates',
-    'stoneware-dinner-plates',
-    'A set of four dinner plates with a hand-dipped edge — the glaze sits a little thicker where the maker''s fingers paused. Everyday tough, weekend pretty.',
-    'Set of 4 · 27 cm diameter · Dishwasher safe',
-    6800, null, 14,
-    array['https://images.unsplash.com/photo-1551807306-4bcd16b92a41?auto=format&fit=crop&w=800&q=80']::text[],
-    true, false,
-    '11111111-1111-1111-1111-111111111102'
+    'a0000000-0000-4000-8000-000000000005', 'c0000000-0000-4000-8000-000000000003',
+    'Vättern Glazed Stoneware Canister Trio', 'vattern-stoneware-canister-trio',
+    'Set of three wheel-thrown matte cream stoneware storage vessels sealed with silicone-gasketed European beechwood lids.',
+    'Sized for coffee beans (1.4L), loose-leaf tea (0.9L), and sea salt (0.5L).',
+    12800, 15500, 22,
+    array['/images/products/vattern-stoneware-canister-trio.jpg']::text[],
+    true, true, true, 'KS-KT-301', 'Kiln-Fired Stoneware & European Beech', 'kitchen'
   ),
   (
-    'Linen Tea Towel',
-    'linen-tea-towel',
-    'Stonewashed linen that gets softer with every wash. Dries glassware without lint, looks good thrown over the oven rail.',
-    '100% linen · 50 × 70 cm · Machine wash cold',
-    1800, null, 40,
-    array['https://images.unsplash.com/photo-1596433904747-e8b061219a71?auto=format&fit=crop&w=800&q=80']::text[],
-    true, false,
-    '11111111-1111-1111-1111-111111111101'
+    'a0000000-0000-4000-8000-000000000006', 'c0000000-0000-4000-8000-000000000003',
+    'Dalarna Carved Walnut Serving Platter', 'dalarna-walnut-serving-board',
+    'End-grain and live-edge European walnut carving and charcuterie board with integrated juice groove and chamfered underside grip.',
+    'Seasoned with food-safe beeswax and walnut oil.',
+    8800, null, 16,
+    array['/images/products/dalarna-solid-walnut-serving-board.jpg', '/images/products/dalarna-solid-walnut-serving-board-2.jpg']::text[],
+    true, false, false, 'KS-KT-302', 'Oiled European Walnut', 'kitchen'
   ),
   (
-    'Cedar Valet Tray',
-    'cedar-valet-tray',
-    'A low cedar tray for keys, candles, or a morning pour-over setup. Smells like a walk through the woods for the first week.',
-    'Solid cedar · Natural oil finish · 30 × 20 cm',
-    4500, 5200, 12,
-    array['https://images.unsplash.com/photo-1784901393087-988ae280ea4c?auto=format&fit=crop&w=800&q=80']::text[],
-    true, false,
-    '11111111-1111-1111-1111-111111111101'
+    'a0000000-0000-4000-8000-000000000007', 'c0000000-0000-4000-8000-000000000004',
+    'Leksand Floating Oak Nightstand', 'leksand-floating-oak-nightstand',
+    'Wall-mounted solid white oak bedside table with mitered waterfall corners, push-to-open soft-close drawer, and concealed cable pass-through.',
+    'Cleat-mount French hanger supports up to 35 kg.',
+    31000, 36000, 9,
+    array['/images/products/leksand-floating-oak-nightstand.jpg']::text[],
+    true, true, false, 'KS-BD-401', 'FSC Solid White Oak & Blum Soft-Close Hardware', 'bedroom'
   ),
   (
-    'Hand-Poured Soy Candle',
-    'hand-poured-soy-candle',
-    'Forty hours of warm amber, cedar smoke and a little orange peel. Poured in small batches into a reusable glass vessel.',
-    'Soy wax · 40 hr burn · 220 ml glass',
-    2400, null, 3,
-    array['https://images.unsplash.com/photo-1602523961358-f9f03dd557db?auto=format&fit=crop&w=800&q=80']::text[],
-    true, true,
-    '11111111-1111-1111-1111-111111111101'
+    'a0000000-0000-4000-8000-000000000008', 'c0000000-0000-4000-8000-000000000004',
+    'Visby Braided Seagrass & Linen Basket', 'visby-braided-linen-basket',
+    'Structured tall throw-blanket and laundry hamper hand-braided from sun-dried seagrass with removable heavy Belgian linen liner and saddle leather handles.',
+    'Removable pre-shrunk flax liner keeps wool throws snag-free.',
+    8400, null, 25,
+    array['/images/products/visby-woven-linen-storage-basket.jpg']::text[],
+    true, false, false, 'KS-BD-402', 'Natural Seagrass, Belgian Linen & Bridle Leather', 'bedroom'
   ),
   (
-    'Woven Cotton Throw',
-    'woven-cotton-throw',
-    'Hand-loomed on wooden frames in warm neutrals, with a hand-knotted fringe. The couch upgrade that gets argued over in the evening.',
-    '100% cotton · 130 × 170 cm · Hand-knotted fringe',
-    7800, null, 6,
-    array['https://images.unsplash.com/photo-1602706294170-1fed8eecd9f9?auto=format&fit=crop&w=800&q=80']::text[],
-    true, true,
-    '11111111-1111-1111-1111-111111111101'
+    'a0000000-0000-4000-8000-000000000009', 'c0000000-0000-4000-8000-000000000005',
+    'Malmö Organic Turkish Bath Towel Trio', 'malmo-organic-bath-towel-trio',
+    'Set of three 620 GSM GOTS-certified Aegean long-staple cotton towels loomed in sage green, warm ecru, and oat herringbone.',
+    'Includes bath sheet (90 x 150 cm), hand towel (50 x 90 cm), and face cloth.',
+    6800, 8200, 34,
+    array['/images/products/malmo-organic-cotton-towel-trio.jpg']::text[],
+    true, false, false, 'KS-BT-501', '100% GOTS Organic Aegean Cotton (620 GSM)', 'bathroom'
   ),
   (
-    'Quiet Soap Bar',
-    'quiet-soap-bar',
-    'Unscented olive oil soap for sensitive skin — cured for six weeks so it lasts twice as long in the dish.',
-    '110 g · Olive oil base · Plastic-free wrap',
-    900, null, 60,
-    array['https://images.unsplash.com/photo-1600857544200-b2f666a9a2ec?auto=format&fit=crop&w=800&q=80']::text[],
-    true, false,
-    '11111111-1111-1111-1111-111111111103'
+    'a0000000-0000-4000-8000-000000000010', 'c0000000-0000-4000-8000-000000000005',
+    'Trosa Travertine & Brass Vanity Set', 'trosa-travertine-vanity-set',
+    'Four-piece bathroom countertop ensemble featuring a honed Italian travertine oval tray, refillable stoneware soap pump, tumbler, and brass-inset soap dish.',
+    'Sealed natural travertine paired with 304 stainless brushed brass pump.',
+    9400, null, 15,
+    array['/images/products/trosa-travertine-vanity-set.jpg']::text[],
+    true, true, false, 'KS-BT-502', 'Honed Italian Travertine, Stoneware & Brushed Brass', 'bathroom'
   ),
   (
-    'Cotton Washcloth Set',
-    'cotton-washcloth-set',
-    'Three organic cotton cloths in warm neutrals, woven dense enough to exfoliate and soft enough for daily use.',
-    'Set of 3 · 30 × 30 cm · GOTS-certified cotton',
-    2200, null, 30,
-    array['https://images.unsplash.com/photo-1574421233376-06f2ccf017f7?auto=format&fit=crop&w=800&q=80']::text[],
-    true, true,
-    '11111111-1111-1111-1111-111111111103'
+    'a0000000-0000-4000-8000-000000000011', 'c0000000-0000-4000-8000-000000000006',
+    'Kalmar Matte Architectural Task Lamp', 'kalmar-architectural-task-lamp',
+    'Articulated spun-steel architectural desk and bedside lamp featuring a solid brass pivot joint, micro-step rotary dimmer, and warm 2700K LED optics.',
+    'Zero-flicker CRI 95+ illumination rated for 40,000 hours.',
+    16500, 19500, 11,
+    array['/images/products/kalmar-portable-brass-table-lamp.jpg']::text[],
+    true, true, true, 'KS-LT-601', 'Powder-Coated Spun Steel & Brass Hardware', 'lighting'
   ),
   (
-    'Botanical Hand Balm',
-    'botanical-hand-balm',
-    'A rich balm of shea, calendula and a trace of rosemary — for hands that wash dishes and dig in garden beds. Sinks in without the slick.',
-    '50 ml aluminium tin · Shea & calendula · Fragrance-free',
-    1600, 1900, 4,
-    array['https://images.unsplash.com/photo-1599305090598-fe179d501227?auto=format&fit=crop&w=800&q=80']::text[],
-    true, false,
-    '11111111-1111-1111-1111-111111111103'
+    'a0000000-0000-4000-8000-000000000012', 'c0000000-0000-4000-8000-000000000006',
+    'Åre Carrera Marble Arc Floor Lamp', 'are-carrera-marble-floor-lamp',
+    'Cantilevered reading and lounge floor lamp anchored by a solid honed Carrera marble cylinder base and topped with a wide Belgian linen drum shade.',
+    'Foot-operated brass floor dimmer switch included.',
+    52000, 59500, 6,
+    array['/images/products/are-marble-arch-floor-lamp.jpg']::text[],
+    true, true, false, 'KS-LT-602', 'Honed Carrera Marble, Brushed Steel & Belgian Linen', 'lighting'
   )
-on conflict (slug) do nothing;
+on conflict (id) do update set
+  name = excluded.name,
+  slug = excluded.slug,
+  description = excluded.description,
+  price_cents = excluded.price_cents,
+  stock = excluded.stock,
+  images = excluded.images,
+  sku = excluded.sku,
+  material = excluded.material,
+  room = excluded.room;
 
--- Hero slides and promo banner (edit or replace in Admin → Banners)
+-- Hero slides and promo banner
 insert into public.banners (placement, title, subtitle, image_url, cta_label, cta_href, sort_order, is_active) values
   (
     'hero',
-    'Slow mornings, made by hand',
-    'Small-batch ceramics, textiles and care goods — delivered to your door by ours.',
-    'https://images.unsplash.com/photo-1758221052634-33f352d1318b?auto=format&fit=crop&w=1600&q=80',
-    'Shop the collection',
+    'Make room for what matters.',
+    'Thoughtfully designed essentials for a more organized, beautiful home.',
+    'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?auto=format&fit=crop&w=2000&q=80',
+    'Explore Collection',
     '/shop',
     1,
     true
   ),
   (
     'hero',
-    'The winter table collection',
-    'Stoneware that stacks, bowls that warm in the hand. Built for long dinners.',
-    'https://images.unsplash.com/photo-1514228742587-6b1558fcca3d?auto=format&fit=crop&w=1600&q=80',
-    'See Kitchen',
-    '/shop?category=kitchen',
+    'Atmospheric Living, Simplified.',
+    'Tactile timber joinery, quiet ambient lighting, and organic materials for intentional sanctuaries.',
+    'https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?auto=format&fit=crop&w=2000&q=80',
+    'Shop Living Room',
+    '/shop?room=living',
     2,
     true
   ),
   (
     'promo',
-    'Free delivery on orders over $75',
+    'Complimentary delivery on orders over $150.',
+    'Thoughtfully designed essentials for modern living.',
     null,
-    null,
-    null,
-    null,
+    'Shop Now',
+    '/shop',
     1,
     true
   )
 on conflict do nothing;
 
 update public.store_settings set
-  store_name = 'KStore',
-  tagline = 'Thoughtful goods for slow mornings, delivered by hand.',
-  support_email = 'hello@kstore.shop',
-  delivery_notes = 'Every order is delivered in person within our local service area — no couriers, no waiting rooms. You''ll get an email update at each step until it reaches your door.',
-  about_html = 'KStore is a small studio shop for people who want fewer, better things. We source handmade ceramics, natural textiles and gentle self-care from independent makers, and hand-deliver each order ourselves. Pay by card online or cash at the door — either way, a person confirms every order.',
-  terms_html = 'Orders are confirmed by email within minutes. Card payments are processed securely by Stripe; cash is collected on delivery. Items may be returned unused within 14 days — email our support address and we will arrange pickup. Delivery is available within our local service area only.'
+  store_name = 'Kstore',
+  tagline = 'Modern Living, Simplified.',
+  support_email = 'concierge@kstore.com',
+  delivery_notes = 'Complimentary white-glove packaging. Dispatched from our Vermont & Copenhagen fulfillment centers.',
+  about_html = '<p>Kstore designs architectural furniture and living essentials built to endure generations. We believe the physical objects that populate our daily rituals should bring enduring calm, effortless utility, and architectural stillness to the modern dwelling.</p>',
+  terms_html = '<p>30-day trial period on all home essentials with carbon-neutral complimentary returns. Kiln-dried solid timber and structural joinery engineered to endure for generations with a 10-year craft warranty.</p>'
 where id = 1;

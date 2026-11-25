@@ -105,9 +105,12 @@ export async function getProducts(options?: {
 
     if (options?.featured) query = query.eq("is_featured", true);
     if (options?.query) {
-      query = query.or(
-        `name.ilike.%${options.query}%,description.ilike.%${options.query}%`,
-      );
+      const firstToken = options.query.trim().split(/\s+/)[0];
+      if (firstToken) {
+        query = query.or(
+          `name.ilike.%${firstToken}%,description.ilike.%${firstToken}%,material.ilike.%${firstToken}%`,
+        );
+      }
     }
     if (options?.limit) query = query.limit(options.limit);
 
@@ -157,14 +160,20 @@ export async function getProducts(options?: {
   }
 
   if (options?.query) {
-    const q = options.query.toLowerCase().trim();
-    filtered = filtered.filter(
-      (p) =>
-        p.name.toLowerCase().includes(q) ||
-        p.description.toLowerCase().includes(q) ||
-        p.material?.toLowerCase().includes(q) ||
-        p.category?.name.toLowerCase().includes(q)
-    );
+    const tokens = options.query.toLowerCase().trim().split(/\s+/).filter(Boolean);
+    filtered = filtered.filter((p) => {
+      const haystack = [
+        p.name,
+        p.description,
+        p.material ?? "",
+        p.room ?? "",
+        p.sku ?? "",
+        p.category?.name ?? "",
+      ]
+        .join(" ")
+        .toLowerCase();
+      return tokens.every((tok) => haystack.includes(tok));
+    });
   }
 
   if (options?.minPriceCents !== undefined) {
@@ -218,6 +227,48 @@ export async function getProducts(options?: {
   }
 
   return filtered;
+}
+
+export async function getAdminProducts(): Promise<Product[]> {
+  let products: Product[] | null = null;
+  try {
+    const { createAdminClient } = await import("@/lib/supabase/admin");
+    const admin = createAdminClient();
+    const { data, error } = await admin
+      .from("products")
+      .select("*, category:categories(*)")
+      .order("created_at", { ascending: false });
+
+    if (!error && Array.isArray(data)) {
+      products = data as Product[];
+    }
+  } catch {
+    // Fall back to regular query / mock catalog
+  }
+
+  if (products === null) {
+    try {
+      const supabase = await createClient();
+      const { data, error } = await supabase
+        .from("products")
+        .select("*, category:categories(*)")
+        .order("created_at", { ascending: false });
+      if (!error && Array.isArray(data)) {
+        products = data as Product[];
+      }
+    } catch {
+      // Offline fallback
+    }
+  }
+
+  if (products === null) {
+    products = MOCK_PRODUCTS.map((prod) => {
+      const cat = MOCK_CATEGORIES.find((c) => c.id === prod.category_id);
+      return { ...prod, category: cat ?? null };
+    });
+  }
+
+  return products;
 }
 
 export async function getProductById(id: string): Promise<Product | null> {

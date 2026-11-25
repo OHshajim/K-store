@@ -41,41 +41,66 @@ export function getLastDispatchedEmails(): DispatchedEmailLog[] {
   return [...emailHistory];
 }
 
+function cleanEnvValue(value?: string): string {
+  const trimmed = value?.trim() || "";
+  if (!trimmed) return "";
+  const lower = trimmed.toLowerCase();
+  if (
+    lower.startsWith("your-") ||
+    lower === "changeme" ||
+    lower === "change-me" ||
+    lower.includes("placeholder")
+  ) {
+    return "";
+  }
+  return trimmed;
+}
+
 /**
  * Returns whether real SMTP credentials are configured in environment
  */
 export function isSmtpConfigured(): boolean {
-  const host = process.env.SMTP_HOST?.trim();
-  const user = process.env.SMTP_USER?.trim();
-  const pass = process.env.SMTP_PASS?.trim();
-  const service = process.env.SMTP_SERVICE?.trim();
-  return Boolean((host && user && pass) || (service && user && pass));
+  const host = cleanEnvValue(process.env.SMTP_HOST);
+  const user = cleanEnvValue(process.env.SMTP_USER);
+  const pass = cleanEnvValue(process.env.SMTP_PASS);
+  const service = cleanEnvValue(process.env.SMTP_SERVICE);
+  const inferredGmail = !host && !service && user.toLowerCase().endsWith("@gmail.com");
+  return Boolean((host && user && pass) || (service && user && pass) || (inferredGmail && pass));
 }
 
 /**
  * Build the active Nodemailer transport instance
  */
 function getTransport(): Transporter | null {
-  const host = process.env.SMTP_HOST?.trim();
+  const rawHost = cleanEnvValue(process.env.SMTP_HOST);
   const port = Number(process.env.SMTP_PORT || 587);
-  const user = process.env.SMTP_USER?.trim();
-  const pass = process.env.SMTP_PASS?.trim();
-  const service = process.env.SMTP_SERVICE?.trim();
+  const user = cleanEnvValue(process.env.SMTP_USER);
+  const pass = cleanEnvValue(process.env.SMTP_PASS);
+  const service = cleanEnvValue(process.env.SMTP_SERVICE);
   const secure = process.env.SMTP_SECURE === "true" || port === 465;
 
-  if (service && user && pass) {
+  if (!user || !pass) return null;
+
+  if (service) {
     return nodemailer.createTransport({
       service,
       auth: { user, pass },
+      connectionTimeout: 10000,
+      greetingTimeout: 10000,
     });
   }
 
-  if (host && user && pass) {
+  const host =
+    rawHost || (user.toLowerCase().endsWith("@gmail.com") ? "smtp.gmail.com" : "");
+
+  if (host) {
     return nodemailer.createTransport({
       host,
       port,
       secure,
       auth: { user, pass },
+      connectionTimeout: 10000,
+      greetingTimeout: 10000,
     });
   }
 
@@ -83,12 +108,14 @@ function getTransport(): Transporter | null {
 }
 
 function fromAddress(settings?: Partial<StoreSettings>): string {
-  const customFrom = process.env.SMTP_FROM?.trim();
-  if (customFrom) return customFrom;
+  const customFrom = cleanEnvValue(process.env.SMTP_FROM);
+  const user = cleanEnvValue(process.env.SMTP_USER);
+  if (customFrom && !(user && customFrom.toLowerCase().includes("example.com"))) {
+    return customFrom;
+  }
 
   const storeName = settings?.store_name || APP_NAME;
-  const user = process.env.SMTP_USER?.trim() || "concierge@kstore.com";
-  return `"${storeName} Concierge" <${user}>`;
+  return `"${storeName} Concierge" <${user || "concierge@kstore.com"}>`;
 }
 
 /**
@@ -204,9 +231,12 @@ export async function sendEmail(
  */
 export function orderTrackingUrl(order: Order): string {
   const site = getSiteUrl();
-  return order.user_id
-    ? `${site}/orders/${order.id}`
-    : `${site}/track/${order.order_number}?t=${order.tracking_token}`;
+  const isGuestOrder =
+    !order.user_id ||
+    order.user_id === "86f1777f-552c-4211-bfd4-8bffc3a77abb";
+  return isGuestOrder
+    ? `${site}/track/${order.order_number}?t=${order.tracking_token}`
+    : `${site}/orders/${order.id}`;
 }
 
 /**

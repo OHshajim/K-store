@@ -63,8 +63,8 @@ export function CartDrawer() {
         onClick={closeCart}
       />
 
-      <div className="fixed inset-y-0 right-0 flex max-w-full pl-10">
-        <div className="w-screen max-w-md bg-white shadow-2xl flex flex-col">
+      <div className="fixed inset-y-0 right-0 flex max-w-full pl-6 sm:pl-10">
+        <div className="w-full max-w-md bg-white shadow-2xl flex flex-col">
           {/* Header */}
           <div className="px-6 py-5 border-b border-[#1A1C18]/10 flex items-center justify-between bg-[#F4F0E8]">
             <div className="flex items-center gap-2">
@@ -141,8 +141,10 @@ export function CartDrawer() {
                 </Link>
               </div>
             ) : (
-              items.map((item) => (
-                <div key={`${item.productId}-${item.selectedColor ?? "default"}`} className="py-4 flex gap-4">
+              items.map((item) => {
+                const variantKey = `${item.productId}::${item.selectedColor ?? ""}::${item.selectedMaterial ?? ""}`;
+                return (
+                <div key={variantKey} className="py-4 flex gap-4">
                   <div className="relative w-20 h-20 rounded-md overflow-hidden bg-[#F4F0E8] shrink-0 border border-[#1A1C18]/10">
                     {item.image ? (
                       <Image
@@ -170,7 +172,7 @@ export function CartDrawer() {
                           {item.name}
                         </Link>
                         <button
-                          onClick={() => removeItem(item.productId, item.selectedColor)}
+                          onClick={() => removeItem(item.productId, variantKey)}
                           className="text-[#4A483E] hover:text-red-600 transition-colors cursor-pointer"
                           aria-label="Remove item"
                         >
@@ -194,7 +196,7 @@ export function CartDrawer() {
                       <div className="flex items-center border border-[#1A1C18]/20 rounded bg-white">
                         <button
                           onClick={() =>
-                            setQuantity(item.productId, item.quantity - 1, item.selectedColor)
+                            setQuantity(item.productId, item.quantity - 1, variantKey)
                           }
                           className="px-2.5 py-1 text-sm text-[#1A1C18] hover:bg-[#F4F0E8] transition-colors cursor-pointer"
                         >
@@ -205,7 +207,7 @@ export function CartDrawer() {
                         </span>
                         <button
                           onClick={() =>
-                            setQuantity(item.productId, item.quantity + 1, item.selectedColor)
+                            setQuantity(item.productId, item.quantity + 1, variantKey)
                           }
                           className="px-2.5 py-1 text-sm text-[#1A1C18] hover:bg-[#F4F0E8] transition-colors cursor-pointer"
                         >
@@ -219,7 +221,7 @@ export function CartDrawer() {
                     </div>
                   </div>
                 </div>
-              ))
+              );})
             )}
           </div>
 

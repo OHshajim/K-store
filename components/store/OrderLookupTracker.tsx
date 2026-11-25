@@ -92,10 +92,11 @@ export function OrderLookupTracker({ defaultOrderNumber = "" }: { defaultOrderNu
 
           <div className="space-y-1.5">
             <label className="text-xs font-bold uppercase tracking-wider text-[#1A1C18] block">
-              Billing or Shipping Email <span className="text-stone-400 font-normal">(Optional)</span>
+              Billing or Shipping Email <span className="text-rose-500">*</span>
             </label>
             <input
               type="email"
+              required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="e.g. client@example.com"

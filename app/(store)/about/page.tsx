@@ -38,7 +38,7 @@ export default async function AboutPage() {
       {/* Large Workshop Lifestyle Image */}
       <div className="relative h-[420px] sm:h-[540px] rounded-3xl overflow-hidden shadow-xl border border-[#292B27]/10">
         <Image
-          src={settings.logo_url && settings.logo_url.startsWith("http") ? settings.logo_url : "https://images.unsplash.com/photo-1538688525198-9b88f6f53126?auto=format&fit=crop&w=1600&q=80"}
+          src="https://images.unsplash.com/photo-1538688525198-9b88f6f53126?auto=format&fit=crop&w=1600&q=80"
           alt="Artisanal woodworking workshop with timber planks and precision hand tools"
           fill
           priority

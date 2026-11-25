@@ -42,7 +42,12 @@ export function OrdersTable({
         statusFilter === "all" || order.delivery_status === statusFilter;
 
       const matchesPayment =
-        paymentFilter === "all" || order.payment_status === paymentFilter;
+        paymentFilter === "all"
+          ? true
+          : paymentFilter === "pending"
+            ? order.payment_status === "pending" ||
+              order.payment_status === "awaiting_payment"
+            : order.payment_status === paymentFilter;
 
       return matchesSearch && matchesStatus && matchesPayment;
     });

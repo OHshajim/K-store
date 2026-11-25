@@ -13,13 +13,14 @@ import {
   MessageSquare,
   ShieldCheck,
   ExternalLink,
+  Trash2,
 } from "lucide-react";
 import { formatDate } from "@/lib/format";
 import type { Review } from "@/lib/types";
 
   export function ReviewAdminList({ reviews: initialReviews }: { reviews: Review[] }) {
     const router = useRouter();
-    const [reviews] = useState<Review[]>(initialReviews);
+    const [reviews, setReviews] = useState<Review[]>(initialReviews);
     const [search, setSearch] = useState("");
     const [filter, setFilter] = useState<"all" | "published" | "hidden" | "5star">("all");
     const [busyId, setBusyId] = useState<string | null>(null);
@@ -27,12 +28,34 @@ import type { Review } from "@/lib/types";
     async function toggle(review: Review) {
       setBusyId(review.id);
       try {
-        await fetch(`/api/admin/reviews/${review.id}`, {
+        const res = await fetch(`/api/admin/reviews/${review.id}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ is_published: !review.is_published }),
         });
-        router.refresh();
+        if (res.ok) {
+          setReviews((prev) =>
+            prev.map((r) =>
+              r.id === review.id ? { ...r, is_published: !review.is_published } : r,
+            ),
+          );
+          router.refresh();
+        }
+      } finally {
+        setBusyId(null);
+      }
+    }
+
+    async function removeReview(review: Review) {
+      setBusyId(review.id);
+      try {
+        const res = await fetch(`/api/admin/reviews/${review.id}`, {
+          method: "DELETE",
+        });
+        if (res.ok) {
+          setReviews((prev) => prev.filter((r) => r.id !== review.id));
+          router.refresh();
+        }
       } finally {
         setBusyId(null);
       }
@@ -293,18 +316,30 @@ import type { Review } from "@/lib/types";
                     )}
                   </span>
 
-                  <button
-                    type="button"
-                    disabled={busyId === review.id}
-                    onClick={() => toggle(review)}
-                    className="px-3.5 py-1.5 rounded-xl bg-stone-100 hover:bg-[#1A1C18] text-[#1A1C18] hover:text-white text-xs font-semibold transition-colors cursor-pointer"
-                  >
-                    {busyId === review.id
-                      ? "Updating..."
-                      : review.is_published
-                      ? "Hide Review"
-                      : "Publish to Storefront"}
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      disabled={busyId === review.id}
+                      onClick={() => toggle(review)}
+                      className="px-3.5 py-1.5 rounded-xl bg-stone-100 hover:bg-[#1A1C18] text-[#1A1C18] hover:text-white text-xs font-semibold transition-colors cursor-pointer"
+                    >
+                      {busyId === review.id
+                        ? "Updating..."
+                        : review.is_published
+                        ? "Hide Review"
+                        : "Publish to Storefront"}
+                    </button>
+                    <button
+                      type="button"
+                      disabled={busyId === review.id}
+                      onClick={() => removeReview(review)}
+                      className="p-1.5 rounded-xl bg-rose-50 hover:bg-rose-600 text-rose-700 hover:text-white border border-rose-200 transition-colors cursor-pointer"
+                      title="Delete review"
+                      aria-label="Delete review"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
                 </div>
               </div>
             );

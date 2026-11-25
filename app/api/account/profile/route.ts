@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { cookies } from "next/headers";
 import { z } from "zod";
 import { getCurrentProfile } from "@/lib/data/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -19,28 +18,7 @@ export async function PATCH(request: Request) {
 
     const body = bodySchema.parse(await request.json());
 
-    // 1. If signed in via demo session cookie, update the session payload
-    const cookieStore = await cookies();
-    const demoCookie = cookieStore.get("kstore_session")?.value;
-    if (demoCookie) {
-      try {
-        const parsed = JSON.parse(demoCookie);
-        parsed.name = body.full_name;
-        parsed.phone = body.phone || null;
-        if (body.avatar_url !== undefined) {
-          parsed.avatar_url = body.avatar_url;
-        }
-        cookieStore.set("kstore_session", JSON.stringify(parsed), {
-          httpOnly: true,
-          secure: process.env.NODE_ENV === "production",
-          sameSite: "lax",
-          path: "/",
-          maxAge: 60 * 60 * 24 * 7,
-        });
-      } catch {}
-    }
-
-    // 2. If valid UUID profile ID exists in Supabase, update database
+    // Update Supabase profiles table for valid UUID user profile
     const isUuid =
       /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
         profile.id,

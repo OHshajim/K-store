@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { getCurrentProfile } from "@/lib/data/auth";
 import { getOrderById } from "@/lib/data/orders";
 
 const lookupSchema = z
@@ -18,8 +19,11 @@ export async function POST(request: Request) {
     const json = await request.json();
     const { orderNumber, email } = lookupSchema.parse(json);
 
+    const profile = await getCurrentProfile();
+    const isAdmin = profile?.role === "admin" || profile?.role === "manager";
+
     const cleanNumber = orderNumber.trim();
-    const order = await getOrderById(cleanNumber);
+    const order = await getOrderById(cleanNumber, undefined, true);
 
     if (!order) {
       return NextResponse.json(
@@ -28,17 +32,37 @@ export async function POST(request: Request) {
       );
     }
 
-    // If an email was provided, check whether it matches customer_email
-    if (email) {
-      const cleanEmail = email.toLowerCase();
-      const orderEmail = (order.customer_email || "").toLowerCase();
-      if (orderEmail && orderEmail !== cleanEmail) {
+    const orderEmail = (order.customer_email || "").toLowerCase();
+    const isOwnerBySession =
+      Boolean(profile) &&
+      (order.user_id === profile!.id ||
+        (orderEmail && profile!.email?.toLowerCase() === orderEmail));
+
+    // Guests or non-owners must supply a matching billing/shipping email
+    if (!isAdmin && !isOwnerBySession) {
+      if (!email) {
+        return NextResponse.json(
+          { error: "Please enter the billing or shipping email associated with this order." },
+          { status: 400 }
+        );
+      }
+      if (orderEmail && orderEmail !== email.toLowerCase()) {
         return NextResponse.json(
           { error: "The provided email address does not match this order's billing details." },
           { status: 403 }
         );
       }
+    } else if (email && orderEmail && orderEmail !== email.toLowerCase()) {
+      return NextResponse.json(
+        { error: "The provided email address does not match this order's billing details." },
+        { status: 403 }
+      );
     }
+
+    const redirectUrl =
+      isAdmin || isOwnerBySession
+        ? `/orders/${order.id}`
+        : `/track/${order.order_number}?t=${order.tracking_token}`;
 
     return NextResponse.json({
       ok: true,
@@ -52,7 +76,7 @@ export async function POST(request: Request) {
         item_count: order.items?.length ?? 0,
         events: order.events ?? [],
       },
-      redirectUrl: `/orders/${order.id}`,
+      redirectUrl,
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unable to look up order.";

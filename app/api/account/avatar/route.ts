@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { cookies } from "next/headers";
 import { getCurrentProfile } from "@/lib/data/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -123,23 +122,6 @@ export async function POST(request: Request) {
       }
     }
 
-    // 4. Update demo session cookie if logged in via demo session
-    const cookieStore = await cookies();
-    const demoCookie = cookieStore.get("kstore_session")?.value;
-    if (demoCookie) {
-      try {
-        const parsed = JSON.parse(demoCookie);
-        parsed.avatar_url = avatarUrl;
-        cookieStore.set("kstore_session", JSON.stringify(parsed), {
-          httpOnly: true,
-          secure: process.env.NODE_ENV === "production",
-          sameSite: "lax",
-          path: "/",
-          maxAge: 60 * 60 * 24 * 7,
-        });
-      } catch {}
-    }
-
     return NextResponse.json({
       ok: true,
       avatar_url: avatarUrl,
@@ -174,23 +156,6 @@ export async function DELETE() {
             updated_at: new Date().toISOString(),
           })
           .eq("id", profile.id);
-      } catch {}
-    }
-
-    // 2. Remove from session cookie
-    const cookieStore = await cookies();
-    const demoCookie = cookieStore.get("kstore_session")?.value;
-    if (demoCookie) {
-      try {
-        const parsed = JSON.parse(demoCookie);
-        parsed.avatar_url = null;
-        cookieStore.set("kstore_session", JSON.stringify(parsed), {
-          httpOnly: true,
-          secure: process.env.NODE_ENV === "production",
-          sameSite: "lax",
-          path: "/",
-          maxAge: 60 * 60 * 24 * 7,
-        });
       } catch {}
     }
 

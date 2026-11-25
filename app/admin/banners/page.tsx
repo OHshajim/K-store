@@ -5,12 +5,20 @@ import type { Banner } from "@/lib/types";
 export const dynamic = "force-dynamic";
 
 export default async function AdminBannersPage() {
-  const supabase = await createClient();
-  const { data } = await supabase
-    .from("banners")
-    .select("*")
-    .order("placement", { ascending: true })
-    .order("sort_order", { ascending: true });
+  let data: Banner[] | null = null;
+  try {
+    const supabase = await createClient();
+    const res = await supabase
+      .from("banners")
+      .select("*")
+      .order("placement", { ascending: true })
+      .order("sort_order", { ascending: true });
+    if (!res.error && Array.isArray(res.data)) {
+      data = res.data as Banner[];
+    }
+  } catch {
+    // Offline fallback to defaultBanners below
+  }
 
   const defaultBanners: Banner[] = [
     {
@@ -33,7 +41,7 @@ export default async function AdminBannersPage() {
       image_url:
         "https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?auto=format&fit=crop&w=2000&q=80",
       cta_label: "Shop Living Room",
-      cta_href: "/rooms?room=living",
+      cta_href: "/shop?room=living",
       sort_order: 2,
       is_active: true,
     },

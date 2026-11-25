@@ -15,17 +15,37 @@ export type CheckoutInput = {
   paymentMethod: PaymentMethod;
   items: PricedItem[];
   shippingCents: number;
+  discountCents?: number;
 };
 
 // System guest account ID in auth.users to satisfy foreign key & NOT NULL constraints on guest checkouts
-const SYSTEM_GUEST_USER_ID = "86f1777f-552c-4211-bfd4-8bffc3a77abb";
+export const SYSTEM_GUEST_USER_ID = "86f1777f-552c-4211-bfd4-8bffc3a77abb";
 
-// Global in-memory fallback registry for development & test modes
-const inMemoryOrders = new Map<string, Order>();
+declare global {
+  var __kstore_memory_orders__: Map<string, Order> | undefined;
+}
+
+// Global in-memory fallback registry shared across Next.js server route chunks
+const inMemoryOrders =
+  globalThis.__kstore_memory_orders__ ??
+  (globalThis.__kstore_memory_orders__ = new Map<string, Order>());
+
+export function getInMemoryOrdersList(): Order[] {
+  const seen = new Set<string>();
+  const list: Order[] = [];
+  for (const ord of inMemoryOrders.values()) {
+    if (!seen.has(ord.id)) {
+      seen.add(ord.id);
+      list.push(ord);
+    }
+  }
+  return list.sort((a, b) => b.created_at.localeCompare(a.created_at));
+}
 
 export async function createOrder(input: CheckoutInput): Promise<Order> {
   const subtotal = subtotalOfCents(input.items);
-  const total = subtotal + input.shippingCents;
+  const discount = Math.max(0, input.discountCents ?? 0);
+  const total = Math.max(0, subtotal - discount + input.shippingCents);
   const id = randomUUID();
   const orderNumber = orderNumberFromId(id);
   const trackingToken = randomUUID();
@@ -102,13 +122,17 @@ export async function createOrder(input: CheckoutInput): Promise<Order> {
 
       decrementStock(admin, input.items);
       const fetched = await fetchFullOrder(admin, id);
-      if (fetched) return fetched;
+      if (fetched) {
+        inMemoryOrders.set(fetched.id, fetched);
+        inMemoryOrders.set(fetched.order_number, fetched);
+        return fetched;
+      }
     }
   } catch (err) {
     console.error("Unexpected error in createOrder:", err);
   }
 
-  // Fallback demo order object
+  // Fallback order object for offline / sandbox testing
   const demoOrder: Order = {
     id,
     order_number: orderNumber,
@@ -176,7 +200,7 @@ async function decrementStock(
         .eq("id", item.productId)
         .gte("stock", item.quantity);
     }
-  } catch { }
+  } catch {}
 }
 
 async function fetchFullOrder(
@@ -209,7 +233,7 @@ async function fetchFullOrder(
     }
     const { data: simpleData } = await simpleQuery.maybeSingle();
     if (simpleData) return sortEvents(simpleData as Order | null);
-  } catch { }
+  } catch {}
   return inMemoryOrders.get(id) ?? null;
 }
 
@@ -221,94 +245,63 @@ function sortEvents(order: Order | null): Order | null {
   return order;
 }
 
+function canAccessOrder(
+  order: Order,
+  options: {
+    userId?: string | null;
+    userEmail?: string | null;
+    asAdmin?: boolean;
+    trackingToken?: string | null;
+  }
+): boolean {
+  if (options.asAdmin) return true;
+  if (options.trackingToken && order.tracking_token === options.trackingToken) return true;
+  if (options.userId && order.user_id && order.user_id === options.userId && order.user_id !== SYSTEM_GUEST_USER_ID) {
+    return true;
+  }
+  if (
+    options.userEmail &&
+    order.customer_email &&
+    order.customer_email.toLowerCase() === options.userEmail.toLowerCase()
+  ) {
+    return true;
+  }
+  return false;
+}
+
 export async function getOrderById(
   id: string,
   userId?: string | null,
   asAdmin = false,
+  trackingToken?: string | null,
+  userEmail?: string | null,
 ): Promise<Order | null> {
+  const accessOptions = { userId, userEmail, asAdmin, trackingToken };
+
   try {
     const admin = createAdminClient();
     const order = await fetchFullOrder(admin, id);
     if (order) {
-      if (asAdmin) return order;
-      // Allow viewing the order confirmation
-      return order;
+      return canAccessOrder(order, accessOptions) ? order : null;
     }
-  } catch { }
+  } catch {}
 
-  const mem = inMemoryOrders.get(id);
+  const mem =
+    inMemoryOrders.get(id) ??
+    getInMemoryOrdersList().find((o) => o.id === id || o.order_number.toLowerCase() === id.toLowerCase());
   if (mem) {
-    return mem;
+    return canAccessOrder(mem, accessOptions) ? mem : null;
   }
 
-  // Fallback to DEMO_ADMIN_ORDERS
   try {
     const { DEMO_ADMIN_ORDERS } = await import("@/lib/data/orderAdmin");
     const demoOrder = DEMO_ADMIN_ORDERS.find(
-      (o) => o.id === id || o.order_number === id
+      (o) => o.id === id || o.order_number.toLowerCase() === id.toLowerCase()
     );
     if (demoOrder) {
-      if (asAdmin) return demoOrder;
-      if (!demoOrder.user_id) return demoOrder;
-      if (userId && demoOrder.user_id === userId) return demoOrder;
-      return demoOrder;
+      return canAccessOrder(demoOrder, accessOptions) ? demoOrder : null;
     }
-  } catch { }
-
-  // If in development mode and the ID looks like an order UUID, provide a graceful fallback so test URLs don't break
-  if (process.env.NODE_ENV !== "production" && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) {
-    const fallbackOrder: Order = {
-      id,
-      order_number: `KS-${id.slice(0, 8).toUpperCase()}`,
-      user_id: userId ?? null,
-      tracking_token: id,
-      customer_name: "Valued Collector",
-      customer_email: "patron@kstore.com",
-      customer_phone: "+1 (800) 555-0199",
-      shipping_address: "74 Mercer Street, Suite 4B",
-      shipping_city: "New York",
-      shipping_notes: "Leave with front desk concierge",
-      payment_method: "stripe",
-      payment_status: "paid",
-      stripe_session_id: `cs_test_${id.slice(0, 12)}`,
-      delivery_status: "confirmed",
-      subtotal_cents: 34000,
-      shipping_cents: 0,
-      total_cents: 34000,
-      admin_notes: "Development simulation fallback order.",
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      items: [
-        {
-          id: `item-${id.slice(0, 8)}`,
-          order_id: id,
-          product_id: "a0000000-0000-4000-8000-000000000001",
-          product_name: "Modular Storage Shelf",
-          product_slug: "modular-storage-shelf",
-          unit_price_cents: 34000,
-          quantity: 1,
-          image_url: "https://images.unsplash.com/photo-1594026112284-02bb6f3352fe?auto=format&fit=crop&w=600&q=80",
-        },
-      ],
-      events: [
-        {
-          id: `ev-1-${id.slice(0, 8)}`,
-          order_id: id,
-          kind: "created",
-          message: "Order placed by client",
-          created_at: new Date().toISOString(),
-        },
-        {
-          id: `ev-2-${id.slice(0, 8)}`,
-          order_id: id,
-          kind: "payment",
-          message: "Payment verified via Stripe",
-          created_at: new Date().toISOString(),
-        },
-      ],
-    };
-    return fallbackOrder;
-  }
+  } catch {}
 
   return null;
 }
@@ -324,7 +317,7 @@ export async function getOrderByTracking(
     let query = admin
       .from("orders")
       .select("*, items:order_items(*), events:order_events(*)")
-      .eq("order_number", orderNumber);
+      .ilike("order_number", orderNumber);
 
     if (token) {
       query = query.eq("tracking_token", token);
@@ -332,9 +325,11 @@ export async function getOrderByTracking(
 
     const { data } = await query.maybeSingle();
     if (data) return sortEvents(data as Order | null);
-  } catch { }
+  } catch {}
 
-  const mem = inMemoryOrders.get(orderNumber);
+  const mem =
+    inMemoryOrders.get(orderNumber) ??
+    getInMemoryOrdersList().find((o) => o.order_number.toLowerCase() === orderNumber.toLowerCase());
   if (mem && (!token || mem.tracking_token === token)) {
     return mem;
   }
@@ -342,35 +337,47 @@ export async function getOrderByTracking(
   try {
     const { DEMO_ADMIN_ORDERS } = await import("@/lib/data/orderAdmin");
     const demoOrder = DEMO_ADMIN_ORDERS.find(
-      (o) => o.order_number === orderNumber && (!token || o.tracking_token === token)
+      (o) => o.order_number.toLowerCase() === orderNumber.toLowerCase() && (!token || o.tracking_token === token)
     );
     if (demoOrder) return demoOrder;
-  } catch { }
+  } catch {}
 
   return null;
 }
 
-export async function getOrdersForUser(userId: string): Promise<Order[]> {
+export async function getOrdersForUser(userId: string, email?: string | null): Promise<Order[]> {
   try {
     const isUuid =
       /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
         userId,
       );
     const admin = createAdminClient();
-    if (isUuid) {
-      const { data } = await admin
-        .from("orders")
-        .select("*, items:order_items(*)")
-        .eq("user_id", userId)
-        .order("created_at", { ascending: false });
+    let query = admin
+      .from("orders")
+      .select("*, items:order_items(*), events:order_events(*)")
+      .order("created_at", { ascending: false })
+      .limit(50);
 
-      if (data && data.length > 0) return data as Order[];
+    if (isUuid && email) {
+      query = query.or(`user_id.eq.${userId},customer_email.ilike.${email}`);
+    } else if (isUuid) {
+      query = query.eq("user_id", userId);
+    } else if (email) {
+      query = query.ilike("customer_email", email);
     }
-  } catch { }
+
+    if (isUuid || email) {
+      const { data, error } = await query;
+      if (!error && data && data.length > 0) return data as Order[];
+    }
+  } catch {}
 
   const matches: Order[] = [];
-  for (const ord of inMemoryOrders.values()) {
-    if ((ord.user_id === userId || !ord.user_id) && !matches.some((m) => m.id === ord.id)) {
+  for (const ord of getInMemoryOrdersList()) {
+    const matchesUser = ord.user_id === userId;
+    const matchesEmail =
+      Boolean(email) && ord.customer_email.toLowerCase() === email!.toLowerCase();
+    if (matchesUser || matchesEmail) {
       matches.push(ord);
     }
   }
@@ -381,32 +388,61 @@ export async function markOrderPaid(
   orderId: string,
   stripeSessionId: string,
 ): Promise<Order | null> {
-  const mem = inMemoryOrders.get(orderId);
+  const mem =
+    inMemoryOrders.get(orderId) ??
+    getInMemoryOrdersList().find((o) => o.id === orderId);
   if (mem) {
     mem.payment_status = "paid";
+    if (mem.delivery_status === "pending") mem.delivery_status = "confirmed";
     mem.stripe_session_id = stripeSessionId;
+    mem.updated_at = new Date().toISOString();
     mem.events = mem.events || [];
     mem.events.push({
       id: randomUUID(),
       order_id: orderId,
       kind: "payment",
-      message: "Payment received via Stripe (Test Mode).",
+      message: "Payment received via Stripe.",
       created_at: new Date().toISOString(),
     });
   }
 
   try {
     const admin = createAdminClient();
+    const { data: current } = await admin
+      .from("orders")
+      .select("delivery_status")
+      .eq("id", orderId)
+      .maybeSingle();
+
+    const updatePayload: Record<string, unknown> = {
+      payment_status: "paid",
+      stripe_session_id: stripeSessionId,
+    };
+    if (current?.delivery_status === "pending") {
+      updatePayload.delivery_status = "confirmed";
+    }
+
     const { error } = await admin
       .from("orders")
-      .update({ payment_status: "paid", stripe_session_id: stripeSessionId })
+      .update(updatePayload)
       .eq("id", orderId);
 
     if (!error) {
+      try {
+        await admin.from("order_events").insert({
+          order_id: orderId,
+          kind: "payment",
+          message: "Payment verified via Stripe checkout.",
+        });
+      } catch {}
       const full = await fetchFullOrder(admin, orderId);
-      if (full) return full;
+      if (full) {
+        inMemoryOrders.set(full.id, full);
+        inMemoryOrders.set(full.order_number, full);
+        return full;
+      }
     }
-  } catch { }
+  } catch {}
 
   return mem ?? null;
 }

@@ -106,17 +106,37 @@ export async function PATCH(request: Request, { params }: Params) {
   }
 }
 
-export async function DELETE(_request: Request, { params }: Params) {
+export async function DELETE(request: Request, { params }: Params) {
   try {
     await requireAdminProfile();
     const { id } = await params;
+    const hardDelete = new URL(request.url).searchParams.get("hard") === "true";
 
-    const supabase = createAdminClient();
-    const { error } = await supabase
-      .from("products")
-      .update({ is_active: false })
-      .eq("id", id);
-    if (error) throw new Error(error.message);
+    let deletedInDb = false;
+    try {
+      const supabase = createAdminClient();
+      const res = hardDelete
+        ? await supabase.from("products").delete().eq("id", id)
+        : await supabase.from("products").update({ is_active: false }).eq("id", id);
+      if (!res.error) {
+        deletedInDb = true;
+      }
+    } catch {
+      // Supabase offline; fall through to in-memory catalog update
+    }
+
+    if (!deletedInDb) {
+      const { MOCK_PRODUCTS } = await import("@/lib/data/mockData");
+      const idx = MOCK_PRODUCTS.findIndex((p) => p.id === id || p.slug === id);
+      if (idx === -1) {
+        return NextResponse.json({ error: "Product not found" }, { status: 404 });
+      }
+      if (hardDelete) {
+        MOCK_PRODUCTS.splice(idx, 1);
+      } else {
+        MOCK_PRODUCTS[idx] = { ...MOCK_PRODUCTS[idx], is_active: false };
+      }
+    }
 
     try {
       revalidatePath("/", "layout");
@@ -124,7 +144,7 @@ export async function DELETE(_request: Request, { params }: Params) {
       revalidatePath("/admin/products", "page");
     } catch {}
 
-    return NextResponse.json({ ok: true });
+    return NextResponse.json({ ok: true, hardDeleted: hardDelete });
   } catch (error) {
     const message =
       error instanceof Error ? error.message : "Unable to delete product";

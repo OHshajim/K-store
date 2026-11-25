@@ -105,9 +105,7 @@ export function ProductDetailView({
     () =>
       product.images.length > 0
         ? product.images
-        : [
-            "https://images.unsplash.com/photo-1594026112284-02bb6f3352fe?auto=format&fit=crop&w=1200&q=80",
-          ],
+        : ["/images/products/nordic-oak-tambour-credenza.jpg"],
     [product.images]
   );
 

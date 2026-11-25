@@ -582,7 +582,7 @@ export function FitAssistantView({
                   {/* Product Image */}
                   <div className="relative w-full md:w-56 h-56 rounded-2xl overflow-hidden bg-[#F4F0E8] shrink-0 border border-[#292B27]/10">
                     <Image
-                      src={product.images?.[0] || "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&w=600&q=80"}
+                      src={product.images?.[0] || "/images/products/nordic-oak-tambour-credenza.jpg"}
                       alt={product.name}
                       fill
                       sizes="(max-width: 768px) 100vw, 224px"

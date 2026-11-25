@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { cookies } from "next/headers";
 import { z } from "zod";
 import { verifyAndConsumeOtp, type OtpIntent } from "@/lib/data/otp";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -60,25 +59,6 @@ export async function POST(request: Request) {
       }
     } catch (err) {
       console.warn("[OTP] Supabase auth update error:", err);
-    }
-
-    // 3. If running in demo session, update the session password reference
-    const cookieStore = await cookies();
-    const demoCookie = cookieStore.get("kstore_session")?.value;
-    if (demoCookie) {
-      try {
-        const parsed = JSON.parse(demoCookie);
-        if (parsed.email?.toLowerCase() === email.trim().toLowerCase()) {
-          parsed.passwordUpdated = true;
-          cookieStore.set("kstore_session", JSON.stringify(parsed), {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
-            sameSite: "lax",
-            path: "/",
-            maxAge: 60 * 60 * 24 * 7,
-          });
-        }
-      } catch {}
     }
 
     return NextResponse.json({
