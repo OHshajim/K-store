@@ -4,6 +4,8 @@ import { requireStoreSettings } from "@/lib/data/catalog";
 import { getOrderById } from "@/lib/data/orders";
 import { OrderDetailView } from "@/components/store/OrderDetailView";
 
+export const dynamic = "force-dynamic";
+
 type Params = Promise<{ id: string }>;
 type SearchParams = Promise<{ t?: string; canceled?: string }>;
 

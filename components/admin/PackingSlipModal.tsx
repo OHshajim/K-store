@@ -200,7 +200,53 @@ export function PackingSlipModal({
                 </span>
               </div>
 
-              <table className="w-full text-left text-xs border border-[#1A1C18]/15 rounded-xl overflow-hidden">
+              {/* Mobile Card View (hidden on print) */}
+              <div className="sm:hidden print:hidden space-y-2.5">
+                {(order.items || []).map((item, idx) => (
+                  <div
+                    key={item.id || idx}
+                    className="rounded-xl border border-[#1A1C18]/15 p-3 space-y-2 text-xs"
+                  >
+                    <div className="flex items-start gap-2.5">
+                      <div className="w-4 h-4 mt-0.5 rounded border-2 border-[#1A1C18] bg-white shrink-0" />
+                      <div className="min-w-0 flex-1">
+                        <div className="font-bold text-[#1A1C18] break-words">
+                          {item.product_name}
+                        </div>
+                        {(item.selected_color || item.selected_material || item.product_slug) && (
+                          <div className="text-[11px] text-[#77766E] font-mono mt-0.5 space-x-1 break-words">
+                            {item.selected_color && <span>Color: {item.selected_color}</span>}
+                            {item.selected_color && item.selected_material && <span>·</span>}
+                            {item.selected_material && <span>Finish: {item.selected_material}</span>}
+                            {item.product_slug && <span className="text-stone-400">({item.product_slug})</span>}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-3 gap-2 pt-2 border-t border-[#1A1C18]/10 text-[11px]">
+                      <div>
+                        <span className="text-[#77766E] block text-[10px] uppercase">Qty</span>
+                        <span className="font-mono font-bold text-[#1A1C18]">{item.quantity}</span>
+                      </div>
+                      <div className="text-right">
+                        <span className="text-[#77766E] block text-[10px] uppercase">Unit</span>
+                        <span className="font-mono text-[#77766E]">
+                          ${(item.unit_price_cents / 100).toFixed(2)}
+                        </span>
+                      </div>
+                      <div className="text-right">
+                        <span className="text-[#77766E] block text-[10px] uppercase">Total</span>
+                        <span className="font-mono font-bold text-[#1A1C18]">
+                          ${((item.unit_price_cents * item.quantity) / 100).toFixed(2)}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Desktop & Print Table View */}
+              <table className="hidden sm:table print:table w-full text-left text-xs border border-[#1A1C18]/15 rounded-xl overflow-hidden">
                 <thead className="bg-[#FAF9F6] border-b border-[#1A1C18]/15 text-[#77766E] uppercase text-[10px] tracking-wider font-semibold">
                   <tr>
                     <th className="px-4 py-2.5 w-10 text-center">Verify</th>

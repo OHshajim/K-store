@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { requireAdminProfile } from "@/lib/data/auth";
+import { requireAdminOnlyProfile } from "@/lib/data/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 type Params = { params: Promise<{ id: string }> };
@@ -12,7 +12,7 @@ const bodySchema = z.object({
 
 export async function PATCH(request: Request, { params }: Params) {
   try {
-    const admin = await requireAdminProfile();
+    const admin = await requireAdminOnlyProfile();
     const { id } = await params;
     const body = bodySchema.parse(await request.json());
 
@@ -76,6 +76,81 @@ export async function PATCH(request: Request, { params }: Params) {
   } catch (error) {
     const message =
       error instanceof Error ? error.message : "Unable to update user role";
+    const status = message.includes("Admin") ? 403 : 400;
+    return NextResponse.json({ error: message }, { status });
+  }
+}
+
+export async function DELETE(_request: Request, { params }: Params) {
+  try {
+    const admin = await requireAdminOnlyProfile();
+    const { id } = await params;
+
+    if (admin.id === id) {
+      return NextResponse.json(
+        { error: "Security restriction: You cannot delete your own administrator account." },
+        { status: 400 },
+      );
+    }
+
+    const supabase = createAdminClient();
+
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("id, email")
+      .eq("id", id)
+      .maybeSingle();
+
+    const targetEmail = (profile?.email as string | undefined)?.trim();
+
+    // 1. Delete user's reviews, wishlists, and orders (including guest orders matching email)
+    await supabase.from("reviews").delete().eq("user_id", id);
+    await supabase.from("wishlists").delete().eq("user_id", id);
+    await supabase.from("orders").delete().eq("user_id", id);
+
+    if (targetEmail) {
+      await supabase
+        .from("orders")
+        .delete()
+        .ilike("customer_email", targetEmail);
+      try {
+        await supabase
+          .from("auth_otps")
+          .delete()
+          .ilike("email", targetEmail);
+      } catch {}
+      try {
+        await supabase
+          .from("newsletter_subscribers")
+          .delete()
+          .ilike("email", targetEmail);
+      } catch {}
+    }
+
+    // 2. Delete profile row
+    await supabase.from("profiles").delete().eq("id", id);
+
+    // 3. Delete Supabase Auth user
+    const { error: deleteAuthError } = await supabase.auth.admin.deleteUser(id);
+    if (
+      deleteAuthError &&
+      !deleteAuthError.message.toLowerCase().includes("not found")
+    ) {
+      throw new Error(deleteAuthError.message || "Failed to delete auth user.");
+    }
+
+    try {
+      revalidatePath("/admin", "layout");
+      revalidatePath("/admin", "page");
+      revalidatePath("/admin/users", "page");
+      revalidatePath("/admin/orders", "page");
+      revalidatePath("/admin/reviews", "page");
+    } catch {}
+
+    return NextResponse.json({ ok: true, deletedUserId: id });
+  } catch (error) {
+    const message =
+      error instanceof Error ? error.message : "Unable to delete user";
     const status = message.includes("Admin") ? 403 : 400;
     return NextResponse.json({ error: message }, { status });
   }

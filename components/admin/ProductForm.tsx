@@ -20,8 +20,11 @@ import {
   ChevronDown,
   Info,
   Ruler,
+  Palette,
+  SlidersHorizontal,
+  X,
 } from "lucide-react";
-import type { Category, Product } from "@/lib/types";
+import type { Category, ColorVariant, Product } from "@/lib/types";
 import { slugify } from "@/lib/format";
 import { ConfirmationModal } from "@/components/shared/ConfirmationModal";
 
@@ -32,6 +35,34 @@ const ROOM_OPTIONS = [
   { value: "bedroom", label: "Bedroom Sanctuary", icon: "🛏️" },
   { value: "bathroom", label: "Bathroom & Spa", icon: "🚿" },
   { value: "lighting", label: "Atmospheric Lighting", icon: "✨" },
+];
+
+const PRESET_COLORS: Array<{ name: string; hex: string }> = [
+  { name: "Natural Oak", hex: "#D8C9B5" },
+  { name: "Matte Charcoal", hex: "#292B27" },
+  { name: "American Walnut", hex: "#5C4033" },
+  { name: "Sage Mist", hex: "#8A927A" },
+  { name: "Chalk Linen", hex: "#EFECE6" },
+  { name: "Brushed Brass", hex: "#B78E69" },
+];
+
+const PRESET_MATERIALS = [
+  "Solid White Oak",
+  "Solid Ash",
+  "American Walnut",
+  "Smoked Ash",
+  "Brushed Brass",
+  "Powder-Coated Steel",
+  "Natural Travertine",
+];
+
+const PRESET_SPEC_KEYS = [
+  "Origin",
+  "Finish",
+  "Joinery",
+  "Assembly",
+  "Max Load",
+  "Light Source",
 ];
 
 export function ProductForm({
@@ -64,10 +95,31 @@ export function ProductForm({
   const [room, setRoom] = useState(product?.room ?? "living");
   const [categoryId, setCategoryId] = useState(product?.category_id ?? "");
 
-  // Architectural Dimensions (for Kstore Fit Assistant)
+  // Variants, Care & Technical Specs
+  const [colorVariants, setColorVariants] = useState<ColorVariant[]>(
+    Array.isArray(product?.color_variants) ? product.color_variants : []
+  );
+  const [materialVariants, setMaterialVariants] = useState<string[]>(
+    Array.isArray(product?.material_variants) ? product.material_variants : []
+  );
+  const [newMaterialOption, setNewMaterialOption] = useState("");
+  const [specRows, setSpecRows] = useState<Array<{ key: string; value: string }>>(
+    product?.specifications && typeof product.specifications === "object"
+      ? Object.entries(product.specifications).map(([key, value]) => ({
+          key,
+          value: String(value ?? ""),
+        }))
+      : []
+  );
+  const [careInstructions, setCareInstructions] = useState(
+    product?.care_instructions ?? ""
+  );
+
+  // Architectural Dimensions & Weight (for Kstore Fit Assistant & Product Detail)
   const [widthCm, setWidthCm] = useState<number | "">(product?.dimensions?.width_cm ?? "");
   const [depthCm, setDepthCm] = useState<number | "">(product?.dimensions?.depth_cm ?? "");
   const [heightCm, setHeightCm] = useState<number | "">(product?.dimensions?.height_cm ?? "");
+  const [weightKg, setWeightKg] = useState<number | "">(product?.weight_kg ?? "");
 
   // Toggles
   const [isActive, setIsActive] = useState(product?.is_active ?? true);
@@ -142,6 +194,78 @@ export function ProductForm({
     });
   }
 
+  // Color finish variant handlers
+  function addColorVariant(presetName = "", presetHex = "#D8C9B5") {
+    if (
+      presetName &&
+      colorVariants.some(
+        (v) => v.name.trim().toLowerCase() === presetName.trim().toLowerCase()
+      )
+    ) {
+      return;
+    }
+    setColorVariants((prev) => [
+      ...prev,
+      { name: presetName, hex: presetHex, in_stock: true },
+    ]);
+  }
+
+  function updateColorVariant(
+    idx: number,
+    patch: Partial<ColorVariant>
+  ) {
+    setColorVariants((prev) =>
+      prev.map((item, i) => (i === idx ? { ...item, ...patch } : item))
+    );
+  }
+
+  function removeColorVariant(idx: number) {
+    setColorVariants((prev) => prev.filter((_, i) => i !== idx));
+  }
+
+  // Timber / material option handlers
+  function addMaterialVariant(value?: string) {
+    const candidate = (value ?? newMaterialOption).trim();
+    if (!candidate) return;
+    if (
+      materialVariants.some(
+        (m) => m.trim().toLowerCase() === candidate.toLowerCase()
+      )
+    ) {
+      if (!value) setNewMaterialOption("");
+      return;
+    }
+    setMaterialVariants((prev) => [...prev, candidate]);
+    if (!value) setNewMaterialOption("");
+  }
+
+  function removeMaterialVariant(idx: number) {
+    setMaterialVariants((prev) => prev.filter((_, i) => i !== idx));
+  }
+
+  // Specification key-value handlers
+  function addSpecRow(presetKey = "") {
+    if (
+      presetKey &&
+      specRows.some(
+        (row) => row.key.trim().toLowerCase() === presetKey.trim().toLowerCase()
+      )
+    ) {
+      return;
+    }
+    setSpecRows((prev) => [...prev, { key: presetKey, value: "" }]);
+  }
+
+  function updateSpecRow(idx: number, field: "key" | "value", val: string) {
+    setSpecRows((prev) =>
+      prev.map((row, i) => (i === idx ? { ...row, [field]: val } : row))
+    );
+  }
+
+  function removeSpecRow(idx: number) {
+    setSpecRows((prev) => prev.filter((_, i) => i !== idx));
+  }
+
   // Calculate promotional savings
   const savingsAmount = comparePrice > price ? comparePrice - price : 0;
   const savingsPercent = comparePrice > price ? Math.round((savingsAmount / comparePrice) * 100) : 0;
@@ -180,6 +304,30 @@ export function ProductForm({
             }
           : null;
 
+      const normalizedColors = colorVariants
+        .map((c) => {
+          const cleanHex = c.hex.trim();
+          return {
+            name: c.name.trim(),
+            hex: /^#[0-9a-fA-F]{3,8}$/.test(cleanHex) ? cleanHex : "#D8C9B5",
+            in_stock: Boolean(c.in_stock),
+          };
+        })
+        .filter((c) => c.name.length > 0);
+
+      const normalizedMaterials = materialVariants
+        .map((m) => m.trim())
+        .filter((m) => m.length > 0);
+
+      const normalizedSpecs: Record<string, string> = {};
+      for (const row of specRows) {
+        const cleanKey = row.key.trim();
+        const cleanVal = row.value.trim();
+        if (cleanKey && cleanVal) {
+          normalizedSpecs[cleanKey] = cleanVal;
+        }
+      }
+
       const response = await fetch(
         product ? `/api/admin/products/${product.id}` : "/api/admin/products",
         {
@@ -197,6 +345,11 @@ export function ProductForm({
             material: material.trim() || null,
             room: room || null,
             dimensions,
+            weight_kg: typeof weightKg === "number" && weightKg > 0 ? weightKg : null,
+            color_variants: normalizedColors,
+            material_variants: normalizedMaterials,
+            specifications: normalizedSpecs,
+            care_instructions: careInstructions.trim() || null,
             images: imageList,
             is_active: isActive,
             is_featured: isFeatured,
@@ -537,6 +690,330 @@ export function ProductForm({
               </div>
             </div>
           </div>
+
+          {/* 3. Color Finishes & Timber / Material Options Card */}
+          <div className="bg-white rounded-3xl p-6 sm:p-8 border border-[#1A1C18]/10 shadow-xs space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#1A1C18]/10">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-[#F4F0E8] flex items-center justify-center text-[#B78E69]">
+                  <Palette className="w-4 h-4" />
+                </div>
+                <div>
+                  <h2 className="text-base font-bold text-[#1A1C18] font-sans flex items-center gap-2">
+                    Color Finishes &amp; Material Options
+                    <span className="text-xs font-normal text-[#8A927A] px-2 py-0.5 bg-[#8A927A]/10 rounded-full font-mono">
+                      {colorVariants.length} colors · {materialVariants.length} materials
+                    </span>
+                  </h2>
+                  <p className="text-xs text-[#4A483E]/70">
+                    Define selectable swatches and timber/material options shown on product cards, Shop filters, and Fit Assistant.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* Color Variants Sub-Section */}
+            <div className="space-y-4">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <label className="text-xs font-bold text-[#1A1C18] uppercase tracking-wider font-sans">
+                  Color Finishes (Swatches)
+                </label>
+                <button
+                  type="button"
+                  onClick={() => addColorVariant("", "#D8C9B5")}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-[#1A1C18]/20 bg-[#FDFBF7] hover:bg-[#F4F0E8] text-xs font-semibold text-[#1A1C18] transition-colors cursor-pointer"
+                >
+                  <Plus className="w-3.5 h-3.5 text-[#B78E69]" />
+                  <span>Add Custom Color</span>
+                </button>
+              </div>
+
+              {/* Quick Finish Presets */}
+              <div className="flex flex-wrap items-center gap-1.5">
+                <span className="text-[10px] font-mono uppercase tracking-wider text-[#4A483E]/70 mr-1">
+                  Quick Add:
+                </span>
+                {PRESET_COLORS.map((preset) => {
+                  const alreadyAdded = colorVariants.some(
+                    (c) => c.name.trim().toLowerCase() === preset.name.toLowerCase()
+                  );
+                  return (
+                    <button
+                      key={preset.name}
+                      type="button"
+                      disabled={alreadyAdded}
+                      onClick={() => addColorVariant(preset.name, preset.hex)}
+                      className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-[#1A1C18]/12 bg-[#FDFBF7] hover:bg-[#F4F0E8] text-[11px] font-medium text-[#1A1C18] transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                    >
+                      <span
+                        className="w-2.5 h-2.5 rounded-full border border-black/15 shrink-0"
+                        style={{ backgroundColor: preset.hex }}
+                      />
+                      <span>{preset.name}</span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {colorVariants.length > 0 ? (
+                <div className="space-y-2.5">
+                  {colorVariants.map((variant, idx) => (
+                    <div
+                      key={idx}
+                      className="flex flex-col sm:flex-row sm:items-center gap-2.5 p-3 rounded-2xl bg-[#FDFBF7] border border-[#1A1C18]/12"
+                    >
+                      {/* Native Color Picker + Hex Code */}
+                      <div className="flex items-center gap-2 shrink-0">
+                        <input
+                          type="color"
+                          aria-label={`Color picker for ${variant.name || `finish ${idx + 1}`}`}
+                          value={
+                            /^#[0-9a-fA-F]{6}$/.test(variant.hex)
+                              ? variant.hex
+                              : "#D8C9B5"
+                          }
+                          onChange={(e) =>
+                            updateColorVariant(idx, { hex: e.target.value.toUpperCase() })
+                          }
+                          className="w-8 h-8 rounded-lg border border-[#1A1C18]/20 bg-white p-0.5 cursor-pointer shrink-0"
+                        />
+                        <input
+                          type="text"
+                          value={variant.hex}
+                          onChange={(e) =>
+                            updateColorVariant(idx, { hex: e.target.value })
+                          }
+                          placeholder="#D8C9B5"
+                          className="w-24 px-2.5 py-1.5 rounded-xl border border-[#1A1C18]/15 bg-white text-xs font-mono text-[#1A1C18] focus:outline-none focus:ring-2 focus:ring-[#B78E69]/30 focus:border-[#B78E69]"
+                        />
+                      </div>
+
+                      {/* Color Name */}
+                      <input
+                        type="text"
+                        value={variant.name}
+                        onChange={(e) =>
+                          updateColorVariant(idx, { name: e.target.value })
+                        }
+                        placeholder="Finish name (e.g. Natural Ash & Charcoal)"
+                        className="flex-1 px-3 py-1.5 rounded-xl border border-[#1A1C18]/15 bg-white text-xs font-semibold text-[#1A1C18] placeholder:text-[#4A483E]/40 focus:outline-none focus:ring-2 focus:ring-[#B78E69]/30 focus:border-[#B78E69]"
+                      />
+
+                      {/* Stock Toggle & Delete */}
+                      <div className="flex items-center justify-between sm:justify-end gap-2 shrink-0">
+                        <label className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border border-[#1A1C18]/12 bg-white text-[11px] font-medium text-[#1A1C18] cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={variant.in_stock}
+                            onChange={(e) =>
+                              updateColorVariant(idx, { in_stock: e.target.checked })
+                            }
+                            className="w-3.5 h-3.5 accent-[#1A1C18] rounded cursor-pointer"
+                          />
+                          <span>In Stock</span>
+                        </label>
+                        <button
+                          type="button"
+                          onClick={() => removeColorVariant(idx)}
+                          className="p-1.5 rounded-xl text-stone-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
+                          title="Remove color finish"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-xs text-[#4A483E]/70 bg-[#FDFBF7] border border-dashed border-[#1A1C18]/15 rounded-2xl p-4">
+                  No color finishes configured yet. Add one above so shoppers can choose color swatches on the storefront.
+                </p>
+              )}
+            </div>
+
+            {/* Material Variants Sub-Section */}
+            <div className="pt-5 border-t border-[#1A1C18]/10 space-y-3.5">
+              <label className="block text-xs font-bold text-[#1A1C18] uppercase tracking-wider font-sans">
+                Timber / Material Options
+              </label>
+
+              {materialVariants.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  {materialVariants.map((mat, idx) => (
+                    <span
+                      key={`${mat}-${idx}`}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#1A1C18] text-white text-xs font-semibold"
+                    >
+                      <span>{mat}</span>
+                      <button
+                        type="button"
+                        onClick={() => removeMaterialVariant(idx)}
+                        className="p-0.5 rounded-full hover:bg-white/20 transition-colors cursor-pointer"
+                        aria-label={`Remove ${mat}`}
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              )}
+
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  value={newMaterialOption}
+                  onChange={(e) => setNewMaterialOption(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      addMaterialVariant();
+                    }
+                  }}
+                  placeholder="Add timber or material option (e.g. Solid Ash, American Walnut)"
+                  className="flex-1 px-4 py-2.5 bg-[#FDFBF7] border border-[#1A1C18]/15 rounded-xl text-xs text-[#1A1C18] placeholder:text-[#4A483E]/40 focus:outline-none focus:ring-2 focus:ring-[#B78E69]/30 focus:border-[#B78E69] transition-all"
+                />
+                <button
+                  type="button"
+                  onClick={() => addMaterialVariant()}
+                  className="px-4 py-2.5 bg-white border border-[#1A1C18]/20 text-[#1A1C18] text-xs font-semibold rounded-xl hover:bg-[#F4F0E8] transition-colors flex items-center gap-1.5 cursor-pointer shadow-2xs shrink-0"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>Add Option</span>
+                </button>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-1.5">
+                <span className="text-[10px] font-mono uppercase tracking-wider text-[#4A483E]/70 mr-1">
+                  Quick Add:
+                </span>
+                {PRESET_MATERIALS.map((preset) => {
+                  const alreadyAdded = materialVariants.some(
+                    (m) => m.trim().toLowerCase() === preset.toLowerCase()
+                  );
+                  return (
+                    <button
+                      key={preset}
+                      type="button"
+                      disabled={alreadyAdded}
+                      onClick={() => addMaterialVariant(preset)}
+                      className="px-2.5 py-1 rounded-lg border border-[#1A1C18]/12 bg-[#FDFBF7] hover:bg-[#F4F0E8] text-[11px] font-medium text-[#1A1C18] transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                    >
+                      + {preset}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+
+          {/* 4. Architectural Specifications & Product Care Card */}
+          <div className="bg-white rounded-3xl p-6 sm:p-8 border border-[#1A1C18]/10 shadow-xs space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#1A1C18]/10">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-[#F4F0E8] flex items-center justify-center text-[#8A927A]">
+                  <SlidersHorizontal className="w-4 h-4" />
+                </div>
+                <div>
+                  <h2 className="text-base font-bold text-[#1A1C18] font-sans flex items-center gap-2">
+                    Specifications &amp; Care Instructions
+                    <span className="text-xs font-normal text-[#8A927A] px-2 py-0.5 bg-[#8A927A]/10 rounded-full font-mono">
+                      {specRows.filter((r) => r.key.trim() && r.value.trim()).length} specs
+                    </span>
+                  </h2>
+                  <p className="text-xs text-[#4A483E]/70">
+                    Structured key-value details and maintenance guidance displayed inside the product page accordion.
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => addSpecRow("")}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-[#1A1C18]/20 bg-[#FDFBF7] hover:bg-[#F4F0E8] text-xs font-semibold text-[#1A1C18] transition-colors cursor-pointer self-start sm:self-auto"
+              >
+                <Plus className="w-3.5 h-3.5 text-[#B78E69]" />
+                <span>Add Specification</span>
+              </button>
+            </div>
+
+            {/* Key-Value Spec Rows */}
+            <div className="space-y-3">
+              <div className="flex flex-wrap items-center gap-1.5">
+                <span className="text-[10px] font-mono uppercase tracking-wider text-[#4A483E]/70 mr-1">
+                  Suggested Keys:
+                </span>
+                {PRESET_SPEC_KEYS.map((presetKey) => {
+                  const alreadyAdded = specRows.some(
+                    (row) => row.key.trim().toLowerCase() === presetKey.toLowerCase()
+                  );
+                  return (
+                    <button
+                      key={presetKey}
+                      type="button"
+                      disabled={alreadyAdded}
+                      onClick={() => addSpecRow(presetKey)}
+                      className="px-2.5 py-1 rounded-lg border border-[#1A1C18]/12 bg-[#FDFBF7] hover:bg-[#F4F0E8] text-[11px] font-medium text-[#1A1C18] transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                    >
+                      + {presetKey}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {specRows.length > 0 ? (
+                <div className="space-y-2.5">
+                  {specRows.map((row, idx) => (
+                    <div
+                      key={idx}
+                      className="grid grid-cols-1 sm:grid-cols-12 gap-2 items-center p-2.5 rounded-2xl bg-[#FDFBF7] border border-[#1A1C18]/12"
+                    >
+                      <input
+                        type="text"
+                        value={row.key}
+                        onChange={(e) => updateSpecRow(idx, "key", e.target.value)}
+                        placeholder="Label (e.g. Origin)"
+                        className="sm:col-span-4 px-3 py-2 rounded-xl border border-[#1A1C18]/15 bg-white text-xs font-semibold text-[#1A1C18] placeholder:text-[#4A483E]/40 focus:outline-none focus:ring-2 focus:ring-[#B78E69]/30 focus:border-[#B78E69]"
+                      />
+                      <input
+                        type="text"
+                        value={row.value}
+                        onChange={(e) => updateSpecRow(idx, "value", e.target.value)}
+                        placeholder="Value (e.g. Designed in Copenhagen, Denmark)"
+                        className="sm:col-span-7 px-3 py-2 rounded-xl border border-[#1A1C18]/15 bg-white text-xs text-[#1A1C18] placeholder:text-[#4A483E]/40 focus:outline-none focus:ring-2 focus:ring-[#B78E69]/30 focus:border-[#B78E69]"
+                      />
+                      <div className="sm:col-span-1 flex justify-end">
+                        <button
+                          type="button"
+                          onClick={() => removeSpecRow(idx)}
+                          className="p-1.5 rounded-xl text-stone-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
+                          title="Remove specification row"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-xs text-[#4A483E]/70 bg-[#FDFBF7] border border-dashed border-[#1A1C18]/15 rounded-2xl p-4">
+                  No custom specifications added yet (Origin, Finish, Assembly, Max Load, etc.).
+                </p>
+              )}
+            </div>
+
+            {/* Care Instructions */}
+            <div className="pt-4 border-t border-[#1A1C18]/10">
+              <label className="block text-xs font-bold text-[#1A1C18] uppercase tracking-wider mb-2 font-sans">
+                Product Care &amp; Longevity Instructions
+              </label>
+              <textarea
+                rows={3}
+                value={careInstructions}
+                onChange={(e) => setCareInstructions(e.target.value)}
+                placeholder="e.g. Wipe with a lightly dampened microfiber cloth along the grain. Refresh timber annually with natural hardwax oil."
+                className="w-full px-4 py-3 bg-[#FDFBF7] border border-[#1A1C18]/15 rounded-2xl text-xs sm:text-sm text-[#1A1C18] leading-relaxed placeholder:text-[#4A483E]/40 focus:outline-none focus:ring-2 focus:ring-[#B78E69]/30 focus:border-[#B78E69] transition-all resize-y"
+              />
+            </div>
+          </div>
         </div>
 
         {/* ======================================================== */}
@@ -781,6 +1258,28 @@ export function ProductForm({
                   className="w-full px-3 py-2 bg-[#FDFBF7] border border-[#1A1C18]/15 rounded-xl text-xs font-mono font-bold text-[#1A1C18] focus:outline-none focus:ring-2 focus:ring-[#B78E69]/30 focus:border-[#B78E69]"
                 />
               </div>
+            </div>
+
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <label className="block text-[11px] font-bold text-[#1A1C18] uppercase tracking-wider font-sans">
+                  Net Weight (kg)
+                </label>
+                {typeof weightKg === "number" && weightKg > 0 && (
+                  <span className="text-[10px] font-mono text-[#8A927A]">
+                    {(weightKg * 2.205).toFixed(1)} lbs
+                  </span>
+                )}
+              </div>
+              <input
+                type="number"
+                min={0}
+                step={0.1}
+                value={weightKg}
+                onChange={(e) => setWeightKg(e.target.value === "" ? "" : parseFloat(e.target.value) || 0)}
+                placeholder="e.g. 7.2"
+                className="w-full px-3 py-2 bg-[#FDFBF7] border border-[#1A1C18]/15 rounded-xl text-xs font-mono font-bold text-[#1A1C18] focus:outline-none focus:ring-2 focus:ring-[#B78E69]/30 focus:border-[#B78E69]"
+              />
             </div>
 
             {typeof widthCm === "number" && widthCm > 0 ? (

@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   Search,
   Truck,
@@ -11,10 +12,12 @@ import {
   Package,
   ChevronRight,
   MapPin,
+  Trash2,
 } from "lucide-react";
 import type { Order, StoreSettings } from "@/lib/types";
 import { formatMoney, formatDate } from "@/lib/format";
 import { PaymentStatusBadge, DeliveryStatusLabel } from "@/components/shared/StatusBadge";
+import { ConfirmationModal } from "@/components/shared/ConfirmationModal";
 
 export function OrdersTable({
   orders: initialOrders,
@@ -23,10 +26,45 @@ export function OrdersTable({
   orders: Order[];
   settings: StoreSettings;
 }) {
-  const [orders] = useState<Order[]>(initialOrders);
+  const router = useRouter();
+  const [deletedIds, setDeletedIds] = useState<Set<string>>(() => new Set());
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [paymentFilter, setPaymentFilter] = useState<string>("all");
+  const [deleteTarget, setDeleteTarget] = useState<Order | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const orders = useMemo(
+    () => initialOrders.filter((o) => !deletedIds.has(o.id)),
+    [initialOrders, deletedIds],
+  );
+
+  useEffect(() => {
+    if (typeof window !== "undefined" && window.sessionStorage.getItem("kstore_orders_dirty") === "1") {
+      window.sessionStorage.removeItem("kstore_orders_dirty");
+      router.refresh();
+    }
+  }, [router]);
+
+  async function executeDeleteOrder() {
+    if (!deleteTarget) return;
+    setIsDeleting(true);
+    try {
+      const res = await fetch(`/api/admin/orders/${deleteTarget.id}`, {
+        method: "DELETE",
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to delete order");
+      const targetId = deleteTarget.id;
+      setDeletedIds((prev) => new Set(prev).add(targetId));
+      setDeleteTarget(null);
+      router.refresh();
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Failed to delete order");
+    } finally {
+      setIsDeleting(false);
+    }
+  }
 
   const filteredOrders = useMemo(() => {
     return orders.filter((order) => {
@@ -64,25 +102,25 @@ export function OrdersTable({
   return (
     <div className="space-y-6">
       {/* 1. Header with Breadcrumbs & Action Toolbar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-[#1A1C18]/10">
-        <div>
-          <div className="flex items-center gap-2 text-xs font-mono text-[#8A927A] uppercase tracking-wider mb-1">
-            <span>Fulfillment Pipeline</span>
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-4 border-b border-[#1A1C18]/10">
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs font-mono text-[#8A927A] uppercase tracking-wider mb-1">
+            <span className="whitespace-nowrap">Fulfillment Pipeline</span>
             <span>·</span>
-            <span>Live Dispatch Queue</span>
+            <span className="whitespace-nowrap">Live Dispatch Queue</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#1A1C18]">
             Orders &amp; Shipments
           </h1>
-          <p className="text-xs sm:text-sm text-[#4A483E]/80">
+          <p className="text-xs sm:text-sm text-[#4A483E]/80 mt-1">
             Track customer checkouts, advance package statuses, and confirm payment settlements.
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 shrink-0">
           <Link
             href="/admin"
-            className="px-3.5 py-2 rounded-xl bg-white border border-[#1A1C18]/15 text-xs font-semibold text-[#1A1C18] hover:bg-[#F4F0E8] transition-colors"
+            className="inline-flex items-center px-3.5 py-2 rounded-xl bg-white border border-[#1A1C18]/15 text-xs font-semibold text-[#1A1C18] hover:bg-[#F4F0E8] transition-colors whitespace-nowrap shrink-0"
           >
             ← Back to Overview
           </Link>
@@ -90,7 +128,7 @@ export function OrdersTable({
       </div>
 
       {/* 2. Orders Metrics Strip */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4">
         <div className="p-4 rounded-xl bg-white border border-[#1A1C18]/10 shadow-2xs space-y-1">
           <div className="flex items-center justify-between text-[#4A483E]">
             <span className="text-[11px] font-bold uppercase tracking-wider">Total Orders</span>
@@ -155,16 +193,20 @@ export function OrdersTable({
           </div>
 
           {/* Payment Status Dropdown */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 shrink-0">
             <select
+              name="payment_filter"
+              aria-label="Filter by payment status"
               value={paymentFilter}
               onChange={(e) => setPaymentFilter(e.target.value)}
-              className="px-3 py-2 bg-[#FAF9F6] border border-[#1A1C18]/15 text-xs text-[#1A1C18] rounded-xl focus:outline-none focus:ring-2 focus:ring-[#1A1C18]"
+              className="kstore-select min-w-44 px-3 py-2 bg-[#FAF9F6] border border-[#1A1C18]/15 text-xs text-[#1A1C18] rounded-xl"
             >
               <option value="all">All Payments</option>
               <option value="paid">Paid</option>
               <option value="cod_pending">Cash on Delivery</option>
               <option value="pending">Awaiting Payment</option>
+              <option value="refunded">Refunded</option>
+              <option value="cancelled">Cancelled</option>
             </select>
           </div>
         </div>
@@ -178,6 +220,7 @@ export function OrdersTable({
             { id: "packed", label: "Packed", count: orders.filter((o) => o.delivery_status === "packed").length },
             { id: "out_for_delivery", label: "Out for Delivery", count: orders.filter((o) => o.delivery_status === "out_for_delivery").length },
             { id: "delivered", label: "Delivered", count: orders.filter((o) => o.delivery_status === "delivered").length },
+            { id: "cancelled", label: "Cancelled", count: orders.filter((o) => o.delivery_status === "cancelled").length },
           ].map((tab) => {
             const isSelected = statusFilter === tab.id;
             return (
@@ -198,9 +241,126 @@ export function OrdersTable({
         </div>
       </div>
 
-      {/* 4. Orders Data Table */}
+      {/* 4. Orders Data Table (Desktop) & Cards (Mobile/Tablet) */}
       <div className="bg-white rounded-2xl border border-[#1A1C18]/10 shadow-[0_2px_12px_rgba(26,28,24,0.04)] overflow-hidden">
-        <div className="overflow-x-auto">
+        {/* Mobile & Tablet Card View */}
+        <div className="lg:hidden p-3 sm:p-4 space-y-3">
+          {filteredOrders.length === 0 ? (
+            <div className="py-12 text-center text-sm text-[#4A483E]">
+              <Truck className="w-8 h-8 mx-auto text-[#8A927A] mb-2" />
+              <div className="font-bold text-[#1A1C18]">No orders found</div>
+              <p className="text-xs text-[#4A483E]/70 mt-1">
+                Try resetting the status filter or search parameters.
+              </p>
+              <button
+                type="button"
+                onClick={() => {
+                  setSearch("");
+                  setStatusFilter("all");
+                  setPaymentFilter("all");
+                }}
+                className="mt-3 px-4 py-1.5 rounded-lg bg-[#1A1C18] text-white text-xs font-semibold"
+              >
+                Reset Filters
+              </button>
+            </div>
+          ) : (
+            filteredOrders.map((order) => {
+              const initials = order.customer_name
+                .split(" ")
+                .map((n) => n[0])
+                .slice(0, 2)
+                .join("")
+                .toUpperCase();
+
+              const itemCount =
+                order.items?.reduce((acc, i) => acc + i.quantity, 0) || 1;
+
+              return (
+                <div
+                  key={order.id}
+                  className="rounded-xl border border-[#1A1C18]/10 bg-[#FAF9F6]/50 p-4 space-y-3"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <Link
+                        href={`/admin/orders/${order.id}`}
+                        className="font-mono font-bold text-xs text-[#1A1C18] hover:text-[#B78E69] hover:underline block truncate"
+                      >
+                        {order.order_number}
+                      </Link>
+                      <span className="text-[10px] text-[#4A483E]/70 font-mono mt-0.5 block">
+                        {formatDate(order.created_at)}
+                      </span>
+                    </div>
+                    <span className="font-mono font-bold text-sm text-[#1A1C18] shrink-0">
+                      {formatMoney(order.total_cents, settings.currency_symbol, settings.currency)}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <div className="w-8 h-8 rounded-full bg-stone-100 border border-[#1A1C18]/10 flex items-center justify-center text-[10px] font-bold text-[#1A1C18] shrink-0">
+                      {initials || "CS"}
+                    </div>
+                    <div className="min-w-0">
+                      <span className="font-semibold text-xs text-[#1A1C18] block truncate">
+                        {order.customer_name}
+                      </span>
+                      <span className="text-[10px] text-[#4A483E]/70 truncate block">
+                        {order.customer_email}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3 pt-2.5 border-t border-[#1A1C18]/8 text-xs">
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-1 text-[#1A1C18]">
+                        <MapPin className="w-3.5 h-3.5 text-[#8A927A] shrink-0" />
+                        <span className="font-medium truncate">
+                          {order.shipping_city || "Standard Delivery"}
+                        </span>
+                      </div>
+                      <span className="text-[10px] text-[#4A483E]/70 block mt-0.5">
+                        {itemCount} {itemCount === 1 ? "essential" : "essentials"}
+                      </span>
+                    </div>
+                    <div className="min-w-0">
+                      <PaymentStatusBadge status={order.payment_status} />
+                      <span className="text-[10px] text-[#4A483E]/60 block font-mono mt-0.5 capitalize truncate">
+                        via {order.payment_method.replaceAll("_", " ")}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between gap-2 pt-2.5 border-t border-[#1A1C18]/8">
+                    <DeliveryStatusLabel status={order.delivery_status} />
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <Link
+                        href={`/admin/orders/${order.id}`}
+                        className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-stone-100 hover:bg-[#1A1C18] text-[#1A1C18] hover:text-white text-xs font-semibold transition-all"
+                      >
+                        <span>Manage</span>
+                        <ChevronRight className="w-3.5 h-3.5" />
+                      </Link>
+                      <button
+                        type="button"
+                        onClick={() => setDeleteTarget(order)}
+                        className="p-1.5 rounded-lg text-stone-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
+                        title={`Delete order ${order.order_number}`}
+                        aria-label={`Delete order ${order.order_number}`}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
+
+        {/* Desktop Table View */}
+        <div className="hidden lg:block">
           <table className="w-full text-left text-xs border-collapse">
             <thead>
               <tr className="border-b border-[#1A1C18]/10 bg-[#FAF9F6] text-[#4A483E] uppercase font-bold tracking-wider text-[10px]">
@@ -295,7 +455,7 @@ export function OrdersTable({
                       <td className="py-3.5 px-3">
                         <PaymentStatusBadge status={order.payment_status} />
                         <span className="text-[10px] text-[#4A483E]/60 block font-mono mt-0.5 capitalize">
-                          via {order.payment_method.replace("_", " ")}
+                          via {order.payment_method.replaceAll("_", " ")}
                         </span>
                       </td>
 
@@ -313,13 +473,24 @@ export function OrdersTable({
 
                       {/* Action */}
                       <td className="py-3.5 px-3 text-right pr-6">
-                        <Link
-                          href={`/admin/orders/${order.id}`}
-                          className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-stone-100 hover:bg-[#1A1C18] text-[#1A1C18] hover:text-white text-xs font-semibold transition-all"
-                        >
-                          <span>Manage</span>
-                          <ChevronRight className="w-3.5 h-3.5" />
-                        </Link>
+                        <div className="inline-flex items-center justify-end gap-1.5">
+                          <Link
+                            href={`/admin/orders/${order.id}`}
+                            className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-stone-100 hover:bg-[#1A1C18] text-[#1A1C18] hover:text-white text-xs font-semibold transition-all"
+                          >
+                            <span>Manage</span>
+                            <ChevronRight className="w-3.5 h-3.5" />
+                          </Link>
+                          <button
+                            type="button"
+                            onClick={() => setDeleteTarget(order)}
+                            className="p-1.5 rounded-lg text-stone-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
+                            title={`Delete order ${order.order_number}`}
+                            aria-label={`Delete order ${order.order_number}`}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   );
@@ -330,7 +501,7 @@ export function OrdersTable({
         </div>
 
         {/* Footer info */}
-        <div className="p-4 bg-[#FAF9F6] border-t border-[#1A1C18]/10 flex items-center justify-between text-xs text-[#4A483E]">
+        <div className="p-4 bg-[#FAF9F6] border-t border-[#1A1C18]/10 flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-xs text-[#4A483E]">
           <span>
             Displaying <strong>{filteredOrders.length}</strong> orders in dispatch queue
           </span>
@@ -339,6 +510,31 @@ export function OrdersTable({
           </span>
         </div>
       </div>
+
+      {deleteTarget && (
+        <ConfirmationModal
+          isOpen={!!deleteTarget}
+          onClose={() => {
+            if (!isDeleting) setDeleteTarget(null);
+          }}
+          onConfirm={executeDeleteOrder}
+          isLoading={isDeleting}
+          title={`Delete Order #${deleteTarget.order_number}?`}
+          subtitle="Permanent Order Removal"
+          variant="danger"
+          confirmText="Yes, Delete Order"
+          cancelText="Keep Order"
+          description={
+            <p>
+              This will permanently delete order{" "}
+              <strong className="font-mono text-[#1A1C18]">
+                #{deleteTarget.order_number}
+              </strong>{" "}
+              for <strong>{deleteTarget.customer_name}</strong> along with its line items and event history. This action cannot be undone.
+            </p>
+          }
+        />
+      )}
     </div>
   );
 }

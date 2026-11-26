@@ -1,15 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useId, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import {
   Check,
   AlertCircle,
   Truck,
   CreditCard,
-  ChevronDown,
   Sparkles,
   Printer,
+  Trash2,
 } from "lucide-react";
 import type { DeliveryStatus, Order, PaymentStatus, StoreSettings } from "@/lib/types";
 import {
@@ -28,13 +28,23 @@ export function OrderAdminActions({
   settings?: StoreSettings | null;
 }) {
   const router = useRouter();
-  const [paymentStatus, setPaymentStatus] = useState<PaymentStatus>(order.payment_status);
-  const [deliveryStatus, setDeliveryStatus] = useState<DeliveryStatus>(order.delivery_status);
+  const paymentSelectId = useId();
+  const deliverySelectId = useId();
+  const [draftPaymentStatus, setPaymentStatus] = useState<PaymentStatus | null>(null);
+  const [draftDeliveryStatus, setDeliveryStatus] = useState<DeliveryStatus | null>(null);
+  const paymentStatus = draftPaymentStatus ?? order.payment_status;
+  const deliveryStatus = draftDeliveryStatus ?? order.delivery_status;
   const [pendingReversalStatus, setPendingReversalStatus] = useState<DeliveryStatus | null>(null);
   const [showPackingSlip, setShowPackingSlip] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+
+  const hasChanges =
+    paymentStatus !== order.payment_status ||
+    deliveryStatus !== order.delivery_status;
 
   const currentFlowIndex = DELIVERY_FLOW.indexOf(deliveryStatus as (typeof DELIVERY_FLOW)[number]);
 
@@ -69,7 +79,33 @@ export function OrderAdminActions({
     setPendingReversalStatus(null);
   }
 
-  async function save() {
+  async function handleDeleteOrder() {
+    setError(null);
+    setIsDeleting(true);
+    try {
+      const res = await fetch(`/api/admin/orders/${order.id}`, {
+        method: "DELETE",
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Unable to delete order");
+      }
+      if (typeof window !== "undefined") {
+        window.sessionStorage.setItem("kstore_orders_dirty", "1");
+      }
+      setShowDeleteConfirm(false);
+      router.push("/admin/orders");
+      router.refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unable to delete order");
+      setShowDeleteConfirm(false);
+    } finally {
+      setIsDeleting(false);
+    }
+  }
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
     setError(null);
     setSuccessMsg(null);
     setIsSaving(true);
@@ -84,9 +120,16 @@ export function OrderAdminActions({
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || "Unable to update order.");
+      if (data.order) {
+        setPaymentStatus(data.order.payment_status);
+        setDeliveryStatus(data.order.delivery_status);
+      }
+      if (typeof window !== "undefined") {
+        window.sessionStorage.setItem("kstore_orders_dirty", "1");
+      }
       setSuccessMsg("Fulfillment & payment statuses successfully updated.");
       router.refresh();
-      setTimeout(() => setSuccessMsg(null), 3000);
+      setTimeout(() => setSuccessMsg(null), 3500);
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : "Unable to update order.");
     } finally {
@@ -95,10 +138,13 @@ export function OrderAdminActions({
   }
 
   return (
-    <div className="space-y-6">
+    <form onSubmit={handleSubmit} className="space-y-6">
       {/* Alert Notices */}
       {error && (
-        <div className="p-4 rounded-2xl bg-rose-50 border border-rose-200 flex items-start gap-3 text-rose-900 text-xs sm:text-sm animate-in fade-in">
+        <div
+          role="alert"
+          className="p-4 rounded-2xl bg-rose-50 border border-rose-200 flex items-start gap-3 text-rose-900 text-xs sm:text-sm animate-in fade-in"
+        >
           <AlertCircle className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
           <div>
             <span className="font-bold block">Update Failed</span>
@@ -108,7 +154,11 @@ export function OrderAdminActions({
       )}
 
       {successMsg && (
-        <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 flex items-center gap-3 text-emerald-900 text-xs sm:text-sm animate-in fade-in">
+        <div
+          role="status"
+          aria-live="polite"
+          className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 flex items-center gap-3 text-emerald-900 text-xs sm:text-sm animate-in fade-in"
+        >
           <Check className="w-5 h-5 text-emerald-600 shrink-0" />
           <span className="font-semibold">{successMsg}</span>
         </div>
@@ -135,6 +185,7 @@ export function OrderAdminActions({
               <button
                 key={flowStep}
                 type="button"
+                aria-pressed={isCurrent}
                 onClick={() => handleSelectDeliveryStatus(flowStep)}
                 className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer ${
                   isCurrent
@@ -176,52 +227,56 @@ export function OrderAdminActions({
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {/* Payment Status */}
         <div className="space-y-1.5">
-          <label className="block text-xs font-bold text-[#1A1C18] uppercase tracking-wider font-sans flex items-center gap-1.5">
+          <label
+            htmlFor={paymentSelectId}
+            className="text-xs font-bold text-[#1A1C18] uppercase tracking-wider font-sans flex items-center gap-1.5"
+          >
             <CreditCard className="w-3.5 h-3.5 text-[#B78E69]" />
             Payment Status
           </label>
-          <div className="relative">
-            <select
-              value={paymentStatus}
-              onChange={(e) => setPaymentStatus(e.target.value as PaymentStatus)}
-              className="w-full appearance-none px-4 py-3 bg-[#FDFBF7] border border-[#1A1C18]/15 rounded-xl text-xs font-semibold text-[#1A1C18] focus:outline-none focus:ring-2 focus:ring-[#B78E69]/30 focus:border-[#B78E69] transition-all cursor-pointer pr-10"
-            >
-              {Object.entries(PAYMENT_STATUS_LABELS).map(([value, label]) => (
-                <option key={value} value={value}>
-                  {label} ({value})
-                </option>
-              ))}
-            </select>
-            <ChevronDown className="w-4 h-4 text-[#4A483E]/60 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-          </div>
+          <select
+            id={paymentSelectId}
+            name="payment_status"
+            value={paymentStatus}
+            onChange={(e) => setPaymentStatus(e.target.value as PaymentStatus)}
+            className="kstore-select w-full px-4 py-3 bg-[#FDFBF7] border border-[#1A1C18]/15 rounded-xl text-xs font-semibold text-[#1A1C18]"
+          >
+            {Object.entries(PAYMENT_STATUS_LABELS).map(([value, label]) => (
+              <option key={value} value={value}>
+                {label} ({value})
+              </option>
+            ))}
+          </select>
         </div>
 
         {/* Delivery Status Manual Select */}
         <div className="space-y-1.5">
-          <label className="block text-xs font-bold text-[#1A1C18] uppercase tracking-wider font-sans flex items-center gap-1.5">
+          <label
+            htmlFor={deliverySelectId}
+            className="text-xs font-bold text-[#1A1C18] uppercase tracking-wider font-sans flex items-center gap-1.5"
+          >
             <Truck className="w-3.5 h-3.5 text-[#8A927A]" />
             Fulfillment Stage
           </label>
-          <div className="relative">
-            <select
-              value={deliveryStatus}
-              onChange={(e) => handleSelectDeliveryStatus(e.target.value as DeliveryStatus)}
-              className="w-full appearance-none px-4 py-3 bg-[#FDFBF7] border border-[#1A1C18]/15 rounded-xl text-xs font-semibold text-[#1A1C18] focus:outline-none focus:ring-2 focus:ring-[#B78E69]/30 focus:border-[#B78E69] transition-all cursor-pointer pr-10"
-            >
-              {Object.entries(DELIVERY_STATUS_LABELS).map(([value, label]) => (
-                <option key={value} value={value}>
-                  {label}
-                </option>
-              ))}
-            </select>
-            <ChevronDown className="w-4 h-4 text-[#4A483E]/60 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-          </div>
+          <select
+            id={deliverySelectId}
+            name="delivery_status"
+            value={deliveryStatus}
+            onChange={(e) => handleSelectDeliveryStatus(e.target.value as DeliveryStatus)}
+            className="kstore-select w-full px-4 py-3 bg-[#FDFBF7] border border-[#1A1C18]/15 rounded-xl text-xs font-semibold text-[#1A1C18]"
+          >
+            {Object.entries(DELIVERY_STATUS_LABELS).map(([value, label]) => (
+              <option key={value} value={value}>
+                {label}
+              </option>
+            ))}
+          </select>
         </div>
       </div>
 
       {/* Action Buttons Row */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2">
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2.5">
           <button
             type="button"
             onClick={() => setShowPackingSlip(true)}
@@ -231,25 +286,77 @@ export function OrderAdminActions({
             <Printer className="w-3.5 h-3.5 text-[#B78E69]" />
             <span>Print Warehouse Slip</span>
           </button>
-          <div className="text-[11px] text-[#4A483E]/70 flex items-center gap-1">
+          <div
+            role="status"
+            aria-live="polite"
+            className={`text-[11px] flex items-center gap-1.5 px-2.5 py-1 rounded-full ${
+              hasChanges
+                ? "bg-amber-50 text-amber-800 border border-amber-200 font-semibold"
+                : "text-[#4A483E]/70"
+            }`}
+          >
             <Sparkles className="w-3 h-3 text-[#B78E69]" />
-            <span>Auto-synced</span>
+            <span>
+              {hasChanges
+                ? "Unsaved changes — click Save to update"
+                : "Synced with database"}
+            </span>
           </div>
         </div>
 
-        <button
-          type="button"
-          disabled={isSaving}
-          onClick={save}
-          data-btn="dark"
-          style={{ color: "#FFFFFF", backgroundColor: "#1A1C18" }}
-          className="px-6 py-2.5 rounded-xl bg-[#1A1C18] text-white text-xs font-bold uppercase tracking-wider hover:bg-[#32362F] transition-all shadow-xs hover:shadow-md cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50"
-        >
-          <span style={{ color: "#FFFFFF" }}>
-            {isSaving ? "Updating Statuses…" : "Save Fulfillment Status"}
-          </span>
-        </button>
+        <div className="flex flex-wrap items-center gap-2.5">
+          <button
+            type="button"
+            disabled={isSaving || isDeleting}
+            onClick={() => setShowDeleteConfirm(true)}
+            className="px-4 py-2.5 rounded-xl border border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100 text-xs font-semibold transition-all cursor-pointer flex items-center justify-center gap-1.5 disabled:opacity-50"
+          >
+            <Trash2 className="w-3.5 h-3.5" />
+            <span>Delete Order</span>
+          </button>
+
+          <button
+            type="submit"
+            disabled={isSaving || isDeleting}
+            data-btn="dark"
+            style={{ color: "#FFFFFF", backgroundColor: "#1A1C18" }}
+            className="px-6 py-2.5 rounded-xl bg-[#1A1C18] text-white text-xs font-bold uppercase tracking-wider hover:bg-[#32362F] transition-all shadow-xs hover:shadow-md cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50"
+          >
+            <span style={{ color: "#FFFFFF" }}>
+              {isSaving
+                ? "Updating Statuses…"
+                : hasChanges
+                  ? "Save Status Changes"
+                  : "Save Fulfillment Status"}
+            </span>
+          </button>
+        </div>
       </div>
+
+      {showDeleteConfirm && (
+        <ConfirmationModal
+          isOpen={showDeleteConfirm}
+          onClose={() => {
+            if (!isDeleting) setShowDeleteConfirm(false);
+          }}
+          onConfirm={handleDeleteOrder}
+          isLoading={isDeleting}
+          title={`Delete Order #${order.order_number}?`}
+          subtitle="Permanent Order Removal"
+          variant="danger"
+          confirmText="Yes, Delete Order"
+          cancelText="Keep Order"
+          description={
+            <p>
+              This will permanently delete order{" "}
+              <strong className="font-mono text-[#1A1C18]">
+                #{order.order_number}
+              </strong>{" "}
+              and all of its line items and tracking events. This action cannot be undone.
+            </p>
+          }
+        />
+      )}
 
       {/* Warehouse Packing Slip Modal */}
       {showPackingSlip && (
@@ -286,6 +393,6 @@ export function OrderAdminActions({
           }
         />
       )}
-    </div>
+    </form>
   );
 }

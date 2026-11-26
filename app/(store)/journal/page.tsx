@@ -120,7 +120,7 @@ export default async function JournalPage() {
                     </span>
                   </div>
                   <Link href={`/journal/${art.slug}`}>
-                    <h3 className="font-editorial text-xl font-bold text-[#1A1C18] group-hover:text-[#B78E69] transition-colors leading-snug">
+                    <h3 className="font-editorial text-base sm:text-lg font-bold text-[#1A1C18] group-hover:text-[#B78E69] transition-colors leading-snug">
                       {art.title}
                     </h3>
                   </Link>

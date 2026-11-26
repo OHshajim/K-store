@@ -21,6 +21,7 @@ import {
   Share2,
 } from "lucide-react";
 import type { Product, StoreSettings, Review } from "@/lib/types";
+import type { ReviewEligibility } from "@/lib/data/reviews";
 import { useCartStore } from "@/lib/cart/store";
 import { useWishlistStore } from "@/lib/wishlist/store";
 import { useCurrencyStore } from "@/lib/currency/store";
@@ -32,11 +33,17 @@ export function ProductDetailView({
   product,
   relatedProducts = [],
   reviews = [],
+  reviewEligibility = {
+    status: "unauthenticated",
+    eligibleOrderId: null,
+    eligibleOrderNumber: null,
+  },
 }: {
   product: Product;
   settings?: StoreSettings;
   relatedProducts?: Product[];
   reviews?: Review[];
+  reviewEligibility?: ReviewEligibility;
 }) {
   const router = useRouter();
   const { addProduct } = useCartStore();
@@ -48,18 +55,40 @@ export function ProductDetailView({
   const [userComment, setUserComment] = useState("");
   const [isSubmittingReview, setIsSubmittingReview] = useState(false);
   const [reviewNotice, setReviewNotice] = useState<string | null>(null);
+  const [reviewError, setReviewError] = useState<string | null>(null);
   const [reviewList, setReviewList] = useState<Review[]>(reviews);
+  const [eligibility, setEligibility] = useState<ReviewEligibility>(reviewEligibility);
+
+  const effectiveReviewCount =
+    reviewList.length > 0 ? reviewList.length : (product.review_count ?? 0);
+  const effectiveRating =
+    reviewList.length > 0
+      ? Math.round(
+          (reviewList.reduce((acc, r) => acc + r.rating, 0) / reviewList.length) *
+            10,
+        ) / 10
+      : effectiveReviewCount > 0
+        ? product.rating ?? null
+        : null;
 
   const handleReviewSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (eligibility.status !== "eligible") {
+      setReviewError(
+        "Only customers who have paid for or received this product can submit a review.",
+      );
+      return;
+    }
     setIsSubmittingReview(true);
     setReviewNotice(null);
+    setReviewError(null);
     try {
       const res = await fetch("/api/reviews", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           productId: product.id,
+          orderId: eligibility.eligibleOrderId,
           rating: userRating,
           comment: userComment.trim() || undefined,
         }),
@@ -72,29 +101,32 @@ export function ProductDetailView({
         }
         throw new Error(data.error || "Review submission failed");
       }
-      setReviewNotice("Thank you for sharing your impression! It has been recorded.");
-      setReviewList((prev) => [
-        {
-          id: `rev-${Date.now()}`,
-          product_id: product.id,
-          order_id: "",
-          user_id: "",
-          rating: userRating,
-          comment: userComment.trim() || null,
-          is_published: true,
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-          reviewer_name: "Verified Collector",
-        },
-        ...prev,
-      ]);
+      const created: Review = data.review ?? {
+        id: `rev-${Date.now()}`,
+        product_id: product.id,
+        order_id: eligibility.eligibleOrderId ?? "",
+        user_id: "",
+        rating: userRating,
+        comment: userComment.trim() || null,
+        is_published: true,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        reviewer_name: "Verified Resident",
+      };
+      setReviewNotice("Thank you for sharing your verified review! It is now published.");
+      setReviewList((prev) => [created, ...prev]);
+      setEligibility({
+        status: "already_reviewed",
+        eligibleOrderId: null,
+        eligibleOrderNumber: null,
+      });
       setUserComment("");
       setTimeout(() => {
         setShowReviewModal(false);
         setReviewNotice(null);
-      }, 2500);
+      }, 2200);
     } catch (err) {
-      setReviewNotice(err instanceof Error ? err.message : "Unable to submit review");
+      setReviewError(err instanceof Error ? err.message : "Unable to submit review");
     } finally {
       setIsSubmittingReview(false);
     }
@@ -111,7 +143,9 @@ export function ProductDetailView({
 
   const [selectedImage, setSelectedImage] = useState(0);
   const [selectedColor, setSelectedColor] = useState(
-    product.color_variants?.[0]?.name ?? ""
+    product.color_variants?.find((v) => v.in_stock !== false)?.name ??
+      product.color_variants?.[0]?.name ??
+      ""
   );
   const [selectedMaterial, setSelectedMaterial] = useState(
     product.material_variants?.[0] ?? product.material ?? "Solid Timber"
@@ -247,7 +281,7 @@ export function ProductDetailView({
       {/* Main Two-Column Product Hero Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-14 items-start">
         {/* Left: Gallery & Lightbox */}
-        <div className="lg:col-span-7 space-y-4">
+        <div className="lg:col-span-7 space-y-4 lg:sticky lg:top-24 lg:self-start">
           {/* Main Large Display with Zoom Trigger */}
           <div className="relative aspect-square sm:aspect-4/3 rounded-3xl overflow-hidden bg-white border border-[#1A1C18]/10 shadow-xs group">
             <Image
@@ -317,16 +351,28 @@ export function ProductDetailView({
           <div className="space-y-2">
             <div className="flex items-center justify-between text-xs text-[#4A483E] uppercase tracking-wider font-semibold">
               <span>SKU: {product.sku || "KS-ARCH-01"}</span>
-              {product.rating && (
+              {effectiveReviewCount > 0 && effectiveRating ? (
                 <div className="flex items-center gap-1.5 text-[#1A1C18]">
                   <div className="flex text-[#B78E69]">
                     {[...Array(5)].map((_, i) => (
-                      <Star key={i} className="w-3.5 h-3.5 fill-current" />
+                      <Star
+                        key={i}
+                        className={`w-3.5 h-3.5 ${
+                          i < Math.round(effectiveRating)
+                            ? "fill-current"
+                            : "text-[#D8C9B5]"
+                        }`}
+                      />
                     ))}
                   </div>
-                  <span>{product.rating}</span>
-                  <span className="text-[#4A483E]">({product.review_count ?? 28} Reviews)</span>
+                  <span>{effectiveRating.toFixed(1)}</span>
+                  <span className="text-[#4A483E]">
+                    ({effectiveReviewCount}{" "}
+                    {effectiveReviewCount === 1 ? "Review" : "Reviews"})
+                  </span>
                 </div>
+              ) : (
+                <span className="text-[#4A483E]/70">No Reviews Yet</span>
               )}
             </div>
 
@@ -360,24 +406,34 @@ export function ProductDetailView({
                   Color Finish: <span className="font-normal text-[#4A483E]">{selectedColor}</span>
                 </span>
               </div>
-              <div className="flex items-center gap-3">
-                {product.color_variants.map((v) => (
-                  <button
-                    key={v.name}
-                    type="button"
-                    onClick={() => setSelectedColor(v.name)}
-                    className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border text-xs font-medium transition-all cursor-pointer ${selectedColor === v.name
-                      ? "border-[#1A1C18] bg-white ring-1 ring-[#1A1C18]"
-                      : "border-[#1A1C18]/15 bg-white/50 hover:bg-white text-[#4A483E]"
+              <div className="flex flex-wrap items-center gap-2.5">
+                {product.color_variants.map((v) => {
+                  const isAvailable = v.in_stock !== false;
+                  return (
+                    <button
+                      key={v.name}
+                      type="button"
+                      disabled={!isAvailable}
+                      onClick={() => {
+                        if (isAvailable) setSelectedColor(v.name);
+                      }}
+                      title={isAvailable ? v.name : `${v.name} (Out of stock)`}
+                      className={`flex items-center gap-2 px-3 py-1.5 rounded-xl border text-xs font-medium transition-all ${
+                        !isAvailable
+                          ? "border-[#1A1C18]/10 bg-stone-50 text-[#4A483E]/50 opacity-60 line-through cursor-not-allowed"
+                          : selectedColor === v.name
+                            ? "border-[#1A1C18] bg-white ring-1 ring-[#1A1C18] cursor-pointer"
+                            : "border-[#1A1C18]/15 bg-white/50 hover:bg-white text-[#4A483E] cursor-pointer"
                       }`}
-                  >
-                    <span
-                      className="w-3.5 h-3.5 rounded-full border border-black/20"
-                      style={{ backgroundColor: v.hex }}
-                    />
-                    <span>{v.name}</span>
-                  </button>
-                ))}
+                    >
+                      <span
+                        className="w-3.5 h-3.5 rounded-full border border-black/20 shrink-0"
+                        style={{ backgroundColor: v.hex }}
+                      />
+                      <span>{v.name}</span>
+                    </button>
+                  );
+                })}
               </div>
             </div>
           )}
@@ -599,6 +655,14 @@ export function ProductDetailView({
                         <span>{val}</span>
                       </div>
                     ))}
+                  {!product.dimensions &&
+                    !product.weight_kg &&
+                    (!product.specifications ||
+                      Object.keys(product.specifications).length === 0) && (
+                      <p className="font-sans text-[#4A483E]/70">
+                        No dimensional specifications published for this piece.
+                      </p>
+                    )}
                 </div>
               )}
             </div>
@@ -619,12 +683,23 @@ export function ProductDetailView({
               </button>
               {activeTab === "craft" && (
                 <div className="pt-3 text-xs text-[#4A483E] space-y-2 font-sans leading-relaxed">
-                  <p>
-                    Engineered using {product.material}. Our timber components are milled from FSC-certified responsible forestry reserves in Sweden and Vermont, cured for 90 days to achieve moisture equilibrium.
-                  </p>
-                  <p>
-                    Metal elements are cold-drawn and anodized with matte micro-bead blasting to prevent fingerprints and resist corrosion.
-                  </p>
+                  {product.material && (
+                    <p>
+                      Primary Material: <span className="font-semibold text-[#1A1C18]">{product.material}</span>
+                    </p>
+                  )}
+                  {product.details ? (
+                    <p className="whitespace-pre-line">{product.details}</p>
+                  ) : (
+                    <>
+                      <p>
+                        Our timber components are milled from FSC-certified responsible forestry reserves in Sweden and Vermont, cured for 90 days to achieve moisture equilibrium.
+                      </p>
+                      <p>
+                        Metal elements are cold-drawn and anodized with matte micro-bead blasting to prevent fingerprints and resist corrosion.
+                      </p>
+                    </>
+                  )}
                 </div>
               )}
             </div>
@@ -691,42 +766,90 @@ export function ProductDetailView({
             </h3>
           </div>
           <div className="flex flex-wrap items-center gap-4">
-            <div className="flex items-center gap-2 text-xs font-semibold text-[#1A1C18]">
-              <span className="text-xl font-mono font-bold">
-                {reviewList.length > 0
-                  ? (
-                    reviewList.reduce((acc, r) => acc + r.rating, 0) /
-                    reviewList.length
-                  ).toFixed(1)
-                  : product.rating ?? "4.9"}
-              </span>
-              <div className="flex text-[#B78E69]">
-                {[...Array(5)].map((_, i) => (
-                  <Star key={i} className="w-4 h-4 fill-current" />
-                ))}
+            {effectiveReviewCount > 0 && effectiveRating ? (
+              <div className="flex items-center gap-2 text-xs font-semibold text-[#1A1C18]">
+                <span className="text-xl font-mono font-bold">
+                  {effectiveRating.toFixed(1)}
+                </span>
+                <div className="flex text-[#B78E69]">
+                  {[...Array(5)].map((_, i) => (
+                    <Star
+                      key={i}
+                      className={`w-4 h-4 ${
+                        i < Math.round(effectiveRating)
+                          ? "fill-current"
+                          : "text-[#D8C9B5]"
+                      }`}
+                    />
+                  ))}
+                </div>
+                <span className="text-[#4A483E]">
+                  ({effectiveReviewCount}{" "}
+                  {effectiveReviewCount === 1 ? "reflection" : "reflections"})
+                </span>
               </div>
-              <span className="text-[#4A483E]">
-                ({reviewList.length > 0 ? reviewList.length : product.review_count ?? 32} reflections)
+            ) : (
+              <span className="text-xs font-medium text-[#4A483E]/80">
+                No verified reviews yet
               </span>
-            </div>
+            )}
 
-            <button
-              type="button"
-              onClick={() => setShowReviewModal(true)}
-              className="px-4 py-2 rounded-xl bg-white border border-[#1A1C18]/15 text-xs font-semibold text-[#1A1C18] hover:bg-[#F4F0E8] transition-all cursor-pointer shadow-2xs"
-            >
-              Share Reflection
-            </button>
+            {eligibility.status === "eligible" && (
+              <button
+                type="button"
+                onClick={() => {
+                  setReviewError(null);
+                  setShowReviewModal(true);
+                }}
+                className="px-4 py-2 rounded-xl bg-white border border-[#1A1C18]/15 text-xs font-semibold text-[#1A1C18] hover:bg-[#F4F0E8] transition-all cursor-pointer shadow-2xs"
+              >
+                Share Verified Reflection
+              </button>
+            )}
+
+            {eligibility.status === "already_reviewed" && (
+              <Link
+                href="/account"
+                className="px-3.5 py-2 rounded-xl bg-emerald-50 border border-emerald-200 text-xs font-semibold text-emerald-800"
+              >
+                Verified Review Published
+              </Link>
+            )}
+
+            {eligibility.status === "purchase_required" && (
+              <span
+                title="Only customers with a paid or delivered order for this item can submit a review."
+                className="px-3.5 py-2 rounded-xl bg-[#FAF9F5] border border-[#1A1C18]/12 text-xs font-medium text-[#4A483E]"
+              >
+                Verified Buyers Only
+              </span>
+            )}
+
+            {eligibility.status === "unauthenticated" && (
+              <Link
+                href={`/login?next=/product/${product.slug}`}
+                className="px-4 py-2 rounded-xl bg-white border border-[#1A1C18]/15 text-xs font-semibold text-[#1A1C18] hover:bg-[#F4F0E8] transition-all shadow-2xs"
+              >
+                Sign In to Review a Purchase
+              </Link>
+            )}
           </div>
         </div>
 
-        {/* Review Submission Modal / Inline Form */}
-        {showReviewModal && (
+        {/* Review Submission Modal / Inline Form (Verified Purchasers Only) */}
+        {showReviewModal && eligibility.status === "eligible" && (
           <div className="mb-8 p-6 bg-white rounded-3xl border border-[#1A1C18]/15 shadow-sm space-y-4 animate-in fade-in zoom-in-95">
             <div className="flex items-center justify-between pb-3 border-b border-[#1A1C18]/10">
-              <h4 className="font-editorial text-lg font-bold text-[#1A1C18]">
-                Share Your Architectural Impression
-              </h4>
+              <div>
+                <h4 className="font-editorial text-lg font-bold text-[#1A1C18]">
+                  Share Your Architectural Impression
+                </h4>
+                {eligibility.eligibleOrderNumber && (
+                  <p className="text-[11px] font-mono text-[#8A927A] mt-0.5">
+                    Verified Purchase · Order #{eligibility.eligibleOrderNumber}
+                  </p>
+                )}
+              </div>
               <button
                 type="button"
                 onClick={() => setShowReviewModal(false)}
@@ -735,6 +858,12 @@ export function ProductDetailView({
                 Cancel
               </button>
             </div>
+
+            {reviewError && (
+              <div className="p-3 bg-rose-50 border border-rose-200 text-xs text-rose-800 rounded-xl">
+                {reviewError}
+              </div>
+            )}
 
             {reviewNotice && (
               <div className="p-3 bg-emerald-50 border border-emerald-200 text-xs text-emerald-800 rounded-xl">
@@ -769,14 +898,14 @@ export function ProductDetailView({
 
               <div>
                 <label className="block text-xs font-bold uppercase tracking-wider text-[#1A1C18] mb-1.5">
-                  Your Reflection &amp; Craft Details
+                  Your Reflection &amp; Details
                 </label>
                 <textarea
                   rows={3}
                   value={userComment}
                   onChange={(e) => setUserComment(e.target.value)}
-                  placeholder="Share how this piece settles in your space, the timber tactile finish, or your living experience…"
-                  className="w-full p-3.5 bg-[#FDFBF7] border border-[#1A1C18]/15 rounded-xl text-xs text-[#1A1C18] placeholder:text-[#4A483E]/50 focus:outline-none focus:ring-2 focus:ring-[#1A1C18]"
+                  placeholder="Share how this piece performs in daily use, build finish, and overall quality…"
+                  className="w-full p-3.5 bg-[#FDFBF7] border border-[#1A1C18]/15 rounded-xl text-xs text-[#1A1C18] leading-relaxed placeholder:text-[#4A483E]/50 focus:outline-none focus-visible:outline-none focus:border-[#B78E69] focus:ring-2 focus:ring-[#B78E69]/25 focus:bg-white transition-all resize-y"
                 />
               </div>
 
@@ -804,9 +933,9 @@ export function ProductDetailView({
         )}
 
         {/* Review Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {reviewList.length > 0 ? (
-            reviewList.map((rev) => (
+        {reviewList.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {reviewList.map((rev) => (
               <div
                 key={rev.id}
                 className="bg-white p-6 rounded-2xl border border-[#1A1C18]/10 space-y-3 shadow-xs"
@@ -826,7 +955,7 @@ export function ProductDetailView({
                   </span>
                 </div>
                 <p className="text-xs sm:text-sm text-[#1A1C18]/90 italic leading-relaxed">
-                  &ldquo;{rev.comment || "Exceptional Scandinavian design and finish."}&rdquo;
+                  &ldquo;{rev.comment || "Exceptional design and craft finish."}&rdquo;
                 </p>
                 <div className="text-xs font-semibold text-[#1A1C18] pt-2 border-t border-[#1A1C18]/5 flex items-center justify-between">
                   <span>{rev.reviewer_name || "Verified Resident"}</span>
@@ -835,45 +964,19 @@ export function ProductDetailView({
                   </span>
                 </div>
               </div>
-            ))
-          ) : (
-            <>
-              <div className="bg-white p-6 rounded-2xl border border-[#1A1C18]/10 space-y-3 shadow-xs">
-                <div className="flex items-center justify-between">
-                  <div className="flex text-[#B78E69]">
-                    {[...Array(5)].map((_, i) => (
-                      <Star key={i} className="w-3.5 h-3.5 fill-current" />
-                    ))}
-                  </div>
-                  <span className="text-[11px] font-mono text-[#4A483E]">2 weeks ago</span>
-                </div>
-                <p className="text-xs sm:text-sm text-[#1A1C18]/90 italic leading-relaxed">
-                  &ldquo;The proportion and precision of the {product.name} exceeded our expectations. The timber has a soft tactile oil finish that feels alive. Fits our living area with total quiet grace.&rdquo;
-                </p>
-                <div className="text-xs font-semibold text-[#1A1C18] pt-2 border-t border-[#1A1C18]/5">
-                  Verified Homeowner · Brooklyn, NY
-                </div>
-              </div>
-
-              <div className="bg-white p-6 rounded-2xl border border-[#1A1C18]/10 space-y-3 shadow-xs">
-                <div className="flex items-center justify-between">
-                  <div className="flex text-[#B78E69]">
-                    {[...Array(5)].map((_, i) => (
-                      <Star key={i} className="w-3.5 h-3.5 fill-current" />
-                    ))}
-                  </div>
-                  <span className="text-[11px] font-mono text-[#4A483E]">1 month ago</span>
-                </div>
-                <p className="text-xs sm:text-sm text-[#1A1C18]/90 italic leading-relaxed">
-                  &ldquo;Packaging was pristine and assembly took less than 15 minutes. Truly thoughtful design. Will be outfitting the rest of our study with Kstore.&rdquo;
-                </p>
-                <div className="text-xs font-semibold text-[#1A1C18] pt-2 border-t border-[#1A1C18]/5">
-                  Architectural Designer · Toronto, ON
-                </div>
-              </div>
-            </>
-          )}
-        </div>
+            ))}
+          </div>
+        ) : (
+          <div className="bg-white p-8 rounded-2xl border border-[#1A1C18]/10 text-center space-y-2 shadow-xs">
+            <ShieldCheck className="w-6 h-6 text-[#8A927A] mx-auto" />
+            <p className="text-sm font-semibold text-[#1A1C18]">
+              No verified customer reflections yet
+            </p>
+            <p className="text-xs text-[#4A483E]/80 max-w-md mx-auto leading-relaxed">
+              Only customers whose order containing this item has been paid or delivered can publish a review.
+            </p>
+          </div>
+        )}
       </section>
 
       {/* Related Products */}
@@ -907,11 +1010,11 @@ export function ProductDetailView({
       {/* Recently Viewed Browsing History */}
       <RecentlyViewed currentProductId={product.id} />
 
-      {/* Sticky Bottom Purchase Bar (Desktop) */}
+      {/* Sticky Bottom Purchase Bar (Desktop & Mobile) */}
       {showStickyBar && (
-        <div className="fixed bottom-0 inset-x-0 bg-white/95 backdrop-blur-md border-t border-[#1A1C18]/15 py-3 px-6 z-40 shadow-2xl hidden md:flex items-center justify-between animate-in slide-in-from-bottom-2 duration-200">
-          <div className="flex items-center gap-4">
-            <div className="relative w-12 h-12 rounded-lg overflow-hidden bg-[#F4F0E8] border border-[#1A1C18]/10">
+        <div className="fixed bottom-0 inset-x-0 bg-white/95 backdrop-blur-md border-t border-[#1A1C18]/15 py-2.5 px-3 sm:py-3 sm:px-6 z-40 shadow-2xl flex items-center justify-between gap-2 sm:gap-4 animate-in slide-in-from-bottom-2 duration-200">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="hidden sm:block relative w-12 h-12 rounded-lg overflow-hidden bg-[#F4F0E8] border border-[#1A1C18]/10 shrink-0">
               <Image
                 src={images[0]}
                 alt={product.name}
@@ -920,26 +1023,26 @@ export function ProductDetailView({
                 sizes="48px"
               />
             </div>
-            <div>
-              <h4 className="font-editorial text-lg font-bold text-[#1A1C18]">
+            <div className="min-w-0">
+              <h4 className="font-editorial text-sm sm:text-lg font-bold text-[#1A1C18] truncate">
                 {product.name}
               </h4>
-              <div className="text-xs text-[#4A483E] font-mono">
-                {formatPrice(product.price_cents)} · {selectedColor}
+              <div className="text-[11px] sm:text-xs text-[#4A483E] font-mono truncate">
+                {formatPrice(product.price_cents)}{selectedColor ? ` · ${selectedColor}` : ""}
               </div>
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
             <button
               type="button"
               disabled={product.stock <= 0}
               onClick={handleAddToCart}
               data-btn="dark"
               style={{ color: "#FFFFFF", backgroundColor: "#1A1C18" }}
-              className="px-6 py-2.5 bg-[#1A1C18] text-white text-xs font-semibold rounded-xl hover:bg-[#3d403a] transition-all flex items-center gap-2 shadow-md cursor-pointer"
+              className="px-3.5 sm:px-6 py-2 sm:py-2.5 bg-[#1A1C18] text-white text-[11px] sm:text-xs font-semibold rounded-xl hover:bg-[#3d403a] transition-all flex items-center gap-1.5 sm:gap-2 shadow-md cursor-pointer whitespace-nowrap"
             >
-              <ShoppingBag className="w-4 h-4 text-white" style={{ color: "#FFFFFF" }} />
+              <ShoppingBag className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-white" style={{ color: "#FFFFFF" }} />
               <span style={{ color: "#FFFFFF" }}>Add to Cart</span>
             </button>
             <button
@@ -948,7 +1051,7 @@ export function ProductDetailView({
               onClick={handleBuyNow}
               data-btn="accent"
               style={{ color: "#FFFFFF", backgroundColor: "#B78E69" }}
-              className="px-5 py-2.5 bg-[#B78E69] text-white text-xs font-semibold rounded-xl hover:bg-[#a57d59] transition-all cursor-pointer shadow-md"
+              className="hidden sm:inline-flex px-5 py-2.5 bg-[#B78E69] text-white text-xs font-semibold rounded-xl hover:bg-[#a57d59] transition-all cursor-pointer shadow-md whitespace-nowrap"
             >
               <span style={{ color: "#FFFFFF" }}>Buy Now</span>
             </button>

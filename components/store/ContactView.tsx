@@ -4,22 +4,28 @@ import { useState } from "react";
 import Link from "next/link";
 import {
   Mail,
-  Phone,
   MapPin,
   Clock,
   Send,
   CheckCircle2,
   AlertCircle,
-  Building2,
-  Sparkles,
 } from "lucide-react";
 import type { StoreSettings } from "@/lib/types";
+
+const INQUIRY_TOPICS = [
+  "Order & Dispatch Inquiry",
+  "Product Specifications & Materials",
+  "Architectural / Interior Trade Services",
+  "Returns, Exchanges & 10-Year Warranty",
+  "Press & Editorial",
+  "General Concierge",
+] as const;
 
 export function ContactView({ settings }: { settings: StoreSettings }) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
-  const [category, setCategory] = useState("Order & Dispatch Inquiry");
+  const [category, setCategory] = useState<string>(INQUIRY_TOPICS[0]);
   const [subject, setSubject] = useState("");
   const [message, setMessage] = useState("");
 
@@ -104,7 +110,11 @@ export function ContactView({ settings }: { settings: StoreSettings }) {
           </div>
 
           {successNotice && (
-            <div className="p-4 rounded-2xl bg-[#8A927A]/15 border border-[#8A927A]/30 flex items-start gap-3 text-xs sm:text-sm text-[#1A1C18]">
+            <div
+              role="status"
+              aria-live="polite"
+              className="p-4 rounded-2xl bg-[#8A927A]/15 border border-[#8A927A]/30 flex items-start gap-3 text-xs sm:text-sm text-[#1A1C18]"
+            >
               <CheckCircle2 className="w-5 h-5 text-[#8A927A] shrink-0 mt-0.5" />
               <div>
                 <span className="font-bold block">Inquiry Dispatched</span>
@@ -114,7 +124,10 @@ export function ContactView({ settings }: { settings: StoreSettings }) {
           )}
 
           {errorNotice && (
-            <div className="p-4 rounded-2xl bg-red-50 border border-red-200 flex items-start gap-3 text-xs sm:text-sm text-red-800">
+            <div
+              role="alert"
+              className="p-4 rounded-2xl bg-red-50 border border-red-200 flex items-start gap-3 text-xs sm:text-sm text-red-800"
+            >
               <AlertCircle className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
               <div>
                 <span className="font-bold block">Transmission Error</span>
@@ -126,91 +139,130 @@ export function ContactView({ settings }: { settings: StoreSettings }) {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-semibold text-[#1A1C18] uppercase tracking-wider mb-1.5 font-mono">
+                <label
+                  htmlFor="contact-name"
+                  className="block text-xs font-semibold text-[#1A1C18] uppercase tracking-wider mb-1.5 font-mono"
+                >
                   Full Name <span className="text-[#B78E69]">*</span>
                 </label>
                 <input
+                  id="contact-name"
+                  name="name"
                   type="text"
+                  autoComplete="name"
+                  enterKeyHint="next"
                   required
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="e.g. Astrid Lindgren"
-                  className="w-full px-4 py-3 rounded-xl border border-[#1A1C18]/15 bg-[#FAF9F6] text-xs text-[#1A1C18] focus:outline-hidden focus:ring-2 focus:ring-[#1A1C18] transition-all"
+                  className="w-full px-4 py-3 rounded-xl border border-[#1A1C18]/15 bg-[#FAF9F6] text-xs text-[#1A1C18] placeholder:text-[#4A483E]/45 focus:outline-none focus-visible:outline-none focus:border-[#B78E69] focus:ring-2 focus:ring-[#B78E69]/25 focus:bg-white transition-all"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-[#1A1C18] uppercase tracking-wider mb-1.5 font-mono">
+                <label
+                  htmlFor="contact-email"
+                  className="block text-xs font-semibold text-[#1A1C18] uppercase tracking-wider mb-1.5 font-mono"
+                >
                   Email Address <span className="text-[#B78E69]">*</span>
                 </label>
                 <input
+                  id="contact-email"
+                  name="email"
                   type="email"
+                  autoComplete="email"
+                  autoCapitalize="none"
+                  spellCheck={false}
+                  enterKeyHint="next"
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="name@domain.com"
-                  className="w-full px-4 py-3 rounded-xl border border-[#1A1C18]/15 bg-[#FAF9F6] text-xs text-[#1A1C18] focus:outline-hidden focus:ring-2 focus:ring-[#1A1C18] transition-all"
+                  className="w-full px-4 py-3 rounded-xl border border-[#1A1C18]/15 bg-[#FAF9F6] text-xs text-[#1A1C18] placeholder:text-[#4A483E]/45 focus:outline-none focus-visible:outline-none focus:border-[#B78E69] focus:ring-2 focus:ring-[#B78E69]/25 focus:bg-white transition-all"
                 />
               </div>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-semibold text-[#1A1C18] uppercase tracking-wider mb-1.5 font-mono">
+                <label
+                  htmlFor="contact-phone"
+                  className="block text-xs font-semibold text-[#1A1C18] uppercase tracking-wider mb-1.5 font-mono"
+                >
                   Phone (Optional)
                 </label>
                 <input
+                  id="contact-phone"
+                  name="phone"
                   type="tel"
+                  autoComplete="tel"
+                  enterKeyHint="next"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   placeholder="+1 (555) 000-0000"
-                  className="w-full px-4 py-3 rounded-xl border border-[#1A1C18]/15 bg-[#FAF9F6] text-xs text-[#1A1C18] focus:outline-hidden focus:ring-2 focus:ring-[#1A1C18] transition-all"
+                  className="w-full px-4 py-3 rounded-xl border border-[#1A1C18]/15 bg-[#FAF9F6] text-xs text-[#1A1C18] placeholder:text-[#4A483E]/45 focus:outline-none focus-visible:outline-none focus:border-[#B78E69] focus:ring-2 focus:ring-[#B78E69]/25 focus:bg-white transition-all"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-[#1A1C18] uppercase tracking-wider mb-1.5 font-mono">
+                <label
+                  htmlFor="contact-topic"
+                  className="block text-xs font-semibold text-[#1A1C18] uppercase tracking-wider mb-1.5 font-mono"
+                >
                   Inquiry Topic
                 </label>
                 <select
+                  id="contact-topic"
+                  name="category"
                   value={category}
                   onChange={(e) => setCategory(e.target.value)}
-                  className="w-full px-4 py-3 rounded-xl border border-[#1A1C18]/15 bg-[#FAF9F6] text-xs text-[#1A1C18] focus:outline-hidden focus:ring-2 focus:ring-[#1A1C18] transition-all"
+                  className="kstore-select"
                 >
-                  <option>Order &amp; Dispatch Inquiry</option>
-                  <option>Product Specifications &amp; Materials</option>
-                  <option>Architectural / Interior Trade Services</option>
-                  <option>Press &amp; Editorial</option>
-                  <option>General Concierge</option>
+                  {INQUIRY_TOPICS.map((topic) => (
+                    <option key={topic} value={topic}>
+                      {topic}
+                    </option>
+                  ))}
                 </select>
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-[#1A1C18] uppercase tracking-wider mb-1.5 font-mono">
+              <label
+                htmlFor="contact-subject"
+                className="block text-xs font-semibold text-[#1A1C18] uppercase tracking-wider mb-1.5 font-mono"
+              >
                 Subject <span className="text-[#B78E69]">*</span>
               </label>
               <input
+                id="contact-subject"
+                name="subject"
                 type="text"
+                enterKeyHint="next"
                 required
                 value={subject}
                 onChange={(e) => setSubject(e.target.value)}
                 placeholder="Brief summary of your inquiry..."
-                className="w-full px-4 py-3 rounded-xl border border-[#1A1C18]/15 bg-[#FAF9F6] text-xs text-[#1A1C18] focus:outline-hidden focus:ring-2 focus:ring-[#1A1C18] transition-all"
+                className="w-full px-4 py-3 rounded-xl border border-[#1A1C18]/15 bg-[#FAF9F6] text-xs text-[#1A1C18] placeholder:text-[#4A483E]/45 focus:outline-none focus-visible:outline-none focus:border-[#B78E69] focus:ring-2 focus:ring-[#B78E69]/25 focus:bg-white transition-all"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-[#1A1C18] uppercase tracking-wider mb-1.5 font-mono">
+              <label
+                htmlFor="contact-message"
+                className="block text-xs font-semibold text-[#1A1C18] uppercase tracking-wider mb-1.5 font-mono"
+              >
                 Your Message <span className="text-[#B78E69]">*</span>
               </label>
               <textarea
+                id="contact-message"
+                name="message"
                 required
                 rows={5}
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
                 placeholder="Share your requirements, order numbers, room dimensions, or bespoke finishes..."
-                className="w-full px-4 py-3 rounded-xl border border-[#1A1C18]/15 bg-[#FAF9F6] text-xs text-[#1A1C18] focus:outline-hidden focus:ring-2 focus:ring-[#1A1C18] transition-all"
+                className="w-full px-4 py-3 rounded-xl border border-[#1A1C18]/15 bg-[#FAF9F6] text-xs text-[#1A1C18] leading-relaxed placeholder:text-[#4A483E]/45 focus:outline-none focus-visible:outline-none focus:border-[#B78E69] focus:ring-2 focus:ring-[#B78E69]/25 focus:bg-white transition-all resize-y"
               />
             </div>
 

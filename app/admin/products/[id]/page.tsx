@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, ExternalLink, Sparkles } from "lucide-react";
 import { ProductForm } from "@/components/admin/ProductForm";
-import { getCategories, getProductById } from "@/lib/data/catalog";
+import { getAdminProductById, getCategories } from "@/lib/data/catalog";
 
 export const dynamic = "force-dynamic";
 
@@ -11,7 +11,7 @@ type Params = Promise<{ id: string }>;
 export default async function EditProductPage({ params }: { params: Params }) {
   const { id } = await params;
   const [product, categories] = await Promise.all([
-    getProductById(id),
+    getAdminProductById(id),
     getCategories(),
   ]);
 

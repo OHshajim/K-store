@@ -299,6 +299,27 @@ export async function getProductById(id: string): Promise<Product | null> {
   return { ...found, category: cat ?? null };
 }
 
+export async function getAdminProductById(id: string): Promise<Product | null> {
+  const isUuid =
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+      id
+    );
+  try {
+    const { createAdminClient } = await import("@/lib/supabase/admin");
+    const admin = createAdminClient();
+    const query = admin.from("products").select("*, category:categories(*)");
+    const { data, error } = isUuid
+      ? await query.eq("id", id).maybeSingle()
+      : await query.eq("slug", id).maybeSingle();
+    if (!error && data) {
+      return data as Product;
+    }
+  } catch {
+    // Fall back to regular lookup
+  }
+  return getProductById(id);
+}
+
 export async function getProductBySlug(slug: string): Promise<Product | null> {
   try {
     const supabase = await createClient();

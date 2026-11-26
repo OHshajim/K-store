@@ -154,7 +154,7 @@ export function HeroSection({
       onTouchEnd={handleTouchEnd}
       aria-roledescription="carousel"
       aria-label="Storefront Hero Showcase"
-      className="relative w-full min-h-[640px] lg:min-h-[740px] flex items-center justify-center overflow-hidden bg-[#292B27] select-none"
+      className="relative w-full min-h-[480px] sm:min-h-[600px] lg:min-h-[700px] flex items-center justify-center overflow-hidden bg-[#292B27] select-none"
     >
       {/* Background Lifestyle Image Slides (Crossfade Transitions) */}
       <div className="absolute inset-0 z-0">
@@ -185,7 +185,7 @@ export function HeroSection({
         })}
       </div>
 
-      {/* Floating Side Arrow Navigation (When Multiple Slides) */}
+      {/* Floating Side Arrow Navigation (Desktop/Tablet only so it never overlaps mobile CTAs) */}
       {isMultiple && (
         <>
           <button
@@ -193,7 +193,7 @@ export function HeroSection({
             onClick={prevSlide}
             aria-label="Previous hero slide"
             title="Previous slide (Left Arrow)"
-            className="absolute left-3 sm:left-6 lg:left-8 top-1/2 -translate-y-1/2 z-20 p-2.5 sm:p-3.5 rounded-full bg-black/25 hover:bg-black/55 text-white backdrop-blur-md border border-white/20 transition-all shadow-xl hover:scale-105 active:scale-95 cursor-pointer focus:outline-none focus:ring-2 focus:ring-white/40"
+            className="hidden sm:flex absolute left-4 lg:left-8 top-1/2 -translate-y-1/2 z-20 p-3 rounded-full bg-black/25 hover:bg-black/55 text-white backdrop-blur-md border border-white/20 transition-all shadow-xl hover:scale-105 active:scale-95 cursor-pointer focus:outline-none focus:ring-2 focus:ring-white/40"
           >
             <ChevronLeft className="w-5 h-5 sm:w-6 sm:h-6" />
           </button>
@@ -203,7 +203,7 @@ export function HeroSection({
             onClick={nextSlide}
             aria-label="Next hero slide"
             title="Next slide (Right Arrow)"
-            className="absolute right-3 sm:right-6 lg:right-8 top-1/2 -translate-y-1/2 z-20 p-2.5 sm:p-3.5 rounded-full bg-black/25 hover:bg-black/55 text-white backdrop-blur-md border border-white/20 transition-all shadow-xl hover:scale-105 active:scale-95 cursor-pointer focus:outline-none focus:ring-2 focus:ring-white/40"
+            className="hidden sm:flex absolute right-4 lg:right-8 top-1/2 -translate-y-1/2 z-20 p-3 rounded-full bg-black/25 hover:bg-black/55 text-white backdrop-blur-md border border-white/20 transition-all shadow-xl hover:scale-105 active:scale-95 cursor-pointer focus:outline-none focus:ring-2 focus:ring-white/40"
           >
             <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6" />
           </button>
@@ -213,16 +213,16 @@ export function HeroSection({
       {/* Hero Content Container */}
       <div
         key={`slide-content-${currentSlide.id}-${currentIndex}`}
-        className="relative z-10 max-w-5xl mx-auto px-6 sm:px-8 py-20 text-center text-white animate-in fade-in slide-in-from-bottom-3 duration-700 ease-out"
+        className="relative z-10 max-w-5xl mx-auto px-4 sm:px-8 pt-10 pb-20 sm:py-20 text-center text-white animate-in fade-in slide-in-from-bottom-3 duration-700 ease-out"
       >
         {/* Brand Kicker with Slide Counter */}
-        <div className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-white/15 backdrop-blur-md text-white text-xs font-medium uppercase tracking-widest mb-6 border border-white/20">
+        <div className="inline-flex items-center gap-2 px-3 sm:px-4 py-1 sm:py-1.5 rounded-full bg-white/15 backdrop-blur-md text-white text-[10px] sm:text-xs font-medium uppercase tracking-widest mb-4 sm:mb-6 border border-white/20">
           <span className="w-1.5 h-1.5 rounded-full bg-[#B78E69]" />
           <span>{storeName} Living Essentials</span>
           {isMultiple && (
             <>
               <span className="text-white/40">·</span>
-              <span className="font-mono text-[11px] text-[#D8C9B5]">
+              <span className="font-mono text-[10px] sm:text-[11px] text-[#D8C9B5]">
                 0{currentIndex + 1} / 0{slides.length}
               </span>
             </>
@@ -230,22 +230,22 @@ export function HeroSection({
         </div>
 
         {/* Headline */}
-        <h1 className="font-editorial text-4xl sm:text-6xl lg:text-7xl font-bold tracking-tight text-white mb-6 leading-[1.08] max-w-4xl mx-auto">
+        <h1 className="font-editorial text-3xl sm:text-5xl lg:text-7xl font-bold tracking-tight text-white mb-3.5 sm:mb-6 leading-[1.1] max-w-4xl mx-auto">
           {currentSlide.title}
         </h1>
 
         {/* Description */}
-        <p className="font-sans text-base sm:text-lg lg:text-xl text-[#F4F0E8]/90 max-w-2xl mx-auto mb-10 leading-relaxed font-light">
+        <p className="font-sans text-sm sm:text-lg lg:text-xl text-[#F4F0E8]/90 max-w-2xl mx-auto mb-6 sm:mb-10 leading-relaxed font-light">
           {currentSlide.subtitle}
         </p>
 
         {/* CTAs */}
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-2.5 sm:gap-4">
           <Link
             href={currentSlide.ctaHref}
             data-btn="light"
             style={{ color: "#1A1C18", backgroundColor: "#F4F0E8" }}
-            className="w-full sm:w-auto px-8 py-4 bg-[#F4F0E8] text-[#1A1C18] hover:bg-white text-sm font-bold rounded-xl transition-all duration-200 flex items-center justify-center gap-2 shadow-xl hover:shadow-2xl hover:-translate-y-0.5 cursor-pointer"
+            className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 bg-[#F4F0E8] text-[#1A1C18] hover:bg-white text-xs sm:text-sm font-bold rounded-xl transition-all duration-200 flex items-center justify-center gap-2 shadow-xl hover:shadow-2xl hover:-translate-y-0.5 cursor-pointer"
           >
             <span style={{ color: "#1A1C18" }}>{currentSlide.ctaLabel}</span>
             <ArrowRight className="w-4 h-4 text-[#1A1C18]" style={{ color: "#1A1C18" }} />
@@ -254,7 +254,7 @@ export function HeroSection({
           <Link
             href="/story"
             style={{ color: "#FFFFFF" }}
-            className="w-full sm:w-auto px-8 py-4 bg-white/10 hover:bg-white/20 text-white text-sm font-semibold rounded-xl backdrop-blur-md border border-white/30 transition-all duration-200 flex items-center justify-center gap-2 hover:-translate-y-0.5 cursor-pointer"
+            className="w-full sm:w-auto px-6 sm:px-8 py-3 sm:py-4 bg-white/10 hover:bg-white/20 text-white text-xs sm:text-sm font-semibold rounded-xl backdrop-blur-md border border-white/30 transition-all duration-200 flex items-center justify-center gap-2 hover:-translate-y-0.5 cursor-pointer"
           >
             <span style={{ color: "#FFFFFF" }}>{secondaryCta}</span>
           </Link>
@@ -262,7 +262,7 @@ export function HeroSection({
           <Link
             href="/fit-assistant"
             style={{ color: "#FFFFFF" }}
-            className="w-full sm:w-auto px-6 py-4 bg-[#8A927A]/85 hover:bg-[#8A927A] text-white text-sm font-semibold rounded-xl backdrop-blur-md border border-white/20 transition-all duration-200 flex items-center justify-center gap-2 hover:-translate-y-0.5 cursor-pointer"
+            className="w-full sm:w-auto px-5 sm:px-6 py-3 sm:py-4 bg-[#8A927A]/85 hover:bg-[#8A927A] text-white text-xs sm:text-sm font-semibold rounded-xl backdrop-blur-md border border-white/20 transition-all duration-200 flex items-center justify-center gap-2 hover:-translate-y-0.5 cursor-pointer"
           >
             <Compass className="w-4 h-4 text-white" style={{ color: "#FFFFFF" }} />
             <span style={{ color: "#FFFFFF" }}>Fit Assistant</span>
@@ -270,7 +270,7 @@ export function HeroSection({
         </div>
 
         {/* Value Micro-Pills */}
-        <div className="mt-14 pt-8 border-t border-white/15 grid grid-cols-2 md:grid-cols-4 gap-4 text-xs text-[#D8C9B5]">
+        <div className="mt-8 pt-5 sm:mt-14 sm:pt-8 border-t border-white/15 grid grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-4 text-[11px] sm:text-xs text-[#D8C9B5]">
           <div className="flex items-center justify-center gap-2">
             <span className="w-1.5 h-1.5 rounded-full bg-[#8A927A]" />
             <span>FSC-Certified Solid Timber</span>

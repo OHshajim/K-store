@@ -6,6 +6,7 @@ import Image from "next/image";
 import { Clock, ArrowRight, Trash2 } from "lucide-react";
 import {
   getRecentlyViewed,
+  getRecentlyViewedServerSnapshot,
   subscribeRecentlyViewed,
   clearRecentlyViewed,
 } from "@/lib/storage/recentlyViewed";
@@ -25,7 +26,7 @@ export function RecentlyViewed({
   const rawList = useSyncExternalStore(
     subscribeRecentlyViewed,
     getRecentlyViewed,
-    () => []
+    getRecentlyViewedServerSnapshot
   );
 
   const items = currentProductId
@@ -39,8 +40,8 @@ export function RecentlyViewed({
   return (
     <section className="pt-12 border-t border-[#1A1C18]/10 font-sans">
       {/* Header */}
-      <div className="flex items-end justify-between mb-8">
-        <div>
+      <div className="flex items-start sm:items-end justify-between gap-3 mb-6 sm:mb-8">
+        <div className="min-w-0">
           <div className="flex items-center gap-2 text-xs font-semibold text-[#8A927A] uppercase tracking-widest mb-1.5">
             <Clock className="w-3.5 h-3.5" />
             <span>Browsing Memory</span>
@@ -55,7 +56,7 @@ export function RecentlyViewed({
         <button
           type="button"
           onClick={() => clearRecentlyViewed()}
-          className="text-xs text-[#77766E] hover:text-[#1A1C18] flex items-center gap-1.5 transition-colors cursor-pointer"
+          className="text-xs text-[#77766E] hover:text-[#1A1C18] flex items-center gap-1.5 transition-colors cursor-pointer whitespace-nowrap shrink-0"
           title="Clear browsing memory"
         >
           <Trash2 className="w-3 h-3" />

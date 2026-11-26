@@ -53,7 +53,6 @@ const FALLBACK_COLOR_OPTIONS = [
 
 export function ShopView({
   initialProducts,
-  categories,
   settings,
   initialCategory,
   initialRoom,
@@ -158,7 +157,11 @@ export function ShopView({
     // Material
     if (selectedMaterial && selectedMaterial !== "all") {
       const mat = selectedMaterial.toLowerCase();
-      result = result.filter((p) => p.material?.toLowerCase().includes(mat));
+      result = result.filter(
+        (p) =>
+          p.material?.toLowerCase().includes(mat) ||
+          p.material_variants?.some((v) => v.toLowerCase().includes(mat))
+      );
     }
 
     // Color
@@ -234,6 +237,219 @@ export function ShopView({
   const currentSortLabel =
     SORT_OPTIONS.find((o) => o.id === selectedSort)?.label || "Featured Picks";
 
+  const renderFilterSections = (idPrefix: string) => (
+    <>
+      {/* Room Filter */}
+      <div>
+        <span className="block text-[11px] font-bold uppercase tracking-wider text-[#4A483E] mb-2.5">
+          Room Atmosphere
+        </span>
+        <div className="space-y-1.5">
+          <button
+            type="button"
+            onClick={() => setSelectedRoom("all")}
+            data-btn={selectedRoom === "all" ? "dark" : undefined}
+            style={{
+              color: selectedRoom === "all" ? "#FFFFFF" : "#1A1C18",
+              backgroundColor: selectedRoom === "all" ? "#1A1C18" : "#FAF9F6",
+            }}
+            className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-medium transition-all cursor-pointer border ${
+              selectedRoom === "all"
+                ? "border-[#1A1C18] font-semibold shadow-xs"
+                : "border-[#1A1C18]/10 hover:bg-[#F4F0E8]"
+            }`}
+          >
+            <span style={{ color: selectedRoom === "all" ? "#FFFFFF" : "#1A1C18" }}>
+              All Rooms
+            </span>
+            {selectedRoom === "all" && (
+              <Check className="w-3.5 h-3.5 text-white shrink-0" style={{ color: "#FFFFFF" }} />
+            )}
+          </button>
+
+          <div className="grid grid-cols-2 gap-1.5">
+            {ROOM_OPTIONS.map((room) => {
+              const isSelected = selectedRoom === room.id;
+              return (
+                <button
+                  key={room.id}
+                  type="button"
+                  onClick={() => setSelectedRoom(room.id)}
+                  data-btn={isSelected ? "dark" : undefined}
+                  style={{
+                    color: isSelected ? "#FFFFFF" : "#1A1C18",
+                    backgroundColor: isSelected ? "#1A1C18" : "transparent",
+                  }}
+                  className={`flex items-center justify-between px-2.5 py-2 rounded-xl text-xs font-medium transition-all cursor-pointer border text-left ${
+                    isSelected
+                      ? "border-[#1A1C18] font-semibold shadow-xs"
+                      : "border-[#1A1C18]/10 hover:bg-[#F4F0E8]"
+                  }`}
+                >
+                  <span
+                    className="truncate"
+                    style={{ color: isSelected ? "#FFFFFF" : "#1A1C18" }}
+                  >
+                    {room.label}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+
+      {/* Material Filter */}
+      <div className="pt-4 border-t border-[#1A1C18]/10">
+        <span className="block text-[11px] font-bold uppercase tracking-wider text-[#4A483E] mb-2.5">
+          Core Material
+        </span>
+        <div className="kstore-pill-group items-center gap-1.5">
+          <button
+            type="button"
+            onClick={() => setSelectedMaterial("all")}
+            data-btn={selectedMaterial === "all" ? "dark" : undefined}
+            style={{
+              color: selectedMaterial === "all" ? "#FFFFFF" : "#1A1C18",
+              backgroundColor: selectedMaterial === "all" ? "#1A1C18" : "#FAF9F6",
+            }}
+            className={`px-2.5 py-1.5 rounded-lg text-[11px] font-medium transition-all cursor-pointer border ${
+              selectedMaterial === "all"
+                ? "border-[#1A1C18] font-semibold shadow-xs"
+                : "border-[#1A1C18]/12 hover:bg-[#F4F0E8]"
+            }`}
+          >
+            All
+          </button>
+          {MATERIAL_OPTIONS.map((mat) => {
+            const isSelected = selectedMaterial === mat;
+            return (
+              <button
+                key={mat}
+                type="button"
+                onClick={() => setSelectedMaterial(mat)}
+                data-btn={isSelected ? "dark" : undefined}
+                style={{
+                  color: isSelected ? "#FFFFFF" : "#1A1C18",
+                  backgroundColor: isSelected ? "#1A1C18" : "#FFFFFF",
+                }}
+                className={`px-2.5 py-1.5 rounded-lg text-[11px] font-medium transition-all cursor-pointer border ${
+                  isSelected
+                    ? "border-[#1A1C18] font-semibold shadow-xs"
+                    : "border-[#1A1C18]/12 hover:bg-[#F4F0E8]"
+                }`}
+              >
+                {mat}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Color Filter */}
+      <div className="pt-4 border-t border-[#1A1C18]/10">
+        <div className="flex items-center justify-between gap-2 mb-2.5">
+          <span className="text-[11px] font-bold uppercase tracking-wider text-[#4A483E]">
+            Color Finish
+          </span>
+          {selectedColor !== "all" && (
+            <span className="text-[11px] font-medium text-[#1A1C18] truncate max-w-[130px]">
+              {selectedColor}
+            </span>
+          )}
+        </div>
+        <div className="flex flex-wrap items-center gap-2.5 p-0.5">
+          <button
+            type="button"
+            onClick={() => setSelectedColor("all")}
+            data-btn={selectedColor === "all" ? "dark" : undefined}
+            style={{
+              color: selectedColor === "all" ? "#FFFFFF" : "#4A483E",
+              backgroundColor: selectedColor === "all" ? "#1A1C18" : "#FFFFFF",
+            }}
+            className={`px-3 py-1 rounded-lg text-[11px] font-semibold border transition-all cursor-pointer ${
+              selectedColor === "all"
+                ? "border-transparent shadow-xs"
+                : "border-[#1A1C18]/20 hover:bg-[#F4F0E8]"
+            }`}
+          >
+            All
+          </button>
+          {colorOptions.map((col) => (
+            <button
+              key={col.name}
+              type="button"
+              onClick={() => setSelectedColor(col.name)}
+              title={col.name}
+              aria-pressed={selectedColor === col.name}
+              className={`w-6 h-6 rounded-full border transition-all cursor-pointer ${
+                selectedColor === col.name
+                  ? "ring-2 ring-[#1A1C18] ring-offset-2 scale-110"
+                  : "border-black/20 hover:scale-110"
+              }`}
+              style={{ backgroundColor: col.hex }}
+              aria-label={col.name}
+            />
+          ))}
+        </div>
+      </div>
+
+      {/* Price Range Slider */}
+      <div className="pt-4 border-t border-[#1A1C18]/10 space-y-2">
+        <div className="flex justify-between items-center text-xs">
+          <label
+            htmlFor={`${idPrefix}-budget-range`}
+            className="font-bold uppercase tracking-wider text-[#4A483E]"
+          >
+            Max Budget
+          </label>
+          <span className="font-mono font-bold text-sm text-[#1A1C18]">
+            ${maxPrice}
+          </span>
+        </div>
+        <input
+          id={`${idPrefix}-budget-range`}
+          type="range"
+          min={50}
+          max={catalogMaxPrice}
+          step={25}
+          value={maxPrice}
+          onChange={(e) => setMaxPrice(Number(e.target.value))}
+          className="w-full accent-[#1A1C18] cursor-pointer"
+        />
+        <div className="flex justify-between text-[11px] text-[#4A483E] font-mono">
+          <span>$50</span>
+          <span>${catalogMaxPrice}+</span>
+        </div>
+      </div>
+
+      {/* In-Stock Toggle Switch */}
+      <div className="pt-4 border-t border-[#1A1C18]/10">
+        <div className="flex items-center justify-between">
+          <span className="text-xs font-semibold text-[#1A1C18]">
+            In Stock Only
+          </span>
+          <button
+            type="button"
+            role="switch"
+            aria-label="In Stock Only"
+            aria-checked={inStockOnly}
+            onClick={() => setInStockOnly(!inStockOnly)}
+            className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out ${
+              inStockOnly ? "bg-[#1A1C18]" : "bg-gray-200"
+            }`}
+          >
+            <span
+              className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out ${
+                inStockOnly ? "translate-x-5" : "translate-x-0"
+              }`}
+            />
+          </button>
+        </div>
+      </div>
+    </>
+  );
+
   return (
     <div className="py-10 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
       {/* Editorial Header */}
@@ -251,9 +467,9 @@ export function ShopView({
       </div>
 
       {/* Top Filter & Search Controls */}
-      <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4 mb-8">
+      <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4 mb-6">
         {/* Polished Architectural Search Bar */}
-        <div className="relative flex-1 max-w-md">
+        <div className="relative flex-1 w-full lg:max-w-md">
           <div className="flex items-center bg-white rounded-2xl border border-[#1A1C18]/15 px-4 py-2.5 shadow-xs transition-all focus-within:border-[#1A1C18] focus-within:ring-2 focus-within:ring-[#1A1C18]/10 hover:border-[#1A1C18]/30">
             <Search className="w-4 h-4 text-[#4A483E] shrink-0 mr-3" />
             <input
@@ -261,7 +477,7 @@ export function ShopView({
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search timber, lamps, shelves, or name..."
-              className="w-full bg-transparent text-sm text-[#1A1C18] placeholder:text-[#4A483E]/70 outline-none border-none focus:outline-none focus:ring-0"
+              className="w-full min-w-0 bg-transparent text-sm text-[#1A1C18] placeholder:text-[#4A483E]/70 outline-none border-none focus:outline-none focus:ring-0"
             />
             {searchQuery ? (
               <button
@@ -281,7 +497,7 @@ export function ShopView({
         </div>
 
         {/* Right actions: Mobile Filter Button & Custom Sort Dropdown */}
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center justify-between sm:justify-end gap-3">
           {/* Mobile Filter Toggle */}
           <button
             type="button"
@@ -339,283 +555,31 @@ export function ShopView({
         </div>
       </div>
 
-      {/* Category Pills Navigation (High contrast, explicit borders and pill shapes) */}
-      <div className="flex items-center gap-2.5 overflow-x-auto pb-4 mb-8 no-scrollbar">
-        <button
-          type="button"
-          onClick={() => setSelectedCategory("all")}
-          data-btn={selectedCategory === "all" ? "dark" : undefined}
-          style={{
-            color: selectedCategory === "all" ? "#FFFFFF" : "#1A1C18",
-            backgroundColor: selectedCategory === "all" ? "#1A1C18" : "#FFFFFF",
-          }}
-          className={`px-5 py-2.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all cursor-pointer flex items-center gap-2 border ${
-            selectedCategory === "all"
-              ? "border-[#1A1C18] shadow-sm"
-              : "border-[#1A1C18]/15 hover:border-[#1A1C18]/40 hover:bg-[#F4F0E8]"
-          }`}
-        >
-          <span style={{ color: selectedCategory === "all" ? "#FFFFFF" : "#1A1C18" }}>
-            All Collections
-          </span>
-          <span
-            style={{
-              color: selectedCategory === "all" ? "#FFFFFF" : "#4A483E",
-              backgroundColor: selectedCategory === "all" ? "rgba(255,255,255,0.2)" : "#F4F0E8",
-            }}
-            className="text-[11px] font-mono px-2 py-0.5 rounded-full"
-          >
-            {initialProducts.length}
-          </span>
-        </button>
-
-        {categories.map((cat) => {
-          const count = initialProducts.filter(
-            (p) => p.category?.slug === cat.slug || p.category_id === cat.id
-          ).length;
-          const isSelected = selectedCategory === cat.slug;
-
-          return (
-            <button
-              key={cat.id || cat.slug}
-              type="button"
-              onClick={() => setSelectedCategory(cat.slug)}
-              data-btn={isSelected ? "dark" : undefined}
-              style={{
-                color: isSelected ? "#FFFFFF" : "#1A1C18",
-                backgroundColor: isSelected ? "#1A1C18" : "#FFFFFF",
-              }}
-              className={`px-5 py-2.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all cursor-pointer flex items-center gap-2 border ${
-                isSelected
-                  ? "border-[#1A1C18] shadow-sm"
-                  : "border-[#1A1C18]/15 hover:border-[#1A1C18]/40 hover:bg-[#F4F0E8]"
-              }`}
-            >
-              <span style={{ color: isSelected ? "#FFFFFF" : "#1A1C18" }}>{cat.name}</span>
-              <span
-                style={{
-                  color: isSelected ? "#FFFFFF" : "#4A483E",
-                  backgroundColor: isSelected ? "rgba(255,255,255,0.2)" : "#F4F0E8",
-                }}
-                className="text-[11px] font-mono px-2 py-0.5 rounded-full"
-              >
-                {count}
-              </span>
-            </button>
-          );
-        })}
-      </div>
-
       {/* Main Catalog Layout with Sidebar Filter */}
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-[268px_minmax(0,1fr)] xl:grid-cols-[280px_minmax(0,1fr)] gap-8 items-start">
         {/* Desktop Sidebar Filters */}
-        <aside className="hidden lg:block space-y-6 bg-white p-6 rounded-3xl border border-[#1A1C18]/12 h-fit sticky top-28 shadow-xs">
-          <div className="flex items-center justify-between pb-4 border-b border-[#1A1C18]/10">
-            <h3 className="font-editorial text-2xl font-bold text-[#1A1C18] flex items-center gap-2">
-              <SlidersHorizontal className="w-4 h-4 text-[#8A927A]" />
-              Filter Catalog
+        <aside className="hidden lg:block space-y-5 bg-white p-5 xl:p-6 rounded-3xl border border-[#1A1C18]/12 shadow-xs">
+          <div className="flex items-center justify-between gap-2 pb-3.5 border-b border-[#1A1C18]/10">
+            <h3 className="font-editorial text-xl font-bold text-[#1A1C18] flex items-center gap-2 whitespace-nowrap min-w-0">
+              <SlidersHorizontal className="w-4 h-4 text-[#8A927A] shrink-0" />
+              <span>Filter Catalog</span>
             </h3>
             {hasActiveFilters && (
               <button
                 type="button"
                 onClick={handleClearFilters}
-                className="text-xs text-[#B78E69] hover:underline font-semibold flex items-center gap-1 cursor-pointer"
+                className="text-xs text-[#B78E69] hover:underline font-semibold flex items-center gap-1 cursor-pointer shrink-0"
               >
                 <RotateCcw className="w-3 h-3" /> Reset
               </button>
             )}
           </div>
 
-          {/* Room Filter */}
-          <div>
-            <label className="block text-[11px] font-bold uppercase tracking-wider text-[#4A483E] mb-3">
-              Room Atmosphere
-            </label>
-            <div className="space-y-1">
-              <button
-                type="button"
-                onClick={() => setSelectedRoom("all")}
-                data-btn={selectedRoom === "all" ? "dark" : undefined}
-                style={{
-                  color: selectedRoom === "all" ? "#FFFFFF" : "#1A1C18",
-                  backgroundColor: selectedRoom === "all" ? "#1A1C18" : "transparent",
-                }}
-                className={`w-full flex items-center justify-between px-3.5 py-2 rounded-xl text-xs font-medium transition-all cursor-pointer ${
-                  selectedRoom === "all"
-                    ? "font-semibold shadow-xs"
-                    : "hover:bg-[#F4F0E8]"
-                }`}
-              >
-                <span style={{ color: selectedRoom === "all" ? "#FFFFFF" : "#1A1C18" }}>All Rooms</span>
-                {selectedRoom === "all" && <Check className="w-3.5 h-3.5 text-white" style={{ color: "#FFFFFF" }} />}
-              </button>
-              {ROOM_OPTIONS.map((room) => {
-                const isSelected = selectedRoom === room.id;
-                return (
-                  <button
-                    key={room.id}
-                    type="button"
-                    onClick={() => setSelectedRoom(room.id)}
-                    data-btn={isSelected ? "dark" : undefined}
-                    style={{
-                      color: isSelected ? "#FFFFFF" : "#1A1C18",
-                      backgroundColor: isSelected ? "#1A1C18" : "transparent",
-                    }}
-                    className={`w-full flex items-center justify-between px-3.5 py-2 rounded-xl text-xs font-medium transition-all cursor-pointer ${
-                      isSelected
-                        ? "font-semibold shadow-xs"
-                        : "hover:bg-[#F4F0E8]"
-                    }`}
-                  >
-                    <span style={{ color: isSelected ? "#FFFFFF" : "#1A1C18" }}>{room.label}</span>
-                    {isSelected && <Check className="w-3.5 h-3.5 text-white" style={{ color: "#FFFFFF" }} />}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Material Filter */}
-          <div className="pt-4 border-t border-[#1A1C18]/10">
-            <label className="block text-[11px] font-bold uppercase tracking-wider text-[#4A483E] mb-3">
-              Core Material
-            </label>
-            <div className="space-y-1">
-              <button
-                type="button"
-                onClick={() => setSelectedMaterial("all")}
-                data-btn={selectedMaterial === "all" ? "dark" : undefined}
-                style={{
-                  color: selectedMaterial === "all" ? "#FFFFFF" : "#1A1C18",
-                  backgroundColor: selectedMaterial === "all" ? "#1A1C18" : "transparent",
-                }}
-                className={`w-full flex items-center justify-between px-3.5 py-2 rounded-xl text-xs font-medium transition-all cursor-pointer ${
-                  selectedMaterial === "all"
-                    ? "font-semibold shadow-xs"
-                    : "hover:bg-[#F4F0E8]"
-                }`}
-              >
-                <span style={{ color: selectedMaterial === "all" ? "#FFFFFF" : "#1A1C18" }}>All Materials</span>
-                {selectedMaterial === "all" && <Check className="w-3.5 h-3.5 text-white" style={{ color: "#FFFFFF" }} />}
-              </button>
-              {MATERIAL_OPTIONS.map((mat) => {
-                const isSelected = selectedMaterial === mat;
-                return (
-                  <button
-                    key={mat}
-                    type="button"
-                    onClick={() => setSelectedMaterial(mat)}
-                    data-btn={isSelected ? "dark" : undefined}
-                    style={{
-                      color: isSelected ? "#FFFFFF" : "#1A1C18",
-                      backgroundColor: isSelected ? "#1A1C18" : "transparent",
-                    }}
-                    className={`w-full flex items-center justify-between px-3.5 py-2 rounded-xl text-xs font-medium transition-all cursor-pointer ${
-                      isSelected
-                        ? "font-semibold shadow-xs"
-                        : "hover:bg-[#F4F0E8]"
-                    }`}
-                  >
-                    <span style={{ color: isSelected ? "#FFFFFF" : "#1A1C18" }}>{mat}</span>
-                    {isSelected && <Check className="w-3.5 h-3.5 text-white" style={{ color: "#FFFFFF" }} />}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Color Filter */}
-          <div className="pt-4 border-t border-[#1A1C18]/10">
-            <label className="block text-[11px] font-bold uppercase tracking-wider text-[#4A483E] mb-3">
-              Color Finish
-            </label>
-            <div className="flex flex-wrap gap-2">
-              <button
-                type="button"
-                onClick={() => setSelectedColor("all")}
-                data-btn={selectedColor === "all" ? "dark" : undefined}
-                style={{
-                  color: selectedColor === "all" ? "#FFFFFF" : "#4A483E",
-                  backgroundColor: selectedColor === "all" ? "#1A1C18" : "#FFFFFF",
-                }}
-                className={`px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
-                  selectedColor === "all"
-                    ? "border-transparent shadow-xs"
-                    : "border-[#1A1C18]/20 hover:bg-[#F4F0E8]"
-                }`}
-              >
-                All
-              </button>
-              {colorOptions.map((col) => (
-                <button
-                  key={col.name}
-                  type="button"
-                  onClick={() => setSelectedColor(col.name)}
-                  title={col.name}
-                  className={`w-7 h-7 rounded-full border transition-all cursor-pointer ${
-                    selectedColor === col.name
-                      ? "ring-2 ring-[#1A1C18] ring-offset-2 scale-110"
-                      : "border-black/20 hover:scale-110"
-                  }`}
-                  style={{ backgroundColor: col.hex }}
-                  aria-label={col.name}
-                />
-              ))}
-            </div>
-          </div>
-
-          {/* Price Range Slider */}
-          <div className="pt-4 border-t border-[#1A1C18]/10 space-y-2.5">
-            <div className="flex justify-between items-center text-xs">
-              <span className="font-bold uppercase tracking-wider text-[#4A483E]">
-                Max Budget
-              </span>
-              <span className="font-mono font-bold text-sm text-[#1A1C18]">
-                ${maxPrice}
-              </span>
-            </div>
-            <input
-              type="range"
-              min={50}
-              max={catalogMaxPrice}
-              step={25}
-              value={maxPrice}
-              onChange={(e) => setMaxPrice(Number(e.target.value))}
-              className="w-full accent-[#1A1C18] cursor-pointer"
-            />
-            <div className="flex justify-between text-[11px] text-[#4A483E] font-mono">
-              <span>$50</span>
-              <span>${catalogMaxPrice}+</span>
-            </div>
-          </div>
-
-          {/* In-Stock Toggle Switch */}
-          <div className="pt-4 border-t border-[#1A1C18]/10">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-semibold text-[#1A1C18]">
-                In Stock Only
-              </span>
-              <button
-                type="button"
-                role="switch"
-                aria-checked={inStockOnly}
-                onClick={() => setInStockOnly(!inStockOnly)}
-                className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out ${
-                  inStockOnly ? "bg-[#1A1C18]" : "bg-gray-200"
-                }`}
-              >
-                <span
-                  className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out ${
-                    inStockOnly ? "translate-x-5" : "translate-x-0"
-                  }`}
-                />
-              </button>
-            </div>
-          </div>
+          {renderFilterSections("desktop")}
         </aside>
 
         {/* Product Grid Area */}
-        <div className="lg:col-span-3 space-y-6">
+        <div className="min-w-0 space-y-6">
           {/* Active Filter Indicators & Count */}
           <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-[#4A483E] pb-2">
             <div>
@@ -629,6 +593,7 @@ export function ShopView({
                   <span className="inline-flex items-center gap-1 px-3 py-1 bg-white border border-[#1A1C18]/15 rounded-full text-xs font-medium text-[#1A1C18] shadow-2xs">
                     Category: {selectedCategory}
                     <button
+                      type="button"
                       onClick={() => setSelectedCategory("all")}
                       className="hover:text-red-600 ml-1 text-sm cursor-pointer"
                     >
@@ -640,6 +605,7 @@ export function ShopView({
                   <span className="inline-flex items-center gap-1 px-3 py-1 bg-white border border-[#1A1C18]/15 rounded-full text-xs font-medium text-[#1A1C18] shadow-2xs">
                     Room: {selectedRoom}
                     <button
+                      type="button"
                       onClick={() => setSelectedRoom("all")}
                       className="hover:text-red-600 ml-1 text-sm cursor-pointer"
                     >
@@ -651,6 +617,7 @@ export function ShopView({
                   <span className="inline-flex items-center gap-1 px-3 py-1 bg-white border border-[#1A1C18]/15 rounded-full text-xs font-medium text-[#1A1C18] shadow-2xs">
                     Material: {selectedMaterial}
                     <button
+                      type="button"
                       onClick={() => setSelectedMaterial("all")}
                       className="hover:text-red-600 ml-1 text-sm cursor-pointer"
                     >
@@ -662,6 +629,7 @@ export function ShopView({
                   <span className="inline-flex items-center gap-1 px-3 py-1 bg-white border border-[#1A1C18]/15 rounded-full text-xs font-medium text-[#1A1C18] shadow-2xs">
                     Color: {selectedColor}
                     <button
+                      type="button"
                       onClick={() => setSelectedColor("all")}
                       className="hover:text-red-600 ml-1 text-sm cursor-pointer"
                     >
@@ -673,6 +641,7 @@ export function ShopView({
                   <span className="inline-flex items-center gap-1 px-3 py-1 bg-white border border-[#1A1C18]/15 rounded-full text-xs font-medium text-[#1A1C18] shadow-2xs">
                     Under ${maxPrice}
                     <button
+                      type="button"
                       onClick={() => setMaxPrice(catalogMaxPrice)}
                       className="hover:text-red-600 ml-1 text-sm cursor-pointer"
                     >
@@ -684,6 +653,7 @@ export function ShopView({
                   <span className="inline-flex items-center gap-1 px-3 py-1 bg-white border border-[#1A1C18]/15 rounded-full text-xs font-medium text-[#1A1C18] shadow-2xs">
                     In Stock Only
                     <button
+                      type="button"
                       onClick={() => setInStockOnly(false)}
                       className="hover:text-red-600 ml-1 text-sm cursor-pointer"
                     >
@@ -692,6 +662,7 @@ export function ShopView({
                   </span>
                 )}
                 <button
+                  type="button"
                   onClick={handleClearFilters}
                   className="text-xs text-[#B78E69] hover:underline font-semibold ml-1 cursor-pointer"
                 >
@@ -713,85 +684,31 @@ export function ShopView({
             className="fixed inset-0 bg-[#1A1C18]/60 backdrop-blur-xs"
             onClick={() => setIsMobileFilterOpen(false)}
           />
-          <div className="relative ml-auto w-full max-w-xs bg-white h-full p-6 shadow-2xl flex flex-col justify-between overflow-y-auto">
-            <div className="space-y-6">
-              <div className="flex items-center justify-between pb-4 border-b border-[#1A1C18]/10">
-                <h3 className="font-editorial text-2xl font-bold text-[#1A1C18]">
-                  Filter Catalog
-                </h3>
-                <button
-                  onClick={() => setIsMobileFilterOpen(false)}
-                  className="p-1 rounded-full text-[#4A483E] hover:text-[#1A1C18]"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-
-              {/* Room */}
-              <div>
-                <label className="block text-[11px] font-bold uppercase tracking-wider text-[#4A483E] mb-2">
-                  Room
-                </label>
-                <div className="grid grid-cols-2 gap-2">
-                  {ROOM_OPTIONS.map((r) => {
-                    const isSelected = selectedRoom === r.id;
-                    return (
-                      <button
-                        key={r.id}
-                        type="button"
-                        onClick={() => setSelectedRoom(r.id)}
-                        data-btn={isSelected ? "dark" : undefined}
-                        style={{
-                          color: isSelected ? "#FFFFFF" : "#1A1C18",
-                          backgroundColor: isSelected ? "#1A1C18" : "#FFFFFF",
-                        }}
-                        className={`p-2.5 text-xs rounded-xl border text-center transition-all ${
-                          isSelected
-                            ? "border-[#1A1C18] font-bold"
-                            : "border-[#1A1C18]/15 hover:bg-[#F4F0E8]"
-                        }`}
-                      >
-                        {r.label}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Max Price */}
-              <div className="space-y-2">
-                <div className="flex justify-between text-xs font-bold text-[#1A1C18]">
-                  <span>Max Budget</span>
-                  <span className="font-mono">${maxPrice}</span>
-                </div>
-                <input
-                  type="range"
-                  min={50}
-                  max={catalogMaxPrice}
-                  step={25}
-                  value={maxPrice}
-                  onChange={(e) => setMaxPrice(Number(e.target.value))}
-                  className="w-full accent-[#1A1C18]"
-                />
-              </div>
-
-              {/* In Stock */}
-              <label className="flex items-center justify-between text-xs font-semibold text-[#1A1C18] cursor-pointer">
-                <span>In Stock Only</span>
-                <input
-                  type="checkbox"
-                  checked={inStockOnly}
-                  onChange={(e) => setInStockOnly(e.target.checked)}
-                  className="w-4 h-4 rounded text-[#1A1C18] accent-[#1A1C18]"
-                />
-              </label>
+          <div className="relative ml-auto w-[88vw] max-w-sm bg-white h-full shadow-2xl flex flex-col overflow-hidden">
+            <div className="shrink-0 px-5 py-4 border-b border-[#1A1C18]/10 flex items-center justify-between gap-2 bg-white">
+              <h3 className="font-editorial text-lg sm:text-xl font-bold text-[#1A1C18] flex items-center gap-2 whitespace-nowrap">
+                <SlidersHorizontal className="w-4 h-4 text-[#8A927A] shrink-0" />
+                <span>Filter Catalog</span>
+              </h3>
+              <button
+                type="button"
+                onClick={() => setIsMobileFilterOpen(false)}
+                aria-label="Close filters"
+                className="w-10 h-10 -mr-1.5 flex items-center justify-center rounded-full text-[#4A483E] hover:text-[#1A1C18] hover:bg-[#F4F0E8] transition-colors cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
             </div>
 
-            <div className="pt-6 border-t border-[#1A1C18]/10 flex gap-3">
+            <div className="flex-1 overflow-y-auto px-5 py-4 overscroll-contain">
+              {renderFilterSections("mobile")}
+            </div>
+
+            <div className="shrink-0 px-5 py-4 border-t border-[#1A1C18]/10 flex gap-3 bg-white">
               <button
                 type="button"
                 onClick={handleClearFilters}
-                className="flex-1 py-3 border border-[#1A1C18]/20 rounded-xl text-xs font-semibold text-[#1A1C18] hover:bg-[#F4F0E8]"
+                className="flex-1 py-2.5 border border-[#1A1C18]/20 rounded-xl text-xs font-semibold text-[#1A1C18] hover:bg-[#F4F0E8] cursor-pointer"
               >
                 Clear
               </button>
@@ -800,7 +717,7 @@ export function ShopView({
                 onClick={() => setIsMobileFilterOpen(false)}
                 data-btn="dark"
                 style={{ color: "#FFFFFF", backgroundColor: "#1A1C18" }}
-                className="flex-1 py-3 bg-[#1A1C18] text-white rounded-xl text-xs font-semibold shadow-sm hover:bg-[#32362F]"
+                className="flex-1 py-2.5 bg-[#1A1C18] text-white rounded-xl text-xs font-semibold shadow-sm hover:bg-[#32362F] cursor-pointer"
               >
                 <span style={{ color: "#FFFFFF" }}>Apply ({filteredProducts.length})</span>
               </button>

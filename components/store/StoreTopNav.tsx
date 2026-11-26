@@ -19,7 +19,6 @@ import { useCartStore } from "@/lib/cart/store";
 import { useWishlistStore } from "@/lib/wishlist/store";
 import { SearchModal } from "./SearchModal";
 import { CartDrawer } from "./CartDrawer";
-import { CurrencySelector } from "./CurrencySelector";
 import type { Category, Profile } from "@/lib/types";
 
 export function StoreTopNav({
@@ -78,22 +77,22 @@ export function StoreTopNav({
   return (
     <>
       <header className="sticky top-0 z-40 bg-[#F4F0E8]/95 backdrop-blur-md border-b border-[#1A1C18]/10 transition-all print:hidden">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-20 gap-4">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16 sm:h-20 gap-2 sm:gap-4">
             {/* Left: Mobile Hamburger & Brand Logo together */}
-            <div className="flex items-center gap-2.5 sm:gap-4 shrink-0">
+            <div className="flex items-center gap-2 sm:gap-4 min-w-0">
               <button
                 type="button"
                 onClick={() => setIsMobileMenuOpen(true)}
-                className="lg:hidden p-2 -ml-2 text-[#1A1C18] hover:text-[#B78E69] focus:outline-none cursor-pointer transition-colors"
+                className="lg:hidden w-10 h-10 -ml-1.5 flex items-center justify-center rounded-xl text-[#1A1C18] hover:text-[#B78E69] hover:bg-black/5 focus:outline-none cursor-pointer transition-colors shrink-0"
                 aria-label="Open mobile navigation menu"
               >
-                <Menu className="w-6 h-6" />
+                <Menu className="w-5 h-5 sm:w-6 sm:h-6" />
               </button>
 
-              <Link href="/" className="group flex items-center gap-3">
+              <Link href="/" className="group flex items-center gap-2 sm:gap-3 min-w-0">
                 {logoUrl && (
-                  <div className="relative w-8 h-8 sm:w-9 sm:h-9 rounded-xl overflow-hidden bg-white/40 border border-[#1A1C18]/10 shrink-0">
+                  <div className="relative w-7 h-7 sm:w-9 sm:h-9 rounded-xl overflow-hidden bg-white/40 border border-[#1A1C18]/10 shrink-0">
                     <Image
                       src={logoUrl}
                       alt={storeName}
@@ -103,11 +102,11 @@ export function StoreTopNav({
                     />
                   </div>
                 )}
-                <div className="flex flex-col items-start">
-                  <span className="font-editorial text-2xl sm:text-3xl font-bold tracking-tight text-[#1A1C18] group-hover:text-[#B78E69] transition-colors uppercase leading-none">
+                <div className="flex flex-col items-start min-w-0">
+                  <span className="font-editorial text-xl sm:text-3xl font-bold tracking-tight text-[#1A1C18] group-hover:text-[#B78E69] transition-colors uppercase leading-none truncate">
                     {storeName}
                   </span>
-                  <span className="text-[8px] sm:text-[9px] uppercase tracking-widest text-[#4A483E] mt-0.5 font-sans font-semibold">
+                  <span className="hidden sm:block text-[9px] uppercase tracking-widest text-[#4A483E] mt-0.5 font-sans font-semibold">
                     Modern Living, Simplified
                   </span>
                 </div>
@@ -318,17 +317,17 @@ export function StoreTopNav({
                 onClick={openCart}
                 data-btn="dark"
                 style={{ color: "#FFFFFF", backgroundColor: "#1A1C18" }}
-                className="relative flex items-center gap-2 px-3 sm:px-3.5 py-2 bg-[#1A1C18] text-white rounded-xl hover:bg-[#32362F] transition-all shadow-xs cursor-pointer whitespace-nowrap shrink-0"
+                className="relative flex items-center justify-center gap-2 w-10 h-10 sm:w-auto sm:h-auto sm:px-3.5 sm:py-2 bg-[#1A1C18] text-white rounded-xl hover:bg-[#32362F] transition-all shadow-xs cursor-pointer whitespace-nowrap shrink-0"
                 aria-label="Shopping Cart"
               >
-                <ShoppingBag className="w-4 h-4 text-white" style={{ color: "#FFFFFF" }} />
+                <ShoppingBag className="w-4 h-4 text-white shrink-0" style={{ color: "#FFFFFF" }} />
                 <span className="hidden sm:inline text-xs font-semibold tracking-wide" style={{ color: "#FFFFFF" }}>
                   Cart
                 </span>
                 {isMounted && cartCount > 0 && (
                   <span
                     style={{ color: "#FFFFFF", backgroundColor: "#B78E69" }}
-                    className="w-4 h-4 bg-[#B78E69] text-white text-[10px] font-bold rounded-full flex items-center justify-center font-mono"
+                    className="absolute -top-1.5 -right-1.5 sm:static w-4 h-4 bg-[#B78E69] text-white text-[10px] font-bold rounded-full flex items-center justify-center font-mono ring-2 ring-[#F4F0E8] sm:ring-0"
                   >
                     {cartCount}
                   </span>
@@ -350,27 +349,27 @@ export function StoreTopNav({
           />
 
           {/* Slide-in Drawer Content (Never pushes down page flow) */}
-          <div className="fixed inset-y-0 left-0 w-full max-w-xs sm:max-w-sm bg-[#F4F0E8] shadow-2xl z-50 flex flex-col justify-between overflow-y-auto border-r border-[#1A1C18]/15 animate-in slide-in-from-left duration-250">
+          <div className="fixed inset-y-0 left-0 w-[86vw] max-w-[320px] sm:max-w-sm bg-[#F4F0E8] shadow-2xl z-50 flex flex-col justify-between overflow-hidden border-r border-[#1A1C18]/15 animate-in slide-in-from-left duration-250">
             {/* Drawer Header */}
-            <div className="p-5 border-b border-[#1A1C18]/10 flex items-center justify-between bg-[#F4F0E8]">
+            <div className="px-4 py-3.5 border-b border-[#1A1C18]/10 flex items-center justify-between bg-[#F4F0E8] shrink-0">
               <Link
                 href="/"
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="group flex items-center gap-2.5"
+                className="group flex items-center gap-2.5 min-w-0"
               >
                 {logoUrl && (
-                  <div className="relative w-8 h-8 rounded-xl overflow-hidden bg-white/40 border border-[#1A1C18]/10 shrink-0">
+                  <div className="relative w-7 h-7 rounded-lg overflow-hidden bg-white/40 border border-[#1A1C18]/10 shrink-0">
                     <Image
                       src={logoUrl}
                       alt={storeName}
                       fill
-                      sizes="32px"
+                      sizes="28px"
                       className="object-contain p-0.5"
                     />
                   </div>
                 )}
-                <div className="flex flex-col items-start">
-                  <span className="font-editorial text-2xl font-bold tracking-tight text-[#1A1C18] uppercase leading-none">
+                <div className="flex flex-col items-start min-w-0">
+                  <span className="font-editorial text-xl font-bold tracking-tight text-[#1A1C18] uppercase leading-none">
                     {storeName}
                   </span>
                   <span className="text-[8px] uppercase tracking-widest text-[#4A483E] mt-0.5 font-sans font-semibold">
@@ -382,7 +381,7 @@ export function StoreTopNav({
               <button
                 type="button"
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="p-2 rounded-full text-[#1A1C18] hover:bg-black/5 transition-colors cursor-pointer"
+                className="w-11 h-11 -mr-1.5 flex items-center justify-center rounded-full text-[#1A1C18] hover:bg-black/5 transition-colors cursor-pointer shrink-0"
                 aria-label="Close mobile menu"
               >
                 <X className="w-5 h-5" />
@@ -390,7 +389,7 @@ export function StoreTopNav({
             </div>
 
             {/* Scrollable Navigation Body */}
-            <div className="p-5 space-y-6 flex-1 overflow-y-auto">
+            <div className="p-4 space-y-5 flex-1 overflow-y-auto no-scrollbar">
               {/* Quick Search Trigger */}
               <button
                 type="button"
@@ -398,32 +397,32 @@ export function StoreTopNav({
                   setIsMobileMenuOpen(false);
                   setIsSearchOpen(true);
                 }}
-                className="w-full flex items-center gap-3 px-4 py-3 bg-white rounded-2xl border border-[#1A1C18]/12 text-xs text-[#4A483E] shadow-2xs hover:border-[#1A1C18]/30 transition-all cursor-pointer text-left"
+                className="w-full flex items-center gap-2.5 px-3.5 py-2.5 bg-white rounded-xl border border-[#1A1C18]/12 text-xs text-[#4A483E] shadow-2xs hover:border-[#1A1C18]/30 transition-all cursor-pointer text-left"
               >
-                <Search className="w-4 h-4 text-[#8A927A]" />
-                <span>Search timber, lamps, shelves…</span>
+                <Search className="w-4 h-4 text-[#8A927A] shrink-0" />
+                <span className="truncate">Search timber, lamps, shelves…</span>
               </button>
 
               {/* Core Store Routes */}
-              <div className="space-y-1">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-[#4A483E] px-2 block mb-2 font-mono">
+              <div className="space-y-0.5">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-[#4A483E] px-2 block mb-1.5 font-mono">
                   Store Navigation
                 </span>
                 <Link
                   href="/shop"
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className="flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-semibold text-[#1A1C18] hover:bg-[#D8C9B5]/40 transition-colors"
+                  className="flex items-center justify-between px-3 py-2 rounded-xl text-[13px] font-semibold text-[#1A1C18] hover:bg-[#D8C9B5]/40 transition-colors"
                 >
                   <span>Shop All Essentials</span>
-                  <ArrowRight className="w-4 h-4 text-[#4A483E]/60" />
+                  <ArrowRight className="w-3.5 h-3.5 text-[#4A483E]/60" />
                 </Link>
                 <Link
                   href="/fit-assistant"
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className="flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-semibold text-[#1A1C18] hover:bg-[#D8C9B5]/40 transition-colors"
+                  className="flex items-center justify-between px-3 py-2 rounded-xl text-[13px] font-semibold text-[#1A1C18] hover:bg-[#D8C9B5]/40 transition-colors"
                 >
                   <span className="flex items-center gap-2">
-                    <Compass className="w-4 h-4 text-[#8A927A]" />
+                    <Compass className="w-3.5 h-3.5 text-[#8A927A]" />
                     Fit Assistant
                   </span>
                   <span className="text-[10px] bg-[#8A927A]/20 text-[#8A927A] font-bold px-2 py-0.5 rounded-full font-mono">
@@ -433,14 +432,14 @@ export function StoreTopNav({
                 <Link
                   href="/about"
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className="flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-semibold text-[#1A1C18] hover:bg-[#D8C9B5]/40 transition-colors"
+                  className="flex items-center justify-between px-3 py-2 rounded-xl text-[13px] font-semibold text-[#1A1C18] hover:bg-[#D8C9B5]/40 transition-colors"
                 >
                   <span>Our Story &amp; Philosophy</span>
                 </Link>
                 <Link
                   href="/journal"
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className="flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-semibold text-[#1A1C18] hover:bg-[#D8C9B5]/40 transition-colors"
+                  className="flex items-center justify-between px-3 py-2 rounded-xl text-[13px] font-semibold text-[#1A1C18] hover:bg-[#D8C9B5]/40 transition-colors"
                 >
                   <span>Journal: The Art of Living Well</span>
                 </Link>
@@ -448,15 +447,15 @@ export function StoreTopNav({
                 <Link
                   href="/contact"
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className="flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-semibold text-[#1A1C18] hover:bg-[#D8C9B5]/40 transition-colors"
+                  className="flex items-center justify-between px-3 py-2 rounded-xl text-[13px] font-semibold text-[#1A1C18] hover:bg-[#D8C9B5]/40 transition-colors"
                 >
                   <span>Concierge &amp; Studio Inquiries</span>
                 </Link>
               </div>
 
               {/* Rooms & Environments */}
-              <div className="pt-4 border-t border-[#1A1C18]/10 space-y-1">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-[#4A483E] px-2 block mb-2 font-mono">
+              <div className="pt-3.5 border-t border-[#1A1C18]/10 space-y-1.5">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-[#4A483E] px-2 block font-mono">
                   Rooms &amp; Environments
                 </span>
                 <div className="grid grid-cols-2 gap-1.5">
@@ -465,10 +464,10 @@ export function StoreTopNav({
                       key={r.slug}
                       href={`/shop?room=${r.slug}`}
                       onClick={() => setIsMobileMenuOpen(false)}
-                      className="p-2.5 rounded-xl bg-white/60 hover:bg-white text-xs font-semibold text-[#1A1C18] border border-[#1A1C18]/8 transition-all block"
+                      className="px-3 py-2 rounded-xl bg-white/70 hover:bg-white text-xs font-semibold text-[#1A1C18] border border-[#1A1C18]/8 transition-all flex items-center justify-between gap-1"
                     >
-                      <div className="font-bold">{r.name}</div>
-                      <div className="text-[10px] text-[#4A483E] font-normal truncate mt-0.5">{r.desc}</div>
+                      <span className="truncate">{r.name}</span>
+                      <ArrowRight className="w-3 h-3 text-[#8A927A] shrink-0" />
                     </Link>
                   ))}
                 </div>
@@ -550,12 +549,8 @@ export function StoreTopNav({
             </div>
 
             {/* Drawer Bottom Footer */}
-            <div className="p-5 border-t border-[#1A1C18]/10 bg-white/50 space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-xs text-[#4A483E] font-medium">Currency &amp; Region:</span>
-                <CurrencySelector variant="footer" />
-              </div>
-              <div className="text-[10px] text-[#4A483E]/80 text-center font-sans">
+            <div className="p-5 border-t border-[#1A1C18]/10 bg-white/50">
+              <div className="text-[11px] text-[#4A483E]/80 text-center font-sans">
                 Complimentary shipping on orders over $150
               </div>
             </div>

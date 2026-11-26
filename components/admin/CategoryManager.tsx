@@ -285,15 +285,17 @@ export function CategoryManager({
   return (
     <div className="space-y-6 animate-in fade-in duration-300">
       {/* 1. Header with Architectural Kicker & Primary Action */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 pb-4 border-b border-[#1A1C18]/10">
-        <div>
-          <div className="flex items-center gap-2 text-[11px] font-mono font-semibold text-[#8A927A] uppercase tracking-wider mb-1.5">
-            <Layers className="w-3.5 h-3.5 text-[#B78E69]" />
-            <span>Spatial Taxonomy</span>
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-4 border-b border-[#1A1C18]/10">
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] font-mono font-semibold text-[#8A927A] uppercase tracking-wider mb-1.5">
+            <span className="inline-flex items-center gap-1.5 whitespace-nowrap">
+              <Layers className="w-3.5 h-3.5 text-[#B78E69] shrink-0" />
+              <span>Spatial Taxonomy</span>
+            </span>
             <span>·</span>
-            <span>Architectural Merchandising</span>
+            <span className="whitespace-nowrap">Architectural Merchandising</span>
           </div>
-          <h1 className="font-editorial text-3xl sm:text-4xl font-bold tracking-tight text-[#1A1C18]">
+          <h1 className="font-editorial text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight text-[#1A1C18]">
             Category &amp; Room Collections
           </h1>
           <p className="text-xs sm:text-sm text-[#4A483E]/80 max-w-2xl mt-1 leading-relaxed">
@@ -307,7 +309,7 @@ export function CategoryManager({
           onClick={openCreate}
           data-btn="dark"
           style={{ color: "#FFFFFF", backgroundColor: "#1A1C18" }}
-          className="inline-flex items-center gap-2.5 px-6 py-3 rounded-2xl bg-[#1A1C18] text-white text-xs font-semibold hover:bg-[#2D302A] transition-all shadow-sm hover:shadow-md cursor-pointer shrink-0"
+          className="inline-flex items-center justify-center gap-2.5 px-6 py-3 rounded-2xl bg-[#1A1C18] text-white text-xs font-semibold hover:bg-[#2D302A] transition-all shadow-sm hover:shadow-md cursor-pointer shrink-0 w-full sm:w-auto whitespace-nowrap"
         >
           <Plus className="w-4 h-4 text-white" />
           <span style={{ color: "#FFFFFF" }}>Add Living Collection</span>
@@ -339,7 +341,7 @@ export function CategoryManager({
       )}
 
       {/* 2. Key Performance Indicators (KPI Ribbon) */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4">
         {/* Total Collections */}
         <div className="p-5 rounded-2xl bg-white border border-[#1A1C18]/10 shadow-[0_2px_8px_rgba(26,28,24,0.03)] space-y-1">
           <span className="text-[11px] font-mono text-[#8A927A] uppercase tracking-wider block font-semibold">
@@ -400,9 +402,9 @@ export function CategoryManager({
       </div>
 
       {/* 3. Filter, Search & Layout Switcher Bar */}
-      <div className="bg-white p-4 rounded-2xl border border-[#1A1C18]/10 shadow-[0_2px_8px_rgba(26,28,24,0.03)] flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div className="bg-white p-4 rounded-2xl border border-[#1A1C18]/10 shadow-[0_2px_8px_rgba(26,28,24,0.03)] flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3">
         {/* Search Input */}
-        <div className="relative w-full sm:w-80">
+        <div className="relative w-full lg:w-80">
           <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#4A483E]/50" />
           <input
             type="text"
@@ -423,8 +425,8 @@ export function CategoryManager({
         </div>
 
         {/* View Switcher & Counter */}
-        <div className="flex items-center justify-between sm:justify-end gap-3 w-full sm:w-auto">
-          <span className="text-xs text-[#4A483E]/70 font-mono">
+        <div className="flex items-center justify-between lg:justify-end gap-3 w-full lg:w-auto">
+          <span className="text-xs text-[#4A483E]/70 font-mono whitespace-nowrap shrink-0">
             Showing {filteredCategories.length} of {categories.length}{" "}
             environments
           </span>
@@ -564,14 +566,16 @@ export function CategoryManager({
 
                     {/* Route Slug Identifier with Copy Action */}
                     <div className="pt-1.5">
-                      <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-[#FAF9F6] border border-[#1A1C18]/8 text-[#4A483E] text-[11px] font-mono">
-                        <span className="text-[#8A927A]">/shop?category=</span>
-                        <span className="font-semibold text-[#1A1C18]">{category.slug}</span>
+                      <div className="flex items-center justify-between gap-1.5 px-2.5 py-1.5 rounded-xl bg-[#FAF9F6] border border-[#1A1C18]/8 text-[#4A483E] text-[11px] font-mono max-w-full">
+                        <span className="truncate min-w-0">
+                          <span className="text-[#8A927A]">/shop?category=</span>
+                          <span className="font-semibold text-[#1A1C18]">{category.slug}</span>
+                        </span>
                         <button
                           type="button"
                           onClick={() => handleCopySlug(category.slug)}
                           title="Copy storefront link slug"
-                          className="p-0.5 text-stone-400 hover:text-[#1A1C18] transition-colors ml-0.5"
+                          className="p-0.5 text-stone-400 hover:text-[#1A1C18] transition-colors shrink-0"
                         >
                           {copiedSlug === category.slug ? (
                             <Check className="w-3.5 h-3.5 text-emerald-600" />
@@ -585,9 +589,9 @@ export function CategoryManager({
                 </div>
 
                 {/* 3. Action & Tactile Reorder Toolbar */}
-                <div className="pt-4 border-t border-[#1A1C18]/8 mt-3 flex items-center justify-between">
+                <div className="pt-4 border-t border-[#1A1C18]/8 mt-3 flex items-center justify-between gap-2">
                   {/* Reorder Stepper Controls */}
-                  <div className="flex items-center gap-1 bg-[#FAF9F6] border border-[#1A1C18]/10 rounded-xl p-1">
+                  <div className="flex items-center gap-1 bg-[#FAF9F6] border border-[#1A1C18]/10 rounded-xl p-1 shrink-0">
                     <button
                       type="button"
                       disabled={index === 0 || isReordering}
@@ -597,7 +601,7 @@ export function CategoryManager({
                     >
                       <ArrowUp className="w-3.5 h-3.5" />
                     </button>
-                    <span className="text-[10px] font-mono font-bold text-stone-700 px-1.5 select-none">
+                    <span className="text-[10px] font-mono font-bold text-stone-700 px-1.5 select-none whitespace-nowrap">
                       Rank #{category.sort_order}
                     </span>
                     <button
@@ -642,9 +646,134 @@ export function CategoryManager({
           })}
         </div>
       ) : (
-        /* High-Density Table List Mode */
+        /* High-Density Table List Mode (Desktop) & Cards (Mobile/Tablet) */
         <div className="bg-white rounded-3xl border border-[#1A1C18]/10 shadow-[0_2px_12px_rgba(26,28,24,0.03)] overflow-hidden">
-          <div className="overflow-x-auto">
+          {/* Mobile & Tablet Card View */}
+          <div className="lg:hidden p-3 sm:p-4 space-y-3">
+            {filteredCategories.map((category, index) => {
+              const img =
+                category.image_url ||
+                ROOM_DEFAULT_IMAGES[category.slug] ||
+                "https://images.unsplash.com/photo-1594026112284-02bb6f3352fe?auto=format&fit=crop&w=800&q=80";
+              const itemCount = productCounts[category.id] || 0;
+
+              return (
+                <div
+                  key={category.id}
+                  className="rounded-2xl border border-[#1A1C18]/10 bg-[#FAF9F6]/50 p-4 space-y-3"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-center gap-3 min-w-0 flex-1">
+                      <div className="relative w-12 h-12 rounded-xl overflow-hidden bg-stone-100 shrink-0 border border-[#1A1C18]/10 shadow-2xs">
+                        <Image
+                          src={img}
+                          alt={category.name}
+                          fill
+                          sizes="48px"
+                          className="object-cover"
+                        />
+                      </div>
+                      <div className="min-w-0">
+                        <h4 className="font-editorial text-base font-bold text-[#1A1C18] truncate">
+                          {category.name}
+                        </h4>
+                        <p className="text-[11px] text-[#4A483E]/70 line-clamp-2">
+                          {category.description || "Living room collection."}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <span className="font-mono font-bold text-xs text-[#1A1C18]">
+                        #{category.sort_order}
+                      </span>
+                      <div className="flex flex-col">
+                        <button
+                          type="button"
+                          disabled={index === 0 || isReordering}
+                          onClick={() => handleMoveOrder(index, "up")}
+                          className="text-stone-400 hover:text-[#1A1C18] disabled:opacity-20"
+                          aria-label="Move up"
+                        >
+                          <ArrowUp className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          disabled={
+                            index === filteredCategories.length - 1 ||
+                            isReordering
+                          }
+                          onClick={() => handleMoveOrder(index, "down")}
+                          className="text-stone-400 hover:text-[#1A1C18] disabled:opacity-20"
+                          aria-label="Move down"
+                        >
+                          <ArrowDown className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-wrap items-center justify-between gap-2 pt-2.5 border-t border-[#1A1C18]/8 text-xs">
+                    <div className="flex items-center gap-1.5 font-mono text-[11px] text-[#8A927A] min-w-0">
+                      <span className="px-2 py-0.5 rounded-lg bg-stone-100 border border-stone-200 text-[#1A1C18] truncate">
+                        {category.slug}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => handleCopySlug(category.slug)}
+                        title="Copy slug identifier"
+                        className="p-1 text-stone-400 hover:text-[#1A1C18] shrink-0"
+                      >
+                        {copiedSlug === category.slug ? (
+                          <Check className="w-3.5 h-3.5 text-emerald-600" />
+                        ) : (
+                          <Copy className="w-3.5 h-3.5" />
+                        )}
+                      </button>
+                    </div>
+
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-stone-100 border border-[#1A1C18]/10 text-xs font-mono font-medium text-[#1A1C18]">
+                      <ShoppingBag className="w-3 h-3 text-[#B78E69]" />
+                      <span>{itemCount} Items</span>
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between gap-2 pt-2.5 border-t border-[#1A1C18]/8">
+                    <Link
+                      href={`/shop?category=${category.slug}`}
+                      target="_blank"
+                      className="inline-flex items-center gap-1 text-xs font-semibold text-[#8A927A] hover:text-[#1A1C18] transition-colors"
+                    >
+                      <span>Store Page</span>
+                      <ExternalLink className="w-3.5 h-3.5" />
+                    </Link>
+
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => openEdit(category)}
+                        className="p-2 rounded-xl text-stone-500 hover:text-[#1A1C18] hover:bg-stone-100 transition-colors"
+                        title="Edit"
+                      >
+                        <Pencil className="w-4 h-4" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => initiateDelete(category)}
+                        className="p-2 rounded-xl text-stone-400 hover:text-red-600 hover:bg-red-50 transition-colors"
+                        title="Delete"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Desktop Table View */}
+          <div className="hidden lg:block">
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="border-b border-[#1A1C18]/10 bg-[#FAF9F6] text-[11px] font-mono text-[#8A927A] uppercase tracking-wider">
@@ -830,7 +959,7 @@ export function CategoryManager({
             </div>
 
             {/* Modal Body */}
-            <div className="space-y-4 max-h-[68vh] overflow-y-auto pr-1">
+            <div className="space-y-4 max-h-[68vh] overflow-y-auto px-1.5 py-1">
               {/* Category Name */}
               <div className="space-y-1.5">
                 <label className="text-xs font-bold uppercase tracking-wider text-[#1A1C18] block font-sans">
@@ -849,7 +978,7 @@ export function CategoryManager({
                     });
                   }}
                   placeholder="e.g. Living Room, Workspace, Atmospheric Lighting"
-                  className="w-full px-4 py-2.5 rounded-xl border border-[#1A1C18]/15 text-xs text-[#1A1C18] focus:outline-none focus:ring-2 focus:ring-[#1A1C18] bg-[#FAF9F6]"
+                  className="w-full px-4 py-2.5 rounded-xl border border-[#1A1C18]/15 text-xs text-[#1A1C18] placeholder:text-[#4A483E]/45 focus:outline-none focus-visible:outline-none focus:border-[#B78E69] focus:ring-2 focus:ring-[#B78E69]/25 bg-[#FAF9F6] focus:bg-white transition-all"
                 />
               </div>
 
@@ -868,7 +997,7 @@ export function CategoryManager({
                   value={draft.slug}
                   onChange={(e) => setDraft({ ...draft, slug: e.target.value })}
                   placeholder="e.g. living-room"
-                  className="w-full px-4 py-2.5 rounded-xl border border-[#1A1C18]/15 text-xs text-[#1A1C18] font-mono focus:outline-none focus:ring-2 focus:ring-[#1A1C18] bg-[#FAF9F6]"
+                  className="w-full px-4 py-2.5 rounded-xl border border-[#1A1C18]/15 text-xs text-[#1A1C18] placeholder:text-[#4A483E]/45 font-mono focus:outline-none focus-visible:outline-none focus:border-[#B78E69] focus:ring-2 focus:ring-[#B78E69]/25 bg-[#FAF9F6] focus:bg-white transition-all"
                 />
               </div>
 
@@ -910,7 +1039,7 @@ export function CategoryManager({
                     setDraft({ ...draft, description: e.target.value })
                   }
                   placeholder="Describe this spatial environment and the functional timber or lighting essentials crafted for it..."
-                  className="w-full px-4 py-2.5 rounded-xl border border-[#1A1C18]/15 text-xs text-[#1A1C18] focus:outline-none focus:ring-2 focus:ring-[#1A1C18] bg-[#FAF9F6]"
+                  className="w-full px-4 py-3 rounded-xl border border-[#1A1C18]/15 text-xs text-[#1A1C18] leading-relaxed placeholder:text-[#4A483E]/45 focus:outline-none focus-visible:outline-none focus:border-[#B78E69] focus:ring-2 focus:ring-[#B78E69]/25 bg-[#FAF9F6] focus:bg-white transition-all resize-y"
                 />
               </div>
 
@@ -928,7 +1057,7 @@ export function CategoryManager({
                       sort_order: Number(e.target.value) || 0,
                     })
                   }
-                  className="w-full px-4 py-2.5 rounded-xl border border-[#1A1C18]/15 text-xs text-[#1A1C18] font-mono focus:outline-none focus:ring-2 focus:ring-[#1A1C18] bg-[#FAF9F6]"
+                  className="w-full px-4 py-2.5 rounded-xl border border-[#1A1C18]/15 text-xs text-[#1A1C18] font-mono focus:outline-none focus-visible:outline-none focus:border-[#B78E69] focus:ring-2 focus:ring-[#B78E69]/25 bg-[#FAF9F6] focus:bg-white transition-all"
                 />
               </div>
             </div>

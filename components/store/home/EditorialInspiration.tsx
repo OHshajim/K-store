@@ -59,7 +59,7 @@ export function EditorialInspiration() {
                   <span>{article.readTime}</span>
                 </div>
 
-                <h3 className="font-editorial text-xl font-bold text-[#1A1C18] group-hover:text-[#B78E69] transition-colors leading-snug mb-3">
+                <h3 className="font-editorial text-base sm:text-lg font-bold text-[#1A1C18] group-hover:text-[#B78E69] transition-colors leading-snug mb-2.5">
                   {article.title}
                 </h3>
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
 import {
   CheckCircle,
@@ -17,9 +18,16 @@ import {
   Copy,
   Check,
   Printer,
+  AlertCircle,
+  XCircle,
 } from "lucide-react";
 import type { Order, StoreSettings } from "@/lib/types";
-import { PAYMENT_METHOD_LABELS, DELIVERY_FLOW, DELIVERY_STATUS_LABELS } from "@/lib/constants";
+import {
+  PAYMENT_METHOD_LABELS,
+  PAYMENT_STATUS_LABELS,
+  DELIVERY_FLOW,
+  DELIVERY_STATUS_LABELS,
+} from "@/lib/constants";
 import { formatDateTime, formatMoney } from "@/lib/format";
 import { StripePayButton } from "@/components/store/StripePayButton";
 
@@ -30,6 +38,48 @@ function PaymentNotice({
   order: Order;
   trackingToken?: string;
 }) {
+  if (order.payment_status === "refunded") {
+    return (
+      <div className="p-5 rounded-2xl bg-rose-50/80 border border-rose-200/80 flex items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-rose-100 flex items-center justify-center text-rose-700 shrink-0">
+            <AlertCircle className="w-5 h-5" />
+          </div>
+          <div>
+            <h4 className="text-sm font-bold text-rose-950">Payment Refunded</h4>
+            <p className="text-xs text-rose-800/80 mt-0.5">
+              This order payment has been refunded to the original payment method.
+            </p>
+          </div>
+        </div>
+        <span className="text-[10px] font-mono uppercase tracking-wider font-bold px-2.5 py-1 bg-rose-200/60 text-rose-900 rounded-full shrink-0">
+          Refunded
+        </span>
+      </div>
+    );
+  }
+
+  if (order.payment_status === "cancelled" || order.delivery_status === "cancelled") {
+    return (
+      <div className="p-5 rounded-2xl bg-rose-50/80 border border-rose-200/80 flex items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-rose-100 flex items-center justify-center text-rose-700 shrink-0">
+            <AlertCircle className="w-5 h-5" />
+          </div>
+          <div>
+            <h4 className="text-sm font-bold text-rose-950">Order Cancelled</h4>
+            <p className="text-xs text-rose-800/80 mt-0.5">
+              This dispatch has been cancelled and will not be shipped or billed.
+            </p>
+          </div>
+        </div>
+        <span className="text-[10px] font-mono uppercase tracking-wider font-bold px-2.5 py-1 bg-rose-200/60 text-rose-900 rounded-full shrink-0">
+          Cancelled
+        </span>
+      </div>
+    );
+  }
+
   if (order.payment_status === "paid") {
     return (
       <div className="p-5 rounded-2xl bg-emerald-50/80 border border-emerald-200/80 flex items-center justify-between gap-4">
@@ -95,7 +145,7 @@ function PaymentNotice({
 }
 
 export function OrderDetailView({
-  order,
+  order: initialOrder,
   settings,
   isAdmin = false,
   trackingToken,
@@ -105,7 +155,59 @@ export function OrderDetailView({
   isAdmin?: boolean;
   trackingToken?: string;
 }) {
+  const router = useRouter();
+  const [updatedOrder, setUpdatedOrder] = useState<Order | null>(null);
+  const order = updatedOrder ?? initialOrder;
   const [copiedLink, setCopiedLink] = useState(false);
+  const [showCancelModal, setShowCancelModal] = useState(false);
+  const [cancelReason, setCancelReason] = useState("");
+  const [cancelError, setCancelError] = useState<string | null>(null);
+  const [isRequestingCancel, setIsRequestingCancel] = useState(false);
+
+  const cancellationEvent = order.events?.find(
+    (e) => e.kind === "cancellation_requested"
+  );
+  const hasCancellationRequest = Boolean(cancellationEvent);
+  const canRequestCancellation =
+    !isAdmin &&
+    !hasCancellationRequest &&
+    order.delivery_status !== "cancelled" &&
+    order.delivery_status !== "delivered" &&
+    order.payment_status !== "cancelled" &&
+    order.payment_status !== "refunded";
+
+  async function handleSubmitCancelRequest(e: React.FormEvent) {
+    e.preventDefault();
+    setCancelError(null);
+    setIsRequestingCancel(true);
+    try {
+      const res = await fetch(`/api/orders/${order.id}/cancel-request`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          reason: cancelReason.trim() || undefined,
+          trackingToken: trackingToken || order.tracking_token,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Unable to submit cancellation request");
+      }
+      if (data.order) {
+        setUpdatedOrder(data.order);
+      }
+      setShowCancelModal(false);
+      setCancelReason("");
+      router.refresh();
+    } catch (err) {
+      setCancelError(
+        err instanceof Error ? err.message : "Unable to submit cancellation request"
+      );
+    } finally {
+      setIsRequestingCancel(false);
+    }
+  }
+
   const currentFlowIndex = DELIVERY_FLOW.indexOf(
     order.delivery_status as (typeof DELIVERY_FLOW)[number]
   );
@@ -204,6 +306,20 @@ export function OrderDetailView({
                 <Printer className="w-3.5 h-3.5 text-stone-500" />
                 <span>Print Receipt</span>
               </button>
+
+              {canRequestCancellation && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCancelError(null);
+                    setShowCancelModal(true);
+                  }}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-rose-50 border border-rose-200 text-xs font-sans font-semibold text-rose-700 hover:bg-rose-100 hover:border-rose-300 transition-all cursor-pointer"
+                >
+                  <XCircle className="w-3.5 h-3.5" />
+                  <span>Request Cancellation</span>
+                </button>
+              )}
             </div>
           </div>
 
@@ -215,6 +331,8 @@ export function OrderDetailView({
                   ? "bg-emerald-50 text-emerald-800 border border-emerald-200"
                   : order.payment_status === "cod_pending"
                   ? "bg-amber-50 text-amber-800 border border-amber-200"
+                  : order.payment_status === "refunded" || order.payment_status === "cancelled"
+                  ? "bg-rose-50 text-rose-800 border border-rose-200"
                   : "bg-stone-100 text-stone-700 border border-stone-200"
               }`}
             >
@@ -222,7 +340,7 @@ export function OrderDetailView({
                 ? "Paid"
                 : order.payment_status === "cod_pending"
                 ? "COD Due"
-                : "Payment Pending"}
+                : PAYMENT_STATUS_LABELS[order.payment_status] ?? order.payment_status}
             </span>
 
             {/* Delivery Badge */}
@@ -232,6 +350,8 @@ export function OrderDetailView({
                   ? "bg-emerald-50 text-emerald-800 border border-emerald-200"
                   : order.delivery_status === "out_for_delivery"
                   ? "bg-sky-50 text-sky-800 border border-sky-200"
+                  : order.delivery_status === "cancelled"
+                  ? "bg-rose-50 text-rose-800 border border-rose-200"
                   : "bg-[#1A1C18] text-white"
               }`}
             >
@@ -296,6 +416,29 @@ export function OrderDetailView({
           </div>
         </div>
       </div>
+
+      {/* Cancellation Request Status Banner */}
+      {hasCancellationRequest && order.delivery_status !== "cancelled" && (
+        <div className="p-5 rounded-2xl bg-amber-50/90 border border-amber-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 print:hidden">
+          <div className="flex items-start gap-3">
+            <div className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center text-amber-800 shrink-0">
+              <AlertCircle className="w-5 h-5" />
+            </div>
+            <div>
+              <h4 className="text-sm font-bold text-amber-950">
+                Cancellation Requested
+              </h4>
+              <p className="text-xs text-amber-900/80 mt-0.5">
+                {cancellationEvent?.message ||
+                  "Your cancellation request has been submitted and is pending studio review."}
+              </p>
+            </div>
+          </div>
+          <span className="text-[10px] font-mono uppercase tracking-wider font-bold px-2.5 py-1 bg-amber-200/70 text-amber-950 rounded-full shrink-0 self-start sm:self-center">
+            Pending Review
+          </span>
+        </div>
+      )}
 
       {/* Payment Action / Notice */}
       <div className="print:hidden">
@@ -541,6 +684,79 @@ export function OrderDetailView({
           For white-glove assembly or warranty inquiries: {settings.support_email || "concierge@kstore.com"}
         </p>
       </div>
+
+      {/* Cancellation Request Modal */}
+      {showCancelModal && (
+        <div
+          className="fixed inset-0 z-50 bg-[#1A1C18]/60 backdrop-blur-xs flex items-center justify-center p-4 print:hidden"
+          onClick={(e) => {
+            if (e.target === e.currentTarget && !isRequestingCancel) {
+              setShowCancelModal(false);
+            }
+          }}
+        >
+          <form
+            onSubmit={handleSubmitCancelRequest}
+            className="w-full max-w-md bg-white rounded-3xl p-6 sm:p-7 shadow-2xl border border-[#1A1C18]/15 space-y-4"
+          >
+            <div className="flex items-start gap-3">
+              <div className="w-10 h-10 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center shrink-0 border border-rose-200">
+                <XCircle className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="font-editorial text-xl font-bold text-[#1A1C18]">
+                  Request Order Cancellation
+                </h3>
+                <p className="text-xs text-[#4A483E]/80 mt-0.5">
+                  Order #{order.order_number} · Our team will review your request and update your order status.
+                </p>
+              </div>
+            </div>
+
+            {cancelError && (
+              <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-800">
+                {cancelError}
+              </div>
+            )}
+
+            <div className="space-y-1.5">
+              <label
+                htmlFor="cancel-reason"
+                className="block text-xs font-bold uppercase tracking-wider text-[#1A1C18]"
+              >
+                Reason (Optional)
+              </label>
+              <textarea
+                id="cancel-reason"
+                rows={3}
+                maxLength={500}
+                value={cancelReason}
+                onChange={(e) => setCancelReason(e.target.value)}
+                placeholder="e.g., Ordered by mistake, need to change items or delivery address..."
+                className="w-full rounded-xl border border-[#1A1C18]/15 bg-[#FAF9F6] px-3.5 py-2.5 text-xs text-[#1A1C18] placeholder:text-[#4A483E]/40 focus:outline-none focus:ring-2 focus:ring-[#1A1C18]"
+              />
+            </div>
+
+            <div className="flex items-center justify-end gap-2.5 pt-2">
+              <button
+                type="button"
+                disabled={isRequestingCancel}
+                onClick={() => setShowCancelModal(false)}
+                className="px-4 py-2 rounded-xl border border-[#1A1C18]/15 text-xs font-semibold text-[#1A1C18] hover:bg-[#F4F0E8] transition-colors cursor-pointer disabled:opacity-50"
+              >
+                Keep Order
+              </button>
+              <button
+                type="submit"
+                disabled={isRequestingCancel}
+                className="px-4 py-2 rounded-xl bg-rose-600 text-white text-xs font-semibold hover:bg-rose-700 transition-colors cursor-pointer disabled:opacity-50"
+              >
+                {isRequestingCancel ? "Submitting..." : "Submit Cancellation Request"}
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
     </div>
   );
 }

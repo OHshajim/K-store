@@ -239,7 +239,7 @@ export function CouponManager({ initialCoupons }: { initialCoupons: Coupon[] }) 
       </div>
 
       {/* 2. Key Metrics Row */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4">
         <div className="p-4 rounded-2xl bg-[#FAF9F5] border border-[#1A1C18]/8">
           <div className="text-[11px] font-medium text-[#77766E] uppercase tracking-wider">
             Total Campaigns
@@ -296,9 +296,141 @@ export function CouponManager({ initialCoupons }: { initialCoupons: Coupon[] }) 
         </div>
       </div>
 
-      {/* 4. Coupons Table */}
+      {/* 4. Coupons Table (Desktop) & Cards (Mobile/Tablet) */}
       <div className="rounded-2xl border border-[#1A1C18]/10 bg-white overflow-hidden shadow-xs">
-        <div className="overflow-x-auto">
+        {/* Mobile & Tablet Card View */}
+        <div className="lg:hidden p-3 sm:p-4 space-y-3">
+          {filteredCoupons.length === 0 ? (
+            <div className="px-4 py-12 text-center text-[#77766E]">
+              <Tag className="w-8 h-8 text-[#1A1C18]/20 mx-auto mb-2" />
+              <p className="text-sm font-medium">No coupon codes found.</p>
+              <p className="text-xs text-[#77766E] mt-1">
+                Create a promotional discount code to incentivize shoppers.
+              </p>
+            </div>
+          ) : (
+            filteredCoupons.map((coupon) => {
+              const isExpired =
+                coupon.expires_at &&
+                new Date(coupon.expires_at).getTime() < nowMs;
+              return (
+                <div
+                  key={coupon.id}
+                  className="rounded-xl border border-[#1A1C18]/10 bg-[#FAF9F6]/50 p-4 space-y-3"
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-1.5 min-w-0">
+                      <span className="px-2.5 py-1 rounded-lg bg-[#FAF9F5] border border-[#1A1C18]/12 text-[#1A1C18] text-xs font-mono font-bold tracking-wider truncate">
+                        {coupon.code}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => handleCopy(coupon.code)}
+                        className="p-1 text-[#77766E] hover:text-[#1A1C18] transition-colors rounded cursor-pointer shrink-0"
+                        title="Copy code to clipboard"
+                      >
+                        {copiedCode === coupon.code ? (
+                          <Check className="w-3.5 h-3.5 text-emerald-600" />
+                        ) : (
+                          <Copy className="w-3.5 h-3.5" />
+                        )}
+                      </button>
+                    </div>
+                    <span className="px-2.5 py-0.5 rounded-full bg-[#B78E69]/15 text-[#B78E69] font-bold text-[11px] shrink-0">
+                      {coupon.discount_percent}% OFF
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3 pt-2.5 border-t border-[#1A1C18]/8 text-xs">
+                    <div>
+                      <span className="text-[10px] uppercase tracking-wider text-[#77766E] block mb-0.5">
+                        Min Spend
+                      </span>
+                      {coupon.min_spend_cents > 0 ? (
+                        <span className="font-mono font-semibold text-[#1A1C18]">
+                          ${(coupon.min_spend_cents / 100).toFixed(2)}
+                        </span>
+                      ) : (
+                        <span className="text-stone-400">No minimum</span>
+                      )}
+                    </div>
+                    <div>
+                      <span className="text-[10px] uppercase tracking-wider text-[#77766E] block mb-0.5">
+                        Expiry
+                      </span>
+                      {coupon.expires_at ? (
+                        <div className="flex flex-wrap items-center gap-1 font-mono text-[11px]">
+                          <Calendar className="w-3 h-3 text-[#77766E] shrink-0" />
+                          <span className={isExpired ? "text-rose-600 font-bold" : "text-[#1A1C18]"}>
+                            {new Date(coupon.expires_at).toLocaleDateString(
+                              "en-US",
+                              { month: "short", day: "numeric", year: "numeric" }
+                            )}
+                          </span>
+                          {isExpired && (
+                            <span className="text-[9px] uppercase px-1.5 py-0.5 rounded bg-rose-50 text-rose-700 font-bold">
+                              Expired
+                            </span>
+                          )}
+                        </div>
+                      ) : (
+                        <span className="text-stone-400 flex items-center gap-1">
+                          <Clock className="w-3 h-3" />
+                          <span>No Expiry</span>
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between gap-2 pt-2.5 border-t border-[#1A1C18]/8">
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => handleToggleActive(coupon)}
+                        className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                          coupon.is_active ? "bg-emerald-600" : "bg-stone-300"
+                        }`}
+                        title={
+                          coupon.is_active ? "Click to Pause" : "Click to Activate"
+                        }
+                      >
+                        <span
+                          className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-xs ring-0 transition duration-200 ease-in-out ${
+                            coupon.is_active ? "translate-x-4" : "translate-x-0"
+                          }`}
+                        />
+                      </button>
+                      <span className="text-[11px] font-medium text-[#4A483E]">
+                        {coupon.is_active ? "Active" : "Paused"}
+                      </span>
+                    </div>
+
+                    <div className="inline-flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => openEditModal(coupon)}
+                        className="px-2.5 py-1 text-xs text-[#77766E] hover:text-[#1A1C18] border border-[#1A1C18]/10 rounded-lg hover:bg-white transition-colors cursor-pointer"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setDeleteTarget(coupon)}
+                        className="p-1 text-stone-400 hover:text-rose-600 transition-colors rounded cursor-pointer"
+                        title="Delete coupon"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
+
+        {/* Desktop Table View */}
+        <div className="hidden lg:block">
           <table className="w-full text-left text-xs">
             <thead className="bg-[#FAF9F6] border-b border-[#1A1C18]/10 text-[#77766E] uppercase text-[10px] tracking-wider font-semibold">
               <tr>

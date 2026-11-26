@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import {
   Mail,
   Lock,
@@ -46,7 +46,6 @@ const GoogleIcon = () => (
 );
 
 export function LoginForm() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const next = searchParams.get("next") || "/account";
   const [mode, setMode] = useState<Mode>("signin");
@@ -112,21 +111,24 @@ export function LoginForm() {
   function register(e?: React.FormEvent) {
     if (e) e.preventDefault();
     void run(async () => {
+      const res = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password, fullName }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to create account.");
+      }
+
       const { createClient } = await import("@/lib/supabase/client");
       const supabase = createClient();
-      const { data, error: signUpError } = await supabase.auth.signUp({
+      const { error: signInError } = await supabase.auth.signInWithPassword({
         email,
         password,
-        options: { data: { full_name: fullName } },
       });
-      if (signUpError) throw signUpError;
-      if (data.session) {
-        router.push(next);
-        router.refresh();
-        return;
-      }
-      setNotice("Check your inbox to confirm your email, then sign in.");
-      setMode("signin");
+      if (signInError) throw signInError;
+      window.location.href = next;
     });
   }
 

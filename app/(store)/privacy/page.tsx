@@ -99,10 +99,10 @@ export default async function PrivacyPage() {
 
             <section className="space-y-2">
               <h2 className="text-base sm:text-lg font-bold text-[#1A1C18] font-editorial">
-                3. Local Storage, Cookies &amp; Currency Preferences
+                3. Local Storage, Cookies &amp; Session Preferences
               </h2>
               <p>
-                We utilize essential first-party cookies and browser local storage strictly to preserve your active shopping bag, remember your selected global currency (USD, CAD, or GBP), and maintain your authenticated session. You can manage or disable cookie preferences via your browser settings at any time without forfeiting access to our public catalog.
+                We utilize essential first-party cookies and browser local storage strictly to preserve your active shopping bag, wishlist items, and authenticated session. You can manage or disable cookie preferences via your browser settings at any time without forfeiting access to our public catalog.
               </p>
             </section>
 

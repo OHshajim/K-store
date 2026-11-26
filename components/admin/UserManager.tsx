@@ -12,6 +12,7 @@ import {
   UserCheck,
   UserPlus,
   Briefcase,
+  Trash2,
 } from "lucide-react";
 import { formatMoney } from "@/lib/format";
 import type { StoreSettings, UserRole } from "@/lib/types";
@@ -45,6 +46,8 @@ export function UserManager({
     targetRole: UserRole;
   } | null>(null);
   const [isUpdatingRole, setIsUpdatingRole] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<CustomerSummary | null>(null);
+  const [isDeletingUser, setIsDeletingUser] = useState(false);
   const [feedbackModal, setFeedbackModal] = useState<{
     title: string;
     subtitle: string;
@@ -132,6 +135,37 @@ export function UserManager({
     }
   }
 
+  async function executeDeleteUser() {
+    if (!deleteTarget) return;
+    setIsDeletingUser(true);
+    try {
+      const res = await fetch(`/api/admin/users/${deleteTarget.id}`, {
+        method: "DELETE",
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to delete user");
+
+      setCustomers((prev) => prev.filter((c) => c.id !== deleteTarget.id));
+      setFeedbackModal({
+        title: "User & History Deleted",
+        subtitle: "Account Permanently Removed",
+        message: `${deleteTarget.email} and all associated orders, reviews, and wishlists have been permanently removed.`,
+        variant: "success",
+      });
+      router.refresh();
+    } catch (err) {
+      setFeedbackModal({
+        title: "Deletion Failed",
+        subtitle: "Security or Server Restriction",
+        message: err instanceof Error ? err.message : "Could not delete user.",
+        variant: "danger",
+      });
+    } finally {
+      setIsDeletingUser(false);
+      setDeleteTarget(null);
+    }
+  }
+
   return (
     <div className="space-y-6">
       {/* 1. Header with Breadcrumbs & Action Toolbar */}
@@ -152,14 +186,14 @@ export function UserManager({
 
         <Link
           href="/admin"
-          className="px-3.5 py-2 rounded-xl bg-white border border-[#1A1C18]/15 text-xs font-semibold text-[#1A1C18] hover:bg-[#F4F0E8] transition-colors shrink-0"
+          className="inline-flex items-center self-start lg:self-auto px-3.5 py-2 rounded-xl bg-white border border-[#1A1C18]/15 text-xs font-semibold text-[#1A1C18] hover:bg-[#F4F0E8] transition-colors whitespace-nowrap shrink-0"
         >
           ← Back to Overview
         </Link>
       </div>
 
       {/* 2. Customer Telemetry Strip */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4">
         <div className="p-4 rounded-xl bg-white border border-[#1A1C18]/10 shadow-2xs space-y-1">
           <div className="flex items-center justify-between text-[#4A483E]">
             <span className="text-[11px] font-bold uppercase tracking-wider">Total Accounts</span>
@@ -273,9 +307,202 @@ export function UserManager({
         </div>
       </div>
 
-      {/* 4. Users Table */}
+      {/* 4. Users Table (Desktop) & Cards (Mobile/Tablet) */}
       <div className="bg-white rounded-2xl border border-[#1A1C18]/10 shadow-[0_2px_12px_rgba(26,28,24,0.04)] overflow-hidden">
-        <div className="overflow-x-auto">
+        {/* Mobile & Tablet Card View */}
+        <div className="lg:hidden p-3 sm:p-4 space-y-3">
+          {filteredCustomers.length === 0 ? (
+            <div className="py-12 text-center text-sm text-[#4A483E]">
+              <Users className="w-8 h-8 mx-auto text-[#8A927A] mb-2" />
+              <div className="font-bold text-[#1A1C18]">No users matched your search</div>
+              <p className="text-xs text-[#4A483E]/70 mt-1">Try resetting the keyword filter.</p>
+            </div>
+          ) : (
+            filteredCustomers.map((user) => {
+              const displayName = user.full_name || user.email.split("@")[0];
+              const initials = displayName
+                .split(" ")
+                .map((n) => n[0])
+                .slice(0, 2)
+                .join("")
+                .toUpperCase();
+
+              const isAdmin = user.role === "admin";
+              const isManager = user.role === "manager";
+
+              return (
+                <div
+                  key={user.id}
+                  className="rounded-xl border border-[#1A1C18]/10 bg-[#FAF9F6]/50 p-4 space-y-3"
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div
+                        className={`w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${
+                          isAdmin
+                            ? "bg-[#1A1C18] text-white border border-[#1A1C18]"
+                            : isManager
+                            ? "bg-[#B78E69] text-white border border-[#B78E69]"
+                            : "bg-stone-100 text-[#1A1C18] border border-[#1A1C18]/10"
+                        }`}
+                      >
+                        {initials}
+                      </div>
+                      <div className="min-w-0">
+                        <span className="font-bold text-xs text-[#1A1C18] block truncate">
+                          {displayName}
+                        </span>
+                        <span className="text-[10px] text-[#4A483E]/60 font-mono block">
+                          id: {user.id.slice(0, 8)}
+                        </span>
+                      </div>
+                    </div>
+
+                    <span
+                      className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold shrink-0 ${
+                        isAdmin
+                          ? "bg-[#1A1C18] text-white"
+                          : isManager
+                          ? "bg-[#B78E69]/15 text-[#8C6239] border border-[#B78E69]/30"
+                          : "bg-stone-100 text-[#4A483E] border border-stone-200"
+                      }`}
+                    >
+                      {isAdmin ? (
+                        <>
+                          <ShieldCheck className="w-3 h-3 text-[#B78E69]" />
+                          <span>Administrator</span>
+                        </>
+                      ) : isManager ? (
+                        <>
+                          <Briefcase className="w-3 h-3 text-[#B78E69]" />
+                          <span>Store Manager</span>
+                        </>
+                      ) : (
+                        <>
+                          <UserCheck className="w-3 h-3 text-[#8A927A]" />
+                          <span>Customer</span>
+                        </>
+                      )}
+                    </span>
+                  </div>
+
+                  <div className="font-mono text-xs text-[#4A483E] break-all">
+                    {user.email}
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3 pt-2.5 border-t border-[#1A1C18]/8 text-xs">
+                    <div>
+                      <span className="text-[10px] uppercase tracking-wider text-[#4A483E]/60 block mb-0.5">
+                        Orders Fulfilled
+                      </span>
+                      <span className="font-mono font-bold text-[#1A1C18]">
+                        {user.order_count}
+                      </span>{" "}
+                      <span className="text-[10px] text-[#4A483E]/70">orders</span>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-[10px] uppercase tracking-wider text-[#4A483E]/60 block mb-0.5">
+                        Lifetime Spend
+                      </span>
+                      <span className="font-mono font-bold text-[#1A1C18]">
+                        {formatMoney(
+                          user.spent_cents,
+                          settings?.currency_symbol ?? "$",
+                          settings?.currency ?? "USD"
+                        )}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-wrap items-center justify-end gap-1.5 pt-2.5 border-t border-[#1A1C18]/8">
+                    {user.role === "customer" && (
+                      <>
+                        <button
+                          type="button"
+                          disabled={updatingId === user.id}
+                          onClick={() => initiateRoleChange(user, "manager")}
+                          className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl border border-[#B78E69]/40 bg-[#FAF7F2] text-[11px] font-semibold text-[#8C6239] hover:bg-[#B78E69] hover:text-white transition-all shadow-2xs disabled:opacity-50 cursor-pointer"
+                        >
+                          <Briefcase className="w-3 h-3" />
+                          <span>Make Manager</span>
+                        </button>
+                        <button
+                          type="button"
+                          disabled={updatingId === user.id}
+                          onClick={() => initiateRoleChange(user, "admin")}
+                          className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-[#1A1C18] text-white text-[11px] font-semibold hover:bg-[#32362F] transition-all shadow-2xs disabled:opacity-50 cursor-pointer"
+                        >
+                          <ShieldCheck className="w-3 h-3 text-[#B78E69]" />
+                          <span>Make Admin</span>
+                        </button>
+                      </>
+                    )}
+
+                    {isManager && (
+                      <>
+                        <button
+                          type="button"
+                          disabled={updatingId === user.id}
+                          onClick={() => initiateRoleChange(user, "admin")}
+                          className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-[#1A1C18] text-white text-[11px] font-semibold hover:bg-[#32362F] transition-all shadow-2xs disabled:opacity-50 cursor-pointer"
+                        >
+                          <ShieldCheck className="w-3 h-3 text-[#B78E69]" />
+                          <span>Promote Admin</span>
+                        </button>
+                        <button
+                          type="button"
+                          disabled={updatingId === user.id}
+                          onClick={() => initiateRoleChange(user, "customer")}
+                          className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl border border-stone-200 bg-white text-[11px] font-semibold text-stone-600 hover:text-rose-600 hover:bg-rose-50 transition-all disabled:opacity-50 cursor-pointer"
+                        >
+                          <ShieldAlert className="w-3 h-3 text-stone-400" />
+                          <span>Revert Customer</span>
+                        </button>
+                      </>
+                    )}
+
+                    {isAdmin && (
+                      <>
+                        <button
+                          type="button"
+                          disabled={updatingId === user.id}
+                          onClick={() => initiateRoleChange(user, "manager")}
+                          className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl border border-stone-200 bg-white text-[11px] font-semibold text-stone-600 hover:text-[#B78E69] hover:bg-[#FAF7F2] transition-all disabled:opacity-50 cursor-pointer"
+                        >
+                          <Briefcase className="w-3 h-3 text-stone-400" />
+                          <span>Set Manager</span>
+                        </button>
+                        <button
+                          type="button"
+                          disabled={updatingId === user.id}
+                          onClick={() => initiateRoleChange(user, "customer")}
+                          className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl border border-stone-200 bg-white text-[11px] font-semibold text-stone-600 hover:text-rose-600 hover:bg-rose-50 transition-all disabled:opacity-50 cursor-pointer"
+                        >
+                          <ShieldAlert className="w-3 h-3 text-stone-400" />
+                          <span>Revert Customer</span>
+                        </button>
+                      </>
+                    )}
+
+                    <button
+                      type="button"
+                      disabled={updatingId === user.id || isDeletingUser}
+                      onClick={() => setDeleteTarget(user)}
+                      className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl border border-rose-200 bg-rose-50 text-[11px] font-semibold text-rose-700 hover:bg-rose-100 transition-all disabled:opacity-50 cursor-pointer"
+                      title={`Delete ${user.email} and all history`}
+                    >
+                      <Trash2 className="w-3 h-3" />
+                      <span>Delete</span>
+                    </button>
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
+
+        {/* Desktop Table View */}
+        <div className="hidden lg:block">
           <table className="w-full text-left text-xs border-collapse">
             <thead>
               <tr className="border-b border-[#1A1C18]/10 bg-[#FAF9F6] text-[#4A483E] uppercase font-bold tracking-wider text-[10px]">
@@ -466,6 +693,17 @@ export function UserManager({
                               </button>
                             </>
                           )}
+
+                          <button
+                            type="button"
+                            disabled={updatingId === user.id || isDeletingUser}
+                            onClick={() => setDeleteTarget(user)}
+                            className="p-1.5 rounded-xl text-stone-400 hover:text-rose-600 hover:bg-rose-50 transition-colors disabled:opacity-50 cursor-pointer"
+                            title={`Delete ${user.email} and all history`}
+                            aria-label={`Delete ${user.email}`}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
                         </div>
                       </td>
                     </tr>
@@ -476,7 +714,7 @@ export function UserManager({
           </table>
         </div>
 
-        <div className="p-4 bg-[#FAF9F6] border-t border-[#1A1C18]/10 flex items-center justify-between text-xs text-[#4A483E]">
+        <div className="p-4 bg-[#FAF9F6] border-t border-[#1A1C18]/10 flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-xs text-[#4A483E]">
           <span>
             Displaying <strong>{filteredCustomers.length}</strong> active registered profiles
           </span>
@@ -537,6 +775,34 @@ export function UserManager({
                   This account will be safely returned to standard Customer permissions. All administrative and management privileges will be revoked immediately.
                 </p>
               )}
+            </div>
+          }
+        />
+      )}
+
+      {/* Delete User & History Confirmation Modal */}
+      {deleteTarget && (
+        <ConfirmationModal
+          isOpen={!!deleteTarget}
+          onClose={() => {
+            if (!isDeletingUser) setDeleteTarget(null);
+          }}
+          onConfirm={executeDeleteUser}
+          isLoading={isDeletingUser}
+          title="Delete User & All History?"
+          subtitle="Permanent Account & Data Removal"
+          variant="danger"
+          confirmText="Yes, Delete User & History"
+          cancelText="Keep Account"
+          description={
+            <div className="space-y-2">
+              <p>
+                Are you sure you want to permanently delete{" "}
+                <strong className="text-[#1A1C18]">{deleteTarget.email}</strong>?
+              </p>
+              <p className="text-rose-800 bg-rose-50 p-2.5 rounded-xl border border-rose-200 text-xs">
+                This will permanently remove their auth account, profile, all orders ({deleteTarget.order_count}), product reviews, wishlists, and newsletter/OTP records. This action cannot be undone.
+              </p>
             </div>
           }
         />

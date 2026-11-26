@@ -146,7 +146,7 @@ export function ImageUploadInput({
             value={inputUrl}
             onChange={(e) => handleUrlChange(e.target.value)}
             placeholder="https://... (CDN, Supabase, or external image URL)"
-            className="w-full pl-9 pr-24 py-2 rounded-xl border border-[#1A1C18]/15 text-xs text-[#1A1C18] focus:outline-none focus:ring-2 focus:ring-[#1A1C18] font-mono"
+            className="w-full pl-9 pr-24 py-2 rounded-xl border border-[#1A1C18]/15 bg-[#FAF9F6] text-xs text-[#1A1C18] font-mono placeholder:text-[#4A483E]/45 focus:outline-none focus-visible:outline-none focus:border-[#B78E69] focus:ring-2 focus:ring-[#B78E69]/25 focus:bg-white transition-all"
           />
           {inputUrl && (
             <button

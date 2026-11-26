@@ -42,6 +42,27 @@ export function getInMemoryOrdersList(): Order[] {
   return list.sort((a, b) => b.created_at.localeCompare(a.created_at));
 }
 
+export function syncInMemoryOrder(order: Order): void {
+  if (inMemoryOrders.has(order.id) || inMemoryOrders.has(order.order_number)) {
+    inMemoryOrders.set(order.id, order);
+    inMemoryOrders.set(order.order_number, order);
+  }
+}
+
+export function deleteInMemoryOrder(orderIdOrNumber: string): boolean {
+  const existing =
+    inMemoryOrders.get(orderIdOrNumber) ??
+    getInMemoryOrdersList().find(
+      (o) =>
+        o.id === orderIdOrNumber ||
+        o.order_number.toLowerCase() === orderIdOrNumber.toLowerCase(),
+    );
+  if (!existing) return false;
+  inMemoryOrders.delete(existing.id);
+  inMemoryOrders.delete(existing.order_number);
+  return true;
+}
+
 export async function createOrder(input: CheckoutInput): Promise<Order> {
   const subtotal = subtotalOfCents(input.items);
   const discount = Math.max(0, input.discountCents ?? 0);
@@ -445,4 +466,98 @@ export async function markOrderPaid(
   } catch {}
 
   return mem ?? null;
+}
+
+export async function requestOrderCancellation(input: {
+  orderId: string;
+  userId?: string | null;
+  userEmail?: string | null;
+  trackingToken?: string | null;
+  reason?: string;
+}): Promise<Order> {
+  const order = await getOrderById(
+    input.orderId,
+    input.userId,
+    false,
+    input.trackingToken,
+    input.userEmail,
+  );
+
+  if (!order) {
+    throw new Error("Order not found or access denied");
+  }
+
+  if (
+    order.delivery_status === "cancelled" ||
+    order.payment_status === "cancelled" ||
+    order.payment_status === "refunded"
+  ) {
+    throw new Error("This order is already cancelled.");
+  }
+
+  if (order.delivery_status === "delivered") {
+    throw new Error("Delivered orders cannot be cancelled.");
+  }
+
+  if (order.events?.some((e) => e.kind === "cancellation_requested")) {
+    throw new Error("A cancellation request has already been submitted for this order.");
+  }
+
+  const trimmedReason = input.reason?.trim() || "";
+  const message = trimmedReason
+    ? `Customer requested cancellation: ${trimmedReason}`
+    : "Customer requested order cancellation.";
+  const now = new Date().toISOString();
+  const noteLine = `[Cancellation Requested ${now.slice(0, 10)}]${trimmedReason ? `: ${trimmedReason}` : ""}`;
+  const updatedNotes = order.admin_notes
+    ? `${order.admin_notes}\n${noteLine}`
+    : noteLine;
+
+  try {
+    const admin = createAdminClient();
+    const isUuidUser =
+      input.userId &&
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+        input.userId,
+      );
+
+    await admin.from("order_events").insert({
+      order_id: order.id,
+      kind: "cancellation_requested",
+      message,
+      created_by: isUuidUser ? input.userId! : null,
+    });
+
+    await admin
+      .from("orders")
+      .update({ admin_notes: updatedNotes })
+      .eq("id", order.id);
+
+    const refreshed = await fetchFullOrder(admin, order.id);
+    if (refreshed) {
+      inMemoryOrders.set(refreshed.id, refreshed);
+      inMemoryOrders.set(refreshed.order_number, refreshed);
+      return refreshed;
+    }
+  } catch {}
+
+  const updatedOrder: Order = {
+    ...order,
+    admin_notes: updatedNotes,
+    updated_at: now,
+    events: [
+      ...(order.events ?? []),
+      {
+        id: randomUUID(),
+        order_id: order.id,
+        kind: "cancellation_requested",
+        message,
+        created_at: now,
+      },
+    ],
+  };
+
+  inMemoryOrders.set(updatedOrder.id, updatedOrder);
+  inMemoryOrders.set(updatedOrder.order_number, updatedOrder);
+  return updatedOrder;
 }

@@ -33,8 +33,8 @@ export function CommercialTrajectoryChart({
   const chartTop = 30;
   const chartBottom = 180;
   const chartHeight = chartBottom - chartTop;
-  const startX = 60;
-  const endX = 640;
+  const startX = 84;
+  const endX = 665;
   const stepX = (endX - startX) / Math.max(1, points.length - 1);
 
   // Max value for scaling (round up to nearest reasonable ceiling)
@@ -83,13 +83,13 @@ export function CommercialTrajectoryChart({
   return (
     <div className="bg-white p-6 sm:p-8 rounded-3xl border border-[#1A1C18]/10 shadow-[0_2px_12px_rgba(26,28,24,0.04)] space-y-6">
       {/* Header & Metrics */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#1A1C18]/10 pb-4">
-        <div>
-          <div className="flex items-center gap-2">
-            <h2 className="font-editorial text-xl font-bold text-[#1A1C18]">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-[#1A1C18]/10 pb-4">
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-2">
+            <h2 className="font-editorial text-lg sm:text-xl font-bold text-[#1A1C18]">
               Commercial Trajectory &amp; Revenue Velocity
             </h2>
-            <span className="px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-800 text-[10px] font-mono font-bold border border-emerald-200 uppercase tracking-wider flex items-center gap-1">
+            <span className="px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-800 text-[10px] font-mono font-bold border border-emerald-200 uppercase tracking-wider inline-flex items-center gap-1 whitespace-nowrap shrink-0">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
               7-Day Run Rate
             </span>
@@ -99,8 +99,8 @@ export function CommercialTrajectoryChart({
           </p>
         </div>
 
-        <div className="flex items-center gap-5 text-xs font-mono">
-          <div className="text-right">
+        <div className="grid grid-cols-2 sm:flex sm:items-center gap-4 sm:gap-5 text-xs font-mono shrink-0">
+          <div className="sm:text-right">
             <span className="text-[10px] uppercase font-bold text-[#4A483E]/70 block">
               7-Day Total
             </span>
@@ -108,8 +108,8 @@ export function CommercialTrajectoryChart({
               {formatMoney(totalCents, currencySymbol, currencyCode)}
             </span>
           </div>
-          <div className="w-px h-8 bg-[#1A1C18]/10" />
-          <div className="text-right">
+          <div className="hidden sm:block w-px h-8 bg-[#1A1C18]/10" />
+          <div className="sm:text-right">
             <span className="text-[10px] uppercase font-bold text-[#4A483E]/70 block">
               Peak ({peakPoint.day})
             </span>

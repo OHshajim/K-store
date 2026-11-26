@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { requireAdminProfile } from "@/lib/data/auth";
+import { requireAdminOnlyProfile } from "@/lib/data/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { savePersistedSettings } from "@/lib/data/storeContent";
 
@@ -34,7 +34,7 @@ const bodySchema = z.object({
 
 export async function PATCH(request: Request) {
   try {
-    await requireAdminProfile();
+    await requireAdminOnlyProfile();
     const body = bodySchema.parse(await request.json());
 
     // Always persist changes locally so edits are never lost

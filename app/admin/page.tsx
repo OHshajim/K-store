@@ -143,18 +143,20 @@ export default async function AdminDashboardPage() {
   return (
     <div className="space-y-6 p-6 sm:p-8 max-w-7xl mx-auto font-sans antialiased">
       {/* 1. Studio Header & Live Status Bar */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-[#1A1C18]/10">
-        <div className="space-y-1">
-          <div className="flex items-center gap-2">
-            <span className="flex h-2 w-2 relative">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-600" />
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-6 border-b border-[#1A1C18]/10">
+        <div className="space-y-1 min-w-0">
+          <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+            <span className="inline-flex items-center gap-2 whitespace-nowrap">
+              <span className="flex h-2 w-2 relative shrink-0">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-600" />
+              </span>
+              <span className="text-xs font-bold uppercase tracking-wider text-[#8A927A]">
+                Live Storefront Operational
+              </span>
             </span>
-            <span className="text-xs font-bold uppercase tracking-wider text-[#8A927A]">
-              Live Storefront Operational
-            </span>
-            <span className="text-xs text-[#1A1C18]/30">·</span>
-            <span className="text-xs text-[#4A483E] font-medium">
+            <span className="text-xs text-[#1A1C18]/30 hidden sm:inline">·</span>
+            <span className="text-xs text-[#4A483E] font-medium whitespace-nowrap">
               {activeProductsCount} Published Essentials
             </span>
           </div>
@@ -199,7 +201,7 @@ export default async function AdminDashboardPage() {
       </div>
 
       {/* 2. Top Tier Metrics (Modern KPI Deck) */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 sm:gap-5">
         {/* KPI 1: Revenue */}
         <div className="p-5 sm:p-6 rounded-2xl bg-white border border-[#1A1C18]/10 shadow-[0_2px_8px_rgba(26,28,24,0.04)] hover:shadow-md transition-shadow space-y-3">
           <div className="flex items-center justify-between">
@@ -438,7 +440,7 @@ export default async function AdminDashboardPage() {
                                                                                     return (
                                                                                     <div
                                                                                       key={order.id}
-                                                                                      className="py-3.5 flex items-center justify-between gap-4 hover:bg-stone-50/70 rounded-xl px-2 -mx-2 transition-colors"
+                                                                                      className="py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-4 hover:bg-stone-50/70 rounded-xl px-2 -mx-2 transition-colors"
                                                                                     >
                                                                                       <div className="flex items-center gap-3 min-w-0">
                                                                                         {/* Customer Initials Avatar */}
@@ -447,10 +449,10 @@ export default async function AdminDashboardPage() {
                                                                                         </div>
 
                                                                                         <div className="min-w-0">
-                                                                                          <div className="flex items-center gap-2">
+                                                                                          <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
                                                                                             <Link
                                                                                               href={`/admin/orders/${order.id}`}
-                                                                                              className="font-mono text-xs font-bold text-[#1A1C18] hover:text-[#B78E69] hover:underline"
+                                                                                              className="font-mono text-xs font-bold text-[#1A1C18] hover:text-[#B78E69] hover:underline shrink-0"
                                                                                             >
                                                                                               {order.order_number}
                                                                                             </Link>
@@ -460,27 +462,29 @@ export default async function AdminDashboardPage() {
                                                                                             </span>
                                                                                           </div>
                                                                                           <div className="flex items-center gap-2 text-[11px] text-[#4A483E]/70 mt-0.5">
-                                                                                            <span>{order.shipping_city || "Direct Delivery"}</span>
+                                                                                            <span className="truncate">{order.shipping_city || "Direct Delivery"}</span>
                                                                                             <span>·</span>
-                                                                                            <span className="capitalize">
-                                                                                              {order.delivery_status.replace("_", " ")}
+                                                                                            <span className="capitalize whitespace-nowrap">
+                                                                                              {order.delivery_status.replaceAll("_", " ")}
                                                                                             </span>
                                                                                           </div>
                                                                                         </div>
                                                                                       </div>
 
-                                                                                      <div className="flex items-center gap-3 shrink-0">
+                                                                                      <div className="flex items-center justify-between sm:justify-end gap-3 shrink-0 pl-12 sm:pl-0">
                                                                                         <PaymentStatusBadge status={order.payment_status} />
-                                                                                        <span className="font-mono text-xs font-bold text-[#1A1C18] text-right">
-                                                                                          {money(order.total_cents)}
-                                                                                        </span>
-                                                                                        <Link
-                                                                                          href={`/admin/orders/${order.id}`}
-                                                                                          className="p-1 text-[#4A483E]/60 hover:text-[#1A1C18] rounded-md transition-colors"
-                                                                                          title="Inspect order"
-                                                                                        >
-                                                                                          <ChevronRight className="w-4 h-4" />
-                                                                                        </Link>
+                                                                                        <div className="flex items-center gap-2">
+                                                                                          <span className="font-mono text-xs font-bold text-[#1A1C18] text-right whitespace-nowrap">
+                                                                                            {money(order.total_cents)}
+                                                                                          </span>
+                                                                                          <Link
+                                                                                            href={`/admin/orders/${order.id}`}
+                                                                                            className="p-1 text-[#4A483E]/60 hover:text-[#1A1C18] rounded-md transition-colors"
+                                                                                            title="Inspect order"
+                                                                                          >
+                                                                                            <ChevronRight className="w-4 h-4" />
+                                                                                          </Link>
+                                                                                        </div>
                                                                                       </div>
                                                                                     </div>
                                                                                 );

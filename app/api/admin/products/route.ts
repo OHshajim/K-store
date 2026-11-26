@@ -6,6 +6,12 @@ import { slugify } from "@/lib/format";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { Product } from "@/lib/types";
 
+const colorVariantSchema = z.object({
+  name: z.string().trim().min(1),
+  hex: z.string().trim().regex(/^#[0-9a-fA-F]{3,8}$/, "Invalid color hex code").default("#D8C9B5"),
+  in_stock: z.boolean().default(true),
+});
+
 const bodySchema = z.object({
   name: z.string().min(2),
   slug: z.string().optional(),
@@ -31,6 +37,11 @@ const bodySchema = z.object({
     })
     .nullable()
     .optional(),
+  weight_kg: z.number().nonnegative().nullable().optional(),
+  color_variants: z.array(colorVariantSchema).optional(),
+  material_variants: z.array(z.string().trim().min(1)).optional(),
+  specifications: z.record(z.string(), z.string()).optional(),
+  care_instructions: z.string().nullable().optional(),
 });
 
 export async function POST(request: Request) {
@@ -59,7 +70,14 @@ export async function POST(request: Request) {
           material: body.material ?? null,
           room: body.room ?? null,
           sku: body.sku ?? null,
-          dimensions: body.dimensions ?? undefined,
+          dimensions: body.dimensions ?? null,
+          weight_kg: body.weight_kg ?? null,
+          color_variants: body.color_variants ?? [],
+          material_variants: body.material_variants ?? [],
+          specifications: body.specifications ?? {},
+          care_instructions: body.care_instructions ?? null,
+          rating: null,
+          review_count: 0,
         })
         .select("*")
         .single();
@@ -85,17 +103,22 @@ export async function POST(request: Request) {
           .single();
       }
 
-      if (!res.error && res.data) {
+      if (res.error) {
+        return NextResponse.json({ error: res.error.message }, { status: 400 });
+      }
+
+      if (res.data) {
         try {
           revalidatePath("/", "layout");
           revalidatePath("/shop", "layout");
+          revalidatePath("/fit-assistant", "page");
           revalidatePath("/admin/products", "page");
           if (res.data.slug) revalidatePath(`/product/${res.data.slug}`, "page");
         } catch {}
         return NextResponse.json({ product: res.data, id: res.data.id });
       }
     } catch {
-      // Supabase is offline; handle via in-memory mock update for development preview
+      // Supabase is offline or unconfigured; handle via in-memory mock update for development preview
     }
 
     const { MOCK_PRODUCTS } = await import("@/lib/data/mockData");
@@ -117,10 +140,12 @@ export async function POST(request: Request) {
       material: body.material ?? "Solid White Oak",
       room: body.room ?? "living",
       dimensions: body.dimensions ?? undefined,
-      weight_kg: 18.5,
-      color_variants: [{ name: "Natural Oak", hex: "#D8C9B5", in_stock: true }],
-      specifications: { "Craft Heritage": "Quarter-sawn solid timber", "Joinery": "Mortise & tenon" },
-      rating: 5.0,
+      weight_kg: body.weight_kg ?? undefined,
+      color_variants: body.color_variants ?? [],
+      material_variants: body.material_variants ?? [],
+      specifications: body.specifications ?? {},
+      care_instructions: body.care_instructions ?? undefined,
+      rating: undefined,
       review_count: 0,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),

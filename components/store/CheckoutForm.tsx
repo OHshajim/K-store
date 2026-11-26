@@ -508,20 +508,26 @@ export function CheckoutForm({
                     )}
                   </div>
                   <div>
-                    <label className="block font-bold text-[#292B27] mb-1.5 uppercase tracking-wider">
+                    <label
+                      htmlFor="checkout-country"
+                      className="block font-bold text-[#292B27] mb-1.5 uppercase tracking-wider"
+                    >
                       Destination Country *
                     </label>
                     <select
+                      id="checkout-country"
+                      name="country"
+                      autoComplete="country-name"
                       value={country}
                       onChange={(e) => {
                         setCountry(e.target.value);
                         clearFieldError("country");
                       }}
-                      className="w-full px-4 py-3 rounded-xl border border-[#292B27]/20 focus:outline-none focus:ring-1 focus:ring-[#292B27] bg-white cursor-pointer"
+                      className="kstore-select w-full px-4 py-3 rounded-xl border border-[#292B27]/20 bg-white text-sm text-[#1A1C18] cursor-pointer"
                     >
-                      <option value="United States">United States (USD)</option>
-                      <option value="Canada">Canada (CAD)</option>
-                      <option value="United Kingdom">United Kingdom (GBP)</option>
+                      <option value="United States">United States</option>
+                      <option value="Canada">Canada</option>
+                      <option value="United Kingdom">United Kingdom</option>
                     </select>
                   </div>
                   <div>

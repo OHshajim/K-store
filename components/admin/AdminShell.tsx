@@ -229,30 +229,34 @@ export function AdminShell({
           </SideNavSection>
 
           <SideNavSection title="SYSTEM">
-            <SideNavItem
-              label="Users & Managers"
-              href="/admin/users"
-              icon={UsersIcon}
-              isSelected={pathname.startsWith("/admin/users")}
-              endContent={
-                counts?.users !== undefined ? (
-                  <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-white/10 text-white">
-                    {counts.users}
-                  </span>
-                ) : null
-              }
-            />
-            <SideNavItem
-              label="Store Settings"
-              href="/admin/settings"
-              icon={Cog6ToothIcon}
-              isSelected={pathname.startsWith("/admin/settings")}
-              endContent={
-                <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-white/10 text-[#D8C9B5]">
-                  {currency}
-                </span>
-              }
-            />
+            {profile?.role === "admin" && (
+              <>
+                <SideNavItem
+                  label="Users & Managers"
+                  href="/admin/users"
+                  icon={UsersIcon}
+                  isSelected={pathname.startsWith("/admin/users")}
+                  endContent={
+                    counts?.users !== undefined ? (
+                      <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-white/10 text-white">
+                        {counts.users}
+                      </span>
+                    ) : null
+                  }
+                />
+                <SideNavItem
+                  label="Store Settings"
+                  href="/admin/settings"
+                  icon={Cog6ToothIcon}
+                  isSelected={pathname.startsWith("/admin/settings")}
+                  endContent={
+                    <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-white/10 text-[#D8C9B5]">
+                      {currency}
+                    </span>
+                  }
+                />
+              </>
+            )}
             <SideNavItem
               label="Back to Storefront"
               href="/"

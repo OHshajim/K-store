@@ -1,3 +1,5 @@
+import { redirect } from "next/navigation";
+import { getCurrentProfile } from "@/lib/data/auth";
 import { getCustomerSummaries } from "@/lib/data/orderAdmin";
 import { getStoreSettings } from "@/lib/data/catalog";
 import { UserManager } from "@/components/admin/UserManager";
@@ -5,6 +7,11 @@ import { UserManager } from "@/components/admin/UserManager";
 export const dynamic = "force-dynamic";
 
 export default async function AdminUsersPage() {
+  const profile = await getCurrentProfile();
+  if (profile?.role !== "admin") {
+    redirect("/admin");
+  }
+
   const [customers, settings] = await Promise.all([
     getCustomerSummaries(),
     getStoreSettings(),

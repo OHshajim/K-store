@@ -208,7 +208,7 @@ export function BannerManager({ banners }: { banners: BannerType[] }) {
       )}
 
       {/* 2. Marketing Telemetry Deck (Consistent 4-KPI Hierarchy) */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4">
         <div className="p-4 rounded-xl bg-white border border-[#1A1C18]/10 shadow-2xs space-y-1">
           <div className="flex items-center justify-between text-[#4A483E]">
             <span className="text-[11px] font-bold uppercase tracking-wider">Active Campaigns</span>
@@ -488,7 +488,7 @@ export function BannerManager({ banners }: { banners: BannerType[] }) {
                   value={draft.title}
                   onChange={(e) => setDraft({ ...draft, title: e.target.value })}
                   placeholder="e.g. Make room for what matters."
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#1A1C18]/15 text-xs text-[#1A1C18] focus:outline-none focus:ring-2 focus:ring-[#1A1C18]"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#1A1C18]/15 text-xs text-[#1A1C18] focus:outline-none focus-visible:outline-none focus:border-[#B78E69] focus:ring-2 focus:ring-[#B78E69]/25 bg-[#FAF9F6] focus:bg-white transition-all"
                 />
               </div>
 
@@ -501,7 +501,7 @@ export function BannerManager({ banners }: { banners: BannerType[] }) {
                   value={draft.subtitle}
                   onChange={(e) => setDraft({ ...draft, subtitle: e.target.value })}
                   placeholder="Thoughtfully designed essentials for a more organized, beautiful home."
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#1A1C18]/15 text-xs text-[#1A1C18] focus:outline-none focus:ring-2 focus:ring-[#1A1C18]"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#1A1C18]/15 text-xs text-[#1A1C18] leading-relaxed focus:outline-none focus-visible:outline-none focus:border-[#B78E69] focus:ring-2 focus:ring-[#B78E69]/25 bg-[#FAF9F6] focus:bg-white transition-all resize-y"
                 />
               </div>
 

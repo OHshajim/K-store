@@ -44,3 +44,11 @@ export async function requireAdminProfile(): Promise<Profile> {
   }
   return profile;
 }
+
+export async function requireAdminOnlyProfile(): Promise<Profile> {
+  const profile = await getCurrentProfile();
+  if (!profile || profile.role !== "admin") {
+    throw new Error("Administrator access required");
+  }
+  return profile;
+}

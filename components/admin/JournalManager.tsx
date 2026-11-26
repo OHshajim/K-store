@@ -455,7 +455,7 @@ export function JournalManager({ initialArticles }: { initialArticles: Editorial
         {/* Category Filter Pills & View Mode */}
         <div className="flex flex-wrap items-center justify-between sm:justify-end gap-3 w-full sm:w-auto">
           {/* Theme Filters */}
-          <div className="flex items-center gap-1.5 overflow-x-auto py-0.5 max-w-full">
+          <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5 max-w-full">
             <button
               type="button"
               onClick={() => setSelectedCategory("all")}
@@ -695,9 +695,79 @@ export function JournalManager({ initialArticles }: { initialArticles: Editorial
           })}
         </div>
       ) : (
-        /* High-Density Table List View Mode */
+        /* High-Density Table List View Mode (Desktop) & Cards (Mobile/Tablet) */
         <div className="bg-white rounded-3xl border border-[#1A1C18]/10 shadow-[0_2px_12px_rgba(26,28,24,0.03)] overflow-hidden">
-          <div className="overflow-x-auto">
+          {/* Mobile & Tablet Card View */}
+          <div className="lg:hidden p-3 sm:p-4 space-y-3">
+            {filteredArticles.map((art) => (
+              <div
+                key={art.id}
+                className="rounded-2xl border border-[#1A1C18]/10 bg-[#FAF9F6]/50 p-4 space-y-3"
+              >
+                <div className="flex items-start gap-3">
+                  <div className="relative w-14 h-10 rounded-xl overflow-hidden bg-stone-100 shrink-0 border border-[#1A1C18]/10">
+                    <EssayCardImage
+                      src={art.image}
+                      alt={art.title}
+                      category={art.category}
+                    />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <h4 className="font-editorial text-base font-bold text-[#1A1C18] line-clamp-1">
+                      {art.title}
+                    </h4>
+                    <span className="text-[11px] text-[#4A483E]/70 line-clamp-2">
+                      {art.summary}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap items-center justify-between gap-2 pt-2.5 border-t border-[#1A1C18]/8 text-xs">
+                  <span className="px-2.5 py-0.5 rounded-full bg-[#FAF9F6] border border-[#1A1C18]/10 text-[10px] font-mono uppercase font-bold text-[#1A1C18]">
+                    {art.category}
+                  </span>
+                  <div className="text-right">
+                    <span className="font-medium text-[#1A1C18] block text-xs">
+                      {art.author.name}
+                    </span>
+                    <span className="text-[10px] text-[#8A927A] font-mono">
+                      {art.author.role} · {art.readTime}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between gap-2 pt-2.5 border-t border-[#1A1C18]/8">
+                  <Link
+                    href={`/journal/${art.slug}`}
+                    target="_blank"
+                    className="inline-flex items-center gap-1 text-xs font-semibold text-[#8A927A] hover:text-[#1A1C18] truncate min-w-0"
+                  >
+                    <span className="truncate">/journal/{art.slug}</span>
+                    <ExternalLink className="w-3 h-3 shrink-0" />
+                  </Link>
+                  <div className="inline-flex items-center gap-1.5 shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => startEdit(art)}
+                      className="px-3 py-1 rounded-xl bg-[#1A1C18] text-white text-xs font-semibold hover:bg-[#32362F] cursor-pointer"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => initiateDeleteEssay(art.id, art.title)}
+                      className="p-1 rounded-xl text-stone-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Desktop Table View */}
+          <div className="hidden lg:block">
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="border-b border-[#1A1C18]/10 bg-[#FAF9F6] text-[11px] font-mono text-[#8A927A] uppercase tracking-wider">
@@ -832,7 +902,7 @@ export function JournalManager({ initialArticles }: { initialArticles: Editorial
                     value={title}
                     onChange={(e) => handleTitleChange(e.target.value)}
                     placeholder="e.g. The Architecture of Calm: 5 Principles for Intentional Living"
-                    className="w-full px-4 py-2.5 rounded-xl border border-[#1A1C18]/15 text-sm text-[#1A1C18] focus:outline-none focus:ring-2 focus:ring-[#1A1C18] bg-[#FAF9F6]"
+                    className="w-full px-4 py-2.5 rounded-xl border border-[#1A1C18]/15 text-sm text-[#1A1C18] placeholder:text-[#4A483E]/45 focus:outline-none focus-visible:outline-none focus:border-[#B78E69] focus:ring-2 focus:ring-[#B78E69]/25 bg-[#FAF9F6] focus:bg-white transition-all"
                   />
                 </div>
 
@@ -846,7 +916,7 @@ export function JournalManager({ initialArticles }: { initialArticles: Editorial
                     value={slug}
                     onChange={(e) => setSlug(e.target.value)}
                     placeholder="e.g. principles-of-scandinavian-organization"
-                    className="w-full px-4 py-2.5 rounded-xl border border-[#1A1C18]/15 text-xs font-mono text-[#1A1C18] focus:outline-none focus:ring-2 focus:ring-[#1A1C18] bg-[#FAF9F6]"
+                    className="w-full px-4 py-2.5 rounded-xl border border-[#1A1C18]/15 text-xs font-mono text-[#1A1C18] placeholder:text-[#4A483E]/45 focus:outline-none focus-visible:outline-none focus:border-[#B78E69] focus:ring-2 focus:ring-[#B78E69]/25 bg-[#FAF9F6] focus:bg-white transition-all"
                   />
                 </div>
 
@@ -859,7 +929,7 @@ export function JournalManager({ initialArticles }: { initialArticles: Editorial
                     value={category}
                     onChange={(e) => setCategory(e.target.value)}
                     placeholder="e.g. Design Philosophy"
-                    className="w-full px-4 py-2.5 rounded-xl border border-[#1A1C18]/15 text-sm text-[#1A1C18] focus:outline-none focus:ring-2 focus:ring-[#1A1C18] bg-[#FAF9F6]"
+                    className="w-full px-4 py-2.5 rounded-xl border border-[#1A1C18]/15 text-sm text-[#1A1C18] placeholder:text-[#4A483E]/45 focus:outline-none focus-visible:outline-none focus:border-[#B78E69] focus:ring-2 focus:ring-[#B78E69]/25 bg-[#FAF9F6] focus:bg-white transition-all"
                   />
                   {/* Preset Theme Chips */}
                   <div className="flex flex-wrap gap-1 pt-1">
@@ -889,7 +959,7 @@ export function JournalManager({ initialArticles }: { initialArticles: Editorial
                     value={readTime}
                     onChange={(e) => setReadTime(e.target.value)}
                     placeholder="e.g. 5 min read"
-                    className="w-full px-4 py-2.5 rounded-xl border border-[#1A1C18]/15 text-sm text-[#1A1C18] focus:outline-none focus:ring-2 focus:ring-[#1A1C18] bg-[#FAF9F6]"
+                    className="w-full px-4 py-2.5 rounded-xl border border-[#1A1C18]/15 text-sm text-[#1A1C18] placeholder:text-[#4A483E]/45 focus:outline-none focus-visible:outline-none focus:border-[#B78E69] focus:ring-2 focus:ring-[#B78E69]/25 bg-[#FAF9F6] focus:bg-white transition-all"
                   />
                 </div>
 
@@ -902,7 +972,7 @@ export function JournalManager({ initialArticles }: { initialArticles: Editorial
                     value={date}
                     onChange={(e) => setDate(e.target.value)}
                     placeholder="e.g. February 2026"
-                    className="w-full px-4 py-2.5 rounded-xl border border-[#1A1C18]/15 text-sm text-[#1A1C18] focus:outline-none focus:ring-2 focus:ring-[#1A1C18] bg-[#FAF9F6]"
+                    className="w-full px-4 py-2.5 rounded-xl border border-[#1A1C18]/15 text-sm text-[#1A1C18] placeholder:text-[#4A483E]/45 focus:outline-none focus-visible:outline-none focus:border-[#B78E69] focus:ring-2 focus:ring-[#B78E69]/25 bg-[#FAF9F6] focus:bg-white transition-all"
                   />
                 </div>
 
@@ -915,7 +985,7 @@ export function JournalManager({ initialArticles }: { initialArticles: Editorial
                     value={authorName}
                     onChange={(e) => setAuthorName(e.target.value)}
                     placeholder="e.g. Henrik Lindqvist"
-                    className="w-full px-4 py-2.5 rounded-xl border border-[#1A1C18]/15 text-sm text-[#1A1C18] focus:outline-none focus:ring-2 focus:ring-[#1A1C18] bg-[#FAF9F6]"
+                    className="w-full px-4 py-2.5 rounded-xl border border-[#1A1C18]/15 text-sm text-[#1A1C18] placeholder:text-[#4A483E]/45 focus:outline-none focus-visible:outline-none focus:border-[#B78E69] focus:ring-2 focus:ring-[#B78E69]/25 bg-[#FAF9F6] focus:bg-white transition-all"
                   />
                 </div>
 
@@ -928,7 +998,7 @@ export function JournalManager({ initialArticles }: { initialArticles: Editorial
                     value={authorRole}
                     onChange={(e) => setAuthorRole(e.target.value)}
                     placeholder="e.g. Principal Architectural Curator"
-                    className="w-full px-4 py-2.5 rounded-xl border border-[#1A1C18]/15 text-sm text-[#1A1C18] focus:outline-none focus:ring-2 focus:ring-[#1A1C18] bg-[#FAF9F6]"
+                    className="w-full px-4 py-2.5 rounded-xl border border-[#1A1C18]/15 text-sm text-[#1A1C18] placeholder:text-[#4A483E]/45 focus:outline-none focus-visible:outline-none focus:border-[#B78E69] focus:ring-2 focus:ring-[#B78E69]/25 bg-[#FAF9F6] focus:bg-white transition-all"
                   />
                 </div>
 
@@ -966,7 +1036,7 @@ export function JournalManager({ initialArticles }: { initialArticles: Editorial
                     value={summary}
                     onChange={(e) => setSummary(e.target.value)}
                     placeholder="Brief 1-2 sentence teaser displayed in index cards and storefront feeds..."
-                    className="w-full px-4 py-2.5 rounded-xl border border-[#1A1C18]/15 text-sm text-[#1A1C18] focus:outline-none focus:ring-2 focus:ring-[#1A1C18] bg-[#FAF9F6]"
+                    className="w-full px-4 py-3 rounded-xl border border-[#1A1C18]/15 text-sm leading-relaxed text-[#1A1C18] placeholder:text-[#4A483E]/45 focus:outline-none focus-visible:outline-none focus:border-[#B78E69] focus:ring-2 focus:ring-[#B78E69]/25 bg-[#FAF9F6] focus:bg-white transition-all resize-y"
                   />
                 </div>
 
@@ -980,7 +1050,7 @@ export function JournalManager({ initialArticles }: { initialArticles: Editorial
                     value={rawContent}
                     onChange={(e) => setRawContent(e.target.value)}
                     placeholder="Draft your full architectural essay paragraphs here..."
-                    className="w-full px-4 py-2.5 rounded-xl border border-[#1A1C18]/15 text-sm text-[#1A1C18] focus:outline-none focus:ring-2 focus:ring-[#1A1C18] bg-[#FAF9F6] font-sans leading-relaxed"
+                    className="w-full px-4 py-3 rounded-xl border border-[#1A1C18]/15 text-sm text-[#1A1C18] placeholder:text-[#4A483E]/45 focus:outline-none focus-visible:outline-none focus:border-[#B78E69] focus:ring-2 focus:ring-[#B78E69]/25 bg-[#FAF9F6] focus:bg-white transition-all font-sans leading-relaxed resize-y"
                   />
                 </div>
 
@@ -993,7 +1063,7 @@ export function JournalManager({ initialArticles }: { initialArticles: Editorial
                     value={rawTakeaways}
                     onChange={(e) => setRawTakeaways(e.target.value)}
                     placeholder="Keep at least 30% of horizontal surface planes unoccupied...&#10;Layer lighting across multiple elevations..."
-                    className="w-full px-4 py-2.5 rounded-xl border border-[#1A1C18]/15 text-sm text-[#1A1C18] focus:outline-none focus:ring-2 focus:ring-[#1A1C18] bg-[#FAF9F6]"
+                    className="w-full px-4 py-3 rounded-xl border border-[#1A1C18]/15 text-sm leading-relaxed text-[#1A1C18] placeholder:text-[#4A483E]/45 focus:outline-none focus-visible:outline-none focus:border-[#B78E69] focus:ring-2 focus:ring-[#B78E69]/25 bg-[#FAF9F6] focus:bg-white transition-all resize-y"
                   />
                 </div>
               </div>

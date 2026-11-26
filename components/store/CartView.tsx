@@ -240,7 +240,7 @@ export function CartView({
                         />
                       </div>
                       <div className="min-w-0">
-                        <h5 className="font-editorial text-sm font-bold text-[#292B27] truncate">
+                        <h5 className="font-editorial text-sm font-bold text-[#292B27] line-clamp-2">
                           {rec.name}
                         </h5>
                         <p className="font-mono text-xs text-[#77766E]" suppressHydrationWarning>

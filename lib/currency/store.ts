@@ -1,7 +1,6 @@
 "use client";
 
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
 import type { SupportedCurrency, CurrencyConfig } from "@/lib/types";
 
 export const CURRENCIES: Record<SupportedCurrency, CurrencyConfig> = {
@@ -13,18 +12,18 @@ export const CURRENCIES: Record<SupportedCurrency, CurrencyConfig> = {
     flag: "🇺🇸",
   },
   CAD: {
-    code: "CAD",
-    symbol: "CA$",
-    rate: 1.36,
-    label: "Canada (CAD)",
-    flag: "🇨🇦",
+    code: "USD",
+    symbol: "$",
+    rate: 1.0,
+    label: "United States (USD)",
+    flag: "🇺🇸",
   },
   GBP: {
-    code: "GBP",
-    symbol: "£",
-    rate: 0.79,
-    label: "United Kingdom (GBP)",
-    flag: "🇬🇧",
+    code: "USD",
+    symbol: "$",
+    rate: 1.0,
+    label: "United States (USD)",
+    flag: "🇺🇸",
   },
 };
 
@@ -36,49 +35,22 @@ type CurrencyStore = {
   convertCents: (centsInUsd: number) => number;
 };
 
-export const useCurrencyStore = create<CurrencyStore>()(
-  persist(
-    (set, get) => ({
-      currency: "USD",
-      hasHydrated: false,
-      setCurrency: (currency) => {
-        set({ currency });
-        if (typeof document !== "undefined") {
-          document.cookie = `kstore_currency=${currency}; path=/; max-age=31536000; SameSite=Lax`;
-        }
-      },
-      convertCents: (centsInUsd) => {
-        const curr = get().hasHydrated ? get().currency : "USD";
-        const rate = CURRENCIES[curr]?.rate ?? 1.0;
-        return Math.round(centsInUsd * rate);
-      },
-      formatPrice: (centsInUsd) => {
-        const curr = get().hasHydrated ? get().currency : "USD";
-        const config = CURRENCIES[curr] ?? CURRENCIES.USD;
-        const converted = (centsInUsd * config.rate) / 100;
-        try {
-          return new Intl.NumberFormat(
-            curr === "GBP" ? "en-GB" : curr === "CAD" ? "en-CA" : "en-US",
-            {
-              style: "currency",
-              currency: curr,
-              currencyDisplay: "symbol",
-            }
-          ).format(converted);
-        } catch {
-          return `${config.symbol}${converted.toFixed(2)}`;
-        }
-      },
-    }),
-    {
-      name: "kstore-currency",
-      skipHydration: true,
-      onRehydrateStorage: () => (state) => {
-        if (state) {
-          state.hasHydrated = true;
-        }
-      },
+export const useCurrencyStore = create<CurrencyStore>()(() => ({
+  currency: "USD",
+  hasHydrated: true,
+  setCurrency: () => {},
+  convertCents: (centsInUsd) => Math.round(centsInUsd),
+  formatPrice: (centsInUsd) => {
+    const amount = centsInUsd / 100;
+    try {
+      return new Intl.NumberFormat("en-US", {
+        style: "currency",
+        currency: "USD",
+        currencyDisplay: "symbol",
+      }).format(amount);
+    } catch {
+      return `$${amount.toFixed(2)}`;
     }
-  )
-);
+  },
+}));
 

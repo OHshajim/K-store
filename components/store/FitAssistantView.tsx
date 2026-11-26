@@ -318,17 +318,17 @@ export function FitAssistantView({
 
       {/* Step 2: Dimensions & Clearance */}
       {step === 2 && (
-        <div className="bg-white rounded-3xl p-6 sm:p-10 border border-[#292B27]/10 shadow-lg animate-in fade-in duration-300">
-          <div className="flex items-center justify-between mb-2">
-            <h2 className="font-editorial text-2xl sm:text-3xl font-bold text-[#292B27]">
+        <div className="bg-white rounded-3xl p-5 sm:p-10 border border-[#292B27]/10 shadow-lg animate-in fade-in duration-300">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
+            <h2 className="font-editorial text-xl sm:text-3xl font-bold text-[#292B27]">
               Step 2: Available Space Dimensions
             </h2>
             {/* Unit Toggle */}
-            <div className="flex items-center bg-[#F4F0E8] p-1 rounded-lg border border-[#292B27]/10 text-xs font-mono font-bold">
+            <div className="inline-flex items-center self-start sm:self-auto bg-[#F4F0E8] p-1 rounded-lg border border-[#292B27]/10 text-[11px] sm:text-xs font-mono font-bold shrink-0">
               <button
                 type="button"
                 onClick={() => handleUnitToggle("cm")}
-                className={`px-3 py-1 rounded-md transition-all cursor-pointer ${unit === "cm" ? "bg-white text-[#292B27] shadow-xs" : "text-[#77766E]"
+                className={`px-2.5 sm:px-3 py-1 rounded-md transition-all cursor-pointer whitespace-nowrap ${unit === "cm" ? "bg-white text-[#292B27] shadow-xs" : "text-[#77766E]"
                   }`}
               >
                 Centimeters (cm)
@@ -336,7 +336,7 @@ export function FitAssistantView({
               <button
                 type="button"
                 onClick={() => handleUnitToggle("in")}
-                className={`px-3 py-1 rounded-md transition-all cursor-pointer ${unit === "in" ? "bg-white text-[#292B27] shadow-xs" : "text-[#77766E]"
+                className={`px-2.5 sm:px-3 py-1 rounded-md transition-all cursor-pointer whitespace-nowrap ${unit === "in" ? "bg-white text-[#292B27] shadow-xs" : "text-[#77766E]"
                   }`}
               >
                 Inches (in)

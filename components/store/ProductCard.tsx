@@ -153,12 +153,12 @@ export function ProductCard({
             <span className="text-[11px] font-bold uppercase tracking-wider text-[#4A483E] truncate max-w-[150px]">
               {product.material?.split("&")[0]?.trim() || product.room || "Living"}
             </span>
-            {product.rating && (
+            {product.rating && (product.review_count ?? 0) > 0 && (
               <div className="flex items-center gap-1 font-mono text-xs font-bold text-[#1A1C18] shrink-0">
                 <Star className="w-3.5 h-3.5 fill-[#B78E69] text-[#B78E69]" />
                 <span>{product.rating.toFixed(1)}</span>
                 <span className="text-[#4A483E] font-normal text-[11px]">
-                  ({product.review_count ?? 18})
+                  ({product.review_count})
                 </span>
               </div>
             )}

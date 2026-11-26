@@ -45,10 +45,12 @@ export type AccountOrder = {
 };
 
 export type ReviewableItem = {
+  orderItemId?: string;
   orderId: string;
   orderNumber: string;
   productId: string;
   productName: string;
+  variantLabel?: string | null;
 };
 
 type TabType = "profile" | "security" | "orders" | "reviews";
@@ -228,6 +230,11 @@ export function AccountDashboard({
                     <Sparkles className="w-3 h-3 text-[#B78E69]" />
                     Studio Architect · Admin
                   </span>
+                ) : profile.role === "manager" ? (
+                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#B78E69]/15 text-[#8C6239] text-[10px] font-mono font-bold tracking-wider uppercase border border-[#B78E69]/30">
+                    <ShieldCheck className="w-3 h-3 text-[#B78E69]" />
+                    Store Manager
+                  </span>
                 ) : (
                   <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#8A927A]/15 text-[#3e4435] text-[10px] font-mono font-bold tracking-wider uppercase">
                     Verified Resident
@@ -255,13 +262,15 @@ export function AccountDashboard({
 
           {/* Action Buttons */}
           <div className="flex items-center gap-2.5 shrink-0 self-start md:self-center">
-            {profile.role === "admin" && (
+            {(profile.role === "admin" || profile.role === "manager") && (
               <Link
                 href="/admin"
                 className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#1A1C18] text-white hover:bg-[#2D302A] text-xs font-semibold transition-all shadow-xs cursor-pointer"
               >
                 <ShieldCheck className="w-4 h-4 text-[#B78E69]" />
-                <span style={{ color: "#FFFFFF" }}>Studio CMS Admin</span>
+                <span style={{ color: "#FFFFFF" }}>
+                  {profile.role === "admin" ? "Studio CMS Admin" : "Store Manager CMS"}
+                </span>
               </Link>
             )}
             <LogoutButton />
@@ -287,43 +296,43 @@ export function AccountDashboard({
         )}
 
         {/* Quick Telemetry Strip */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs font-sans">
-          <div className="p-3.5 rounded-2xl bg-[#F4F0E8]/60 border border-[#1A1C18]/8">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 text-xs font-sans">
+          <div className="p-3 sm:p-3.5 rounded-2xl bg-[#F4F0E8]/60 border border-[#1A1C18]/8 min-w-0">
             <div className="text-[10px] uppercase font-mono text-[#8A927A] tracking-wider mb-1 flex items-center gap-1.5">
-              <Package className="w-3.5 h-3.5 text-[#B78E69]" />
-              <span>Orders Placed</span>
+              <Package className="w-3.5 h-3.5 text-[#B78E69] shrink-0" />
+              <span className="truncate">Orders Placed</span>
             </div>
-            <div className="font-editorial text-xl font-bold text-[#1A1C18]">
+            <div className="font-editorial text-base sm:text-xl font-bold text-[#1A1C18]">
               {orders.length} Dispatched
             </div>
           </div>
 
-          <div className="p-3.5 rounded-2xl bg-[#F4F0E8]/60 border border-[#1A1C18]/8">
+          <div className="p-3 sm:p-3.5 rounded-2xl bg-[#F4F0E8]/60 border border-[#1A1C18]/8 min-w-0">
             <div className="text-[10px] uppercase font-mono text-[#8A927A] tracking-wider mb-1 flex items-center gap-1.5">
-              <Star className="w-3.5 h-3.5 text-[#B78E69]" />
-              <span>Reviews Shared</span>
+              <Star className="w-3.5 h-3.5 text-[#B78E69] shrink-0" />
+              <span className="truncate">Reviews Shared</span>
             </div>
-            <div className="font-editorial text-xl font-bold text-[#1A1C18]">
+            <div className="font-editorial text-base sm:text-xl font-bold text-[#1A1C18]">
               {reviews.length} Published
             </div>
           </div>
 
-          <div className="p-3.5 rounded-2xl bg-[#F4F0E8]/60 border border-[#1A1C18]/8">
+          <div className="p-3 sm:p-3.5 rounded-2xl bg-[#F4F0E8]/60 border border-[#1A1C18]/8 min-w-0">
             <div className="text-[10px] uppercase font-mono text-[#8A927A] tracking-wider mb-1 flex items-center gap-1.5">
-              <RotateCcw className="w-3.5 h-3.5 text-[#8A927A]" />
-              <span>Trial Period</span>
+              <RotateCcw className="w-3.5 h-3.5 text-[#8A927A] shrink-0" />
+              <span className="truncate">Trial Period</span>
             </div>
-            <div className="font-editorial text-xl font-bold text-[#1A1C18]">
+            <div className="font-editorial text-base sm:text-xl font-bold text-[#1A1C18]">
               30-Day In-Home
             </div>
           </div>
 
-          <div className="p-3.5 rounded-2xl bg-[#F4F0E8]/60 border border-[#1A1C18]/8">
+          <div className="p-3 sm:p-3.5 rounded-2xl bg-[#F4F0E8]/60 border border-[#1A1C18]/8 min-w-0">
             <div className="text-[10px] uppercase font-mono text-[#8A927A] tracking-wider mb-1 flex items-center gap-1.5">
-              <Truck className="w-3.5 h-3.5 text-[#8A927A]" />
-              <span>Fulfillment Tier</span>
+              <Truck className="w-3.5 h-3.5 text-[#8A927A] shrink-0" />
+              <span className="truncate">Fulfillment Tier</span>
             </div>
-            <div className="font-editorial text-xl font-bold text-[#1A1C18]">
+            <div className="font-editorial text-base sm:text-xl font-bold text-[#1A1C18]">
               White-Glove
             </div>
           </div>
@@ -338,7 +347,7 @@ export function AccountDashboard({
       )}
 
       {/* 3. Navigation Tabs */}
-      <div className="flex items-center gap-2 border-b border-[#1A1C18]/10 pb-4 overflow-x-auto">
+      <div className="grid grid-cols-2 sm:flex sm:items-center gap-2 border-b border-[#1A1C18]/10 pb-4">
         <button
           type="button"
           onClick={() => setTab("profile")}
@@ -1049,6 +1058,9 @@ function OrdersPanel({ orders }: { orders: AccountOrder[] }) {
       <div className="space-y-3">
         {orders.map((order) => {
           const isPaid = order.payment_status === "paid";
+          const isNegativePayment =
+            order.payment_status === "cancelled" ||
+            order.payment_status === "refunded";
           const dateStr = order.created_at ? formatDate(order.created_at) : "Recent";
 
           return (
@@ -1061,7 +1073,7 @@ function OrdersPanel({ orders }: { orders: AccountOrder[] }) {
                   <Package className="w-5 h-5 text-[#B78E69]" />
                 </div>
                 <div className="space-y-1">
-                  <div className="flex items-center gap-2.5">
+                  <div className="flex flex-wrap items-center gap-2">
                     <span className="font-mono text-xs font-bold text-[#1A1C18]">
                       #{order.order_number}
                     </span>
@@ -1069,11 +1081,26 @@ function OrdersPanel({ orders }: { orders: AccountOrder[] }) {
                       className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded-full ${
                         isPaid
                           ? "bg-emerald-100 text-emerald-800"
-                          : "bg-amber-100 text-amber-800"
+                          : isNegativePayment
+                            ? "bg-rose-100 text-rose-800"
+                            : "bg-amber-100 text-amber-800"
                       }`}
                     >
                       {PAYMENT_STATUS_LABELS[order.payment_status] || order.payment_status}
                     </span>
+                    {order.delivery_status && (
+                      <span
+                        className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded-full ${
+                          order.delivery_status === "delivered"
+                            ? "bg-emerald-100 text-emerald-800"
+                            : order.delivery_status === "cancelled"
+                              ? "bg-rose-100 text-rose-800"
+                              : "bg-stone-100 text-[#1A1C18]"
+                        }`}
+                      >
+                        {DELIVERY_STATUS_LABELS[order.delivery_status] || order.delivery_status}
+                      </span>
+                    )}
                   </div>
                   <div className="text-[11px] text-[#4A483E]/80 flex items-center gap-2">
                     <span>{dateStr}</span>
@@ -1132,17 +1159,18 @@ function ReviewsPanel({
           </p>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2">
-            {reviewable.map((item) => (
+            {reviewable.map((item, idx) => (
               <div
-                key={`${item.orderId}-${item.productId}`}
+                key={item.orderItemId ?? `${item.orderId}-${item.productId}-${idx}`}
                 className="bg-white p-4 rounded-2xl border border-[#1A1C18]/10 flex items-center justify-between gap-3 shadow-2xs"
               >
-                <div>
+                <div className="min-w-0">
                   <div className="text-xs font-bold text-[#1A1C18] line-clamp-1">
                     {item.productName}
                   </div>
-                  <div className="text-[10px] font-mono text-[#8A927A]">
+                  <div className="text-[10px] font-mono text-[#8A927A] truncate">
                     Order #{item.orderNumber}
+                    {item.variantLabel ? ` · ${item.variantLabel}` : ""}
                   </div>
                 </div>
                 <ReviewForm

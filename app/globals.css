@@ -28,6 +28,7 @@ html,
   html[data-theme="light"],
   html[data-theme="dark"] {
     color-scheme: light !important;
+    interpolate-size: allow-keywords;
 
     /* Kstore Scandinavian Design System Colors */
     --kstore-ivory: #F4F0E8;
@@ -59,6 +60,10 @@ html,
     --font-editorial: 'Cormorant Garamond', Georgia, serif;
     --font-sans: 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     --font-mono: 'Inter', -apple-system, monospace;
+
+    /* Scrollbar Tokens (Primary Charcoal thumb on Ivory track, >= 15:1 contrast) */
+    --scrollbar-thumb: var(--kstore-charcoal);
+    --scrollbar-track: var(--kstore-ivory);
   }
 
   html,
@@ -68,6 +73,12 @@ html,
     background-color: #F4F0E8;
     color: #1A1C18;
     -webkit-font-smoothing: antialiased;
+  }
+
+  html,
+  *:not(.no-scrollbar) {
+    scrollbar-width: thin;
+    scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
   }
 
   .font-editorial {
@@ -338,6 +349,35 @@ html,
     box-shadow: 2px 0 16px rgba(0, 0, 0, 0.15) !important;
   }
 
+  /* Mobile Admin Top Bar & MobileNav <dialog> Drawer */
+  [role="navigation"]:has(> button[aria-label*="navigation"]),
+  header:has([role="navigation"] > button[aria-label*="navigation"]) {
+    background-color: #1A1C18 !important;
+    color: #F4F0E8 !important;
+    width: 100% !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+  }
+
+  [role="navigation"]:has(> button[aria-label*="navigation"]) > button {
+    color: #F4F0E8 !important;
+    min-width: 44px !important;
+    min-height: 44px !important;
+    margin-left: auto !important;
+  }
+
+  dialog:has(.astryx-side-nav-item) > div {
+    background-color: #1A1C18 !important;
+    color: #F4F0E8 !important;
+    border-right: 1px solid rgba(255, 255, 255, 0.08) !important;
+  }
+
+  dialog:has(.astryx-side-nav-item) button[aria-label*="Close"],
+  dialog:has(.astryx-side-nav-item) button[aria-label*="close"] {
+    color: #F4F0E8 !important;
+    min-width: 44px !important;
+    min-height: 44px !important;
+  }
+
   .astryx-side-nav-heading {
     border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
     padding: 1rem 0.75rem !important;
@@ -407,4 +447,228 @@ html,
   .astryx-side-nav-item.selected svg,
   .astryx-side-nav-item[data-selected="selected"] svg {
     color: #B78E69 !important;
+  }
+
+  /* ==========================================================================
+     BRANDED CUSTOMIZABLE SELECT (.kstore-select)
+     Progressive enhancement using `appearance: base-select` + `::picker(select)`
+     with animated chevron icon, top-layer drawer transition via @starting-style,
+     and clean custom SVG chevron fallback for unsupported engines.
+     ========================================================================== */
+
+  .kstore-select,
+  .kstore-select::picker(select) {
+    appearance: base-select;
+  }
+
+  .kstore-select {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 0.75rem 1rem;
+    min-height: 44px;
+    border-radius: 0.75rem;
+    border: 1px solid rgba(26, 28, 24, 0.15);
+    background-color: #FAF9F6;
+    color: #1A1C18;
+    font-size: 0.75rem;
+    line-height: 1.25rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition:
+      border-color 0.2s ease,
+      background-color 0.2s ease,
+      box-shadow 0.2s ease;
+  }
+
+  .kstore-select:hover {
+    border-color: rgba(26, 28, 24, 0.3);
+    background-color: #FFFFFF;
+  }
+
+  .kstore-select:open {
+    border-color: #B78E69;
+    background-color: #FFFFFF;
+    box-shadow: 0 0 0 3px rgba(183, 142, 105, 0.22);
+    outline: none;
+  }
+
+  .kstore-select:focus-visible {
+    border-color: #B78E69;
+    background-color: #FFFFFF;
+    outline: 2px solid #B78E69;
+    outline-offset: 2px;
+    box-shadow: 0 0 0 4px rgba(183, 142, 105, 0.18);
+  }
+
+  .kstore-select::picker-icon {
+    content: "";
+    width: 0.45rem;
+    height: 0.45rem;
+    margin-inline-start: 0.75rem;
+    flex-shrink: 0;
+    border-right: 1.75px solid #4A483E;
+    border-bottom: 1.75px solid #4A483E;
+    transform: rotate(45deg) translateY(-1px);
+    transition:
+      transform 0.26s cubic-bezier(0.16, 1, 0.3, 1),
+      border-color 0.2s ease;
+  }
+
+  .kstore-select:open::picker-icon {
+    border-color: #B78E69;
+    transform: rotate(-135deg) translateY(-1px);
+  }
+
+  .kstore-select::picker(select) {
+    background-color: #FFFFFF;
+    color: #1A1C18;
+    border: 1px solid rgba(26, 28, 24, 0.14);
+    border-radius: 1rem;
+    box-shadow:
+      0 20px 44px -12px rgba(26, 28, 24, 0.18),
+      0 4px 14px -4px rgba(26, 28, 24, 0.08);
+    padding: 0.375rem;
+    margin-block-start: 0.375rem;
+    min-width: anchor-size(width);
+    opacity: 0;
+    transform: translateY(-6px) scale(0.98);
+    transition:
+      display 0.24s cubic-bezier(0.16, 1, 0.3, 1),
+      overlay 0.24s cubic-bezier(0.16, 1, 0.3, 1),
+      opacity 0.24s cubic-bezier(0.16, 1, 0.3, 1),
+      transform 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+    transition-behavior: allow-discrete;
+  }
+
+  .kstore-select:open::picker(select) {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+
+  @starting-style {
+    .kstore-select:open::picker(select) {
+      opacity: 0;
+      transform: translateY(-6px) scale(0.98);
+    }
+  }
+
+  .kstore-select option {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.625rem 0.75rem;
+    border-radius: 0.625rem;
+    font-size: 0.8125rem;
+    line-height: 1.4;
+    color: #1A1C18;
+    cursor: pointer;
+    transition: background-color 0.15s ease, color 0.15s ease;
+  }
+
+  .kstore-select option:hover,
+  .kstore-select option:focus-visible {
+    background-color: #FAF9F6;
+    color: #1A1C18;
+  }
+
+  .kstore-select option:checked {
+    background-color: #F4F0E8;
+    color: #1A1C18;
+    font-weight: 600;
+  }
+
+  .kstore-select option::checkmark {
+    order: 2;
+    margin-inline-start: auto;
+    color: #B78E69;
+    font-weight: 700;
+  }
+
+  @supports not (appearance: base-select) {
+    .kstore-select {
+      appearance: none;
+      -webkit-appearance: none;
+      padding-inline-end: 2.5rem;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%234A483E' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 0.9rem center;
+      background-size: 0.95rem;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .kstore-select,
+    .kstore-select::picker(select),
+    .kstore-select::picker-icon {
+      transition: none !important;
+    }
+  }
+
+  .kstore-pill-group {
+    display: flex;
+    flex-wrap: wrap;
+    flex-wrap: balance;
+  }
+
+  /* ==========================================================================
+     SCROLLBAR CONTRAST & LEGACY FALLBACKS
+     ========================================================================== */
+
+  .astryx-side-nav {
+    --scrollbar-thumb: var(--kstore-sand);
+    --scrollbar-track: var(--kstore-charcoal);
+  }
+
+  @media (prefers-contrast: more) {
+    :root,
+    html,
+    body,
+    html[data-theme="light"],
+    html[data-theme="dark"],
+    .astryx-side-nav {
+      --scrollbar-thumb: #000000;
+      --scrollbar-track: #FFFFFF;
+    }
+  }
+
+  /* Blink/WebKit precision hairline scroller (4px) while keeping
+     scrollbar-width: thin + scrollbar-color for engines without ::-webkit-scrollbar */
+  @supports not (-moz-appearance: none) {
+    html,
+    *:not(.no-scrollbar) {
+      scrollbar-width: auto;
+      scrollbar-color: auto;
+    }
+
+    html::-webkit-scrollbar,
+    *:not(.no-scrollbar)::-webkit-scrollbar {
+      width: 4px;
+      height: 4px;
+    }
+
+    html::-webkit-scrollbar-thumb,
+    *:not(.no-scrollbar)::-webkit-scrollbar-thumb {
+      background: var(--scrollbar-thumb);
+      border-radius: 9999px;
+    }
+
+    html::-webkit-scrollbar-track,
+    *:not(.no-scrollbar)::-webkit-scrollbar-track {
+      background: var(--scrollbar-track);
+    }
+
+    html::-webkit-scrollbar-corner,
+    *:not(.no-scrollbar)::-webkit-scrollbar-corner {
+      background: transparent;
+    }
+
+    @media (prefers-contrast: more) {
+      html::-webkit-scrollbar,
+      *:not(.no-scrollbar)::-webkit-scrollbar {
+        width: 10px;
+        height: 10px;
+      }
+    }
   }

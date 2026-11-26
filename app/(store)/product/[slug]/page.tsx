@@ -1,11 +1,15 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
+import { getCurrentProfile } from "@/lib/data/auth";
 import {
   getProductBySlug,
   getProducts,
   requireStoreSettings,
 } from "@/lib/data/catalog";
-import { getProductReviews } from "@/lib/data/reviews";
+import {
+  checkProductReviewEligibility,
+  getProductReviews,
+} from "@/lib/data/reviews";
 import { ProductDetailView } from "@/components/store/ProductDetailView";
 
 export const dynamic = "force-dynamic";
@@ -29,24 +33,32 @@ export async function generateMetadata({ params }: { params: Params }): Promise<
 
 export default async function ProductPage({ params }: { params: Params }) {
   const { slug } = await params;
-  const [product, settings] = await Promise.all([
+  const [product, settings, profile] = await Promise.all([
     getProductBySlug(slug),
     requireStoreSettings(),
+    getCurrentProfile(),
   ]);
 
   if (!product) notFound();
 
-  // Fetch reviews & related products in same category or room
-  const [reviews, allRelated] = await Promise.all([
+  // Fetch reviews, verified buyer eligibility & related products
+  const [reviews, allRelated, reviewEligibility] = await Promise.all([
     getProductReviews(product.id),
     getProducts({
       room: product.room,
       categorySlug: product.category?.slug,
       limit: 5,
     }),
+    checkProductReviewEligibility(profile?.id, profile?.email, product.id),
   ]);
 
   const related = allRelated.filter((p) => p.id !== product.id).slice(0, 4);
+  const effectiveReviewCount =
+    reviews.length > 0 ? reviews.length : (product.review_count ?? 0);
+  const effectiveRating =
+    reviews.length > 0
+      ? reviews.reduce((acc, r) => acc + r.rating, 0) / reviews.length
+      : product.rating;
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -71,12 +83,12 @@ export default async function ProductPage({ params }: { params: Params }) {
           : "https://schema.org/OutOfStock",
       itemCondition: "https://schema.org/NewCondition",
     },
-    ...(product.rating
+    ...(effectiveReviewCount > 0 && effectiveRating
       ? {
         aggregateRating: {
           "@type": "AggregateRating",
-          ratingValue: product.rating.toFixed(1),
-          reviewCount: product.review_count || 18,
+          ratingValue: effectiveRating.toFixed(1),
+          reviewCount: effectiveReviewCount,
         },
       }
       : {}),
@@ -93,6 +105,7 @@ export default async function ProductPage({ params }: { params: Params }) {
         settings={settings}
         relatedProducts={related}
         reviews={reviews}
+        reviewEligibility={reviewEligibility}
       />
     </>
   );

@@ -111,14 +111,14 @@ import type { Review } from "@/lib/types";
 
         <Link
           href="/admin"
-          className="px-3.5 py-2 rounded-xl bg-white border border-[#1A1C18]/15 text-xs font-semibold text-[#1A1C18] hover:bg-[#F4F0E8] transition-colors shrink-0"
+          className="inline-flex items-center self-start lg:self-auto px-3.5 py-2 rounded-xl bg-white border border-[#1A1C18]/15 text-xs font-semibold text-[#1A1C18] hover:bg-[#F4F0E8] transition-colors whitespace-nowrap shrink-0"
         >
           ← Back to Overview
         </Link>
       </div>
 
       {/* 2. Rating Telemetry Strip */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4">
         <div className="p-4 rounded-xl bg-white border border-[#1A1C18]/10 shadow-2xs space-y-1">
           <div className="flex items-center justify-between text-[#4A483E]">
             <span className="text-[11px] font-bold uppercase tracking-wider">Average Rating</span>
@@ -226,7 +226,7 @@ import type { Review } from "@/lib/types";
           </div>
         ) : (
           filteredReviews.map((review) => {
-            const reviewer = review.reviewer_name || `Collector ${review.user_id.slice(0, 6)}`;
+            const reviewer = review.reviewer_name || `Collector ${(review.user_id ?? "guest").slice(0, 6)}`;
             const initials = reviewer
               .split(" ")
               .map((n) => n[0])

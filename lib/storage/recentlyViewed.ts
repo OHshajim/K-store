@@ -52,12 +52,17 @@ export function getRecentlyViewed(): RecentlyViewedItem[] {
       return EMPTY_LIST;
     }
     if (raw === cachedRaw) return cachedItems;
+    const parsed: unknown = JSON.parse(raw);
     cachedRaw = raw;
-    cachedItems = JSON.parse(raw) as RecentlyViewedItem[];
+    cachedItems = Array.isArray(parsed) ? (parsed as RecentlyViewedItem[]) : EMPTY_LIST;
     return cachedItems;
   } catch {
     return EMPTY_LIST;
   }
+}
+
+export function getRecentlyViewedServerSnapshot(): RecentlyViewedItem[] {
+  return EMPTY_LIST;
 }
 
 export function subscribeRecentlyViewed(callback: () => void): () => void {

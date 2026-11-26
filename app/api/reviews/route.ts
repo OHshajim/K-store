@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { getCurrentProfile } from "@/lib/data/auth";
-import { createReview } from "@/lib/data/reviews";
+import { createReview, ReviewEligibilityError } from "@/lib/data/reviews";
 
 const bodySchema = z.object({
   productId: z.string(),
@@ -15,26 +16,42 @@ export async function POST(request: Request) {
     const profile = await getCurrentProfile();
     if (!profile) {
       return NextResponse.json(
-        { error: "Sign in to review your orders" },
+        { error: "Sign in to review your verified purchases" },
         { status: 401 },
       );
     }
 
     const body = bodySchema.parse(await request.json());
-    await createReview({
+    const review = await createReview({
       userId: profile.id,
+      userEmail: profile.email,
+      reviewerName: profile.full_name,
       productId: body.productId,
       orderId: body.orderId,
       rating: body.rating,
       comment: body.comment,
     });
 
-    return NextResponse.json({ ok: true });
+    try {
+      revalidatePath("/", "layout");
+      revalidatePath("/shop", "page");
+      revalidatePath("/account", "page");
+      revalidatePath("/admin/reviews", "page");
+      revalidatePath("/product", "layout");
+    } catch {}
+
+    return NextResponse.json({ ok: true, review });
   } catch (error) {
+    if (error instanceof ReviewEligibilityError) {
+      return NextResponse.json(
+        { error: error.message },
+        { status: error.statusCode },
+      );
+    }
     const message =
       error instanceof Error
         ? error.message
-        : "Only orders you paid for can be reviewed";
+        : "Only customers with a paid or delivered order containing this item can submit a review";
     return NextResponse.json({ error: message }, { status: 400 });
   }
 }

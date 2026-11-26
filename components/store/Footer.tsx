@@ -10,7 +10,6 @@ import {
   Sparkles,
   ArrowRight,
 } from "lucide-react";
-import { CurrencySelector } from "./CurrencySelector";
 
 export function Footer({
   storeName = "Kstore",
@@ -299,7 +298,7 @@ export function Footer({
           </div>
         </div>
 
-        {/* Bottom Bar: Copyright & Currency */}
+        {/* Bottom Bar: Copyright */}
         <div className="pt-8 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-[#D8C9B5]/80">
           <div className="flex flex-wrap items-center justify-center md:justify-start gap-x-6 gap-y-2">
             <span>© {new Date().getFullYear()} {storeName} International Ltd. All rights reserved.</span>
@@ -321,11 +320,6 @@ export function Footer({
             </Link>
             <span className="hidden sm:inline text-white/20">·</span>
             <span className="text-white/60">Crafted for Architectural Living</span>
-          </div>
-
-          <div className="flex items-center gap-3 shrink-0">
-            <span className="text-xs text-[#D8C9B5]/90 font-medium">Region &amp; Currency:</span>
-            <CurrencySelector variant="footer" />
           </div>
         </div>
       </div>

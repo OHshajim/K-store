@@ -1,9 +1,19 @@
 import { createAdminClient } from "@/lib/supabase/admin";
-import { getOrderById, getInMemoryOrdersList } from "@/lib/data/orders";
+import { hasSupabaseEnv } from "@/lib/env";
+import {
+  getOrderById,
+  getInMemoryOrdersList,
+  syncInMemoryOrder,
+  deleteInMemoryOrder,
+} from "@/lib/data/orders";
 import { DELIVERY_STATUS_LABELS, PAYMENT_STATUS_LABELS } from "@/lib/constants";
 import type { DeliveryStatus, Order, PaymentStatus } from "@/lib/types";
 
-export const DEMO_ADMIN_ORDERS: Order[] = [
+declare global {
+  var __kstore_demo_orders__: Order[] | undefined;
+}
+
+const INITIAL_DEMO_ADMIN_ORDERS: Order[] = [
   {
     id: "ord-demo-101",
     order_number: "KS-NYC-8492",
@@ -167,6 +177,10 @@ export const DEMO_ADMIN_ORDERS: Order[] = [
   },
 ];
 
+export const DEMO_ADMIN_ORDERS: Order[] =
+  globalThis.__kstore_demo_orders__ ??
+  (globalThis.__kstore_demo_orders__ = INITIAL_DEMO_ADMIN_ORDERS);
+
 export async function getAllOrders(): Promise<Order[]> {
   const memoryOrders = getInMemoryOrdersList();
   try {
@@ -200,71 +214,219 @@ export async function updateOrderStatus(input: {
   deliveryStatus?: DeliveryStatus;
   adminNotes?: string;
 }): Promise<Order> {
-  try {
+  const isUuid =
+    /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+      input.orderId
+    );
+  const canUseDb = hasSupabaseEnv() && Boolean(process.env.SUPABASE_SERVICE_ROLE_KEY);
+
+  if (canUseDb && isUuid) {
     const admin = createAdminClient();
-    const patch: Record<string, unknown> = {};
-    if (input.paymentStatus) patch.payment_status = input.paymentStatus;
-    if (input.deliveryStatus) patch.delivery_status = input.deliveryStatus;
-    if (input.adminNotes !== undefined) patch.admin_notes = input.adminNotes;
-
-    const { error } = await admin
+    const { data: existing, error: fetchError } = await admin
       .from("orders")
-      .update(patch)
-      .eq("id", input.orderId);
+      .select("id, payment_status, delivery_status, admin_notes")
+      .eq("id", input.orderId)
+      .maybeSingle();
 
-    if (!error) {
-      const eventRows: Array<{ order_id: string; kind: string; message: string }> = [];
-      if (input.paymentStatus) {
+    if (fetchError) {
+      console.error("Failed to fetch existing order before status update:", fetchError);
+      throw new Error(fetchError.message || "Unable to load order from database.");
+    }
+
+    if (existing) {
+      const patch: Record<string, unknown> = {
+        updated_at: new Date().toISOString(),
+      };
+      const paymentChanged =
+        Boolean(input.paymentStatus) &&
+        input.paymentStatus !== existing.payment_status;
+      const deliveryChanged =
+        Boolean(input.deliveryStatus) &&
+        input.deliveryStatus !== existing.delivery_status;
+
+      if (input.paymentStatus) patch.payment_status = input.paymentStatus;
+      if (input.deliveryStatus) patch.delivery_status = input.deliveryStatus;
+      if (input.adminNotes !== undefined) patch.admin_notes = input.adminNotes;
+
+      const { data: updatedRow, error: updateError } = await admin
+        .from("orders")
+        .update(patch)
+        .eq("id", existing.id)
+        .select("id, payment_status, delivery_status, updated_at")
+        .single();
+
+      if (updateError || !updatedRow) {
+        console.error("Failed to update order status in Supabase:", updateError);
+        throw new Error(updateError?.message || "Failed to persist order status update.");
+      }
+
+      const validAdminUuid =
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+          input.adminId
+        )
+          ? input.adminId
+          : null;
+
+      const eventRows: Array<{
+        order_id: string;
+        kind: string;
+        message: string;
+        created_by: string | null;
+      }> = [];
+      if (paymentChanged && input.paymentStatus) {
         eventRows.push({
-          order_id: input.orderId,
+          order_id: existing.id,
           kind: "payment",
           message: `Payment status updated to ${PAYMENT_STATUS_LABELS[input.paymentStatus] || input.paymentStatus}.`,
+          created_by: validAdminUuid,
         });
       }
-      if (input.deliveryStatus) {
+      if (deliveryChanged && input.deliveryStatus) {
         eventRows.push({
-          order_id: input.orderId,
+          order_id: existing.id,
           kind: "delivery",
           message: `Fulfillment status updated to ${DELIVERY_STATUS_LABELS[input.deliveryStatus] || input.deliveryStatus}.`,
+          created_by: validAdminUuid,
         });
       }
       if (eventRows.length > 0) {
-        try {
-          await admin.from("order_events").insert(eventRows);
-        } catch {}
+        const { error: eventError } = await admin
+          .from("order_events")
+          .insert(eventRows);
+        if (eventError) {
+          console.error("Failed to append order status event:", eventError);
+        }
       }
 
-      const full = await getOrderById(input.orderId, undefined, true);
-      if (full) return full;
+      const full = await getOrderById(existing.id, undefined, true);
+      if (full) {
+        syncInMemoryOrder(full);
+        return full;
+      }
     }
-  } catch {}
+  }
 
   const memOrder = getInMemoryOrdersList().find((o) => o.id === input.orderId);
   if (memOrder) {
+    const paymentChanged =
+      Boolean(input.paymentStatus) &&
+      input.paymentStatus !== memOrder.payment_status;
+    const deliveryChanged =
+      Boolean(input.deliveryStatus) &&
+      input.deliveryStatus !== memOrder.delivery_status;
+
     if (input.paymentStatus) memOrder.payment_status = input.paymentStatus;
     if (input.deliveryStatus) memOrder.delivery_status = input.deliveryStatus;
     if (input.adminNotes !== undefined) memOrder.admin_notes = input.adminNotes;
     memOrder.updated_at = new Date().toISOString();
     memOrder.events = memOrder.events || [];
-    if (input.deliveryStatus) {
+    if (paymentChanged && input.paymentStatus) {
       memOrder.events.push({
-        id: `ev-${Date.now()}`,
+        id: `ev-pay-${Date.now()}`,
+        order_id: memOrder.id,
+        kind: "payment",
+        message: `Payment status updated to ${PAYMENT_STATUS_LABELS[input.paymentStatus] || input.paymentStatus}.`,
+        created_at: new Date().toISOString(),
+      });
+    }
+    if (deliveryChanged && input.deliveryStatus) {
+      memOrder.events.push({
+        id: `ev-del-${Date.now()}`,
         order_id: memOrder.id,
         kind: "delivery",
         message: `Fulfillment status updated to ${DELIVERY_STATUS_LABELS[input.deliveryStatus] || input.deliveryStatus}.`,
         created_at: new Date().toISOString(),
       });
     }
+    syncInMemoryOrder(memOrder);
     return memOrder;
   }
 
   const demo = DEMO_ADMIN_ORDERS.find((o) => o.id === input.orderId);
   if (demo) {
+    const paymentChanged =
+      Boolean(input.paymentStatus) && input.paymentStatus !== demo.payment_status;
+    const deliveryChanged =
+      Boolean(input.deliveryStatus) &&
+      input.deliveryStatus !== demo.delivery_status;
+
     if (input.paymentStatus) demo.payment_status = input.paymentStatus;
     if (input.deliveryStatus) demo.delivery_status = input.deliveryStatus;
     if (input.adminNotes !== undefined) demo.admin_notes = input.adminNotes;
+    demo.updated_at = new Date().toISOString();
+    demo.events = demo.events || [];
+    if (paymentChanged && input.paymentStatus) {
+      demo.events.push({
+        id: `ev-pay-${Date.now()}`,
+        order_id: demo.id,
+        kind: "payment",
+        message: `Payment status updated to ${PAYMENT_STATUS_LABELS[input.paymentStatus] || input.paymentStatus}.`,
+        created_at: new Date().toISOString(),
+      });
+    }
+    if (deliveryChanged && input.deliveryStatus) {
+      demo.events.push({
+        id: `ev-del-${Date.now()}`,
+        order_id: demo.id,
+        kind: "delivery",
+        message: `Fulfillment status updated to ${DELIVERY_STATUS_LABELS[input.deliveryStatus] || input.deliveryStatus}.`,
+        created_at: new Date().toISOString(),
+      });
+    }
     return demo;
   }
+
+  throw new Error("Order not found");
+}
+
+export async function deleteOrderById(
+  orderId: string,
+): Promise<{ id: string; orderNumber: string }> {
+  let deletedFromDb: { id: string; orderNumber: string } | null = null;
+
+  try {
+    const admin = createAdminClient();
+    const { data: existing } = await admin
+      .from("orders")
+      .select("id, order_number")
+      .eq("id", orderId)
+      .maybeSingle();
+
+    if (existing) {
+      const { error: deleteError } = await admin
+        .from("orders")
+        .delete()
+        .eq("id", orderId);
+
+      if (deleteError) {
+        throw new Error(deleteError.message || "Unable to delete order");
+      }
+
+      deletedFromDb = {
+        id: existing.id as string,
+        orderNumber: existing.order_number as string,
+      };
+    }
+  } catch (err) {
+    if (err instanceof Error && !err.message.includes("not configured")) {
+      throw err;
+    }
+  }
+
+  const deletedMem = deleteInMemoryOrder(orderId);
+  const demoIdx = DEMO_ADMIN_ORDERS.findIndex((o) => o.id === orderId);
+  let deletedDemo: { id: string; orderNumber: string } | null = null;
+  if (demoIdx !== -1) {
+    deletedDemo = {
+      id: DEMO_ADMIN_ORDERS[demoIdx].id,
+      orderNumber: DEMO_ADMIN_ORDERS[demoIdx].order_number,
+    };
+    DEMO_ADMIN_ORDERS.splice(demoIdx, 1);
+  }
+
+  if (deletedFromDb) return deletedFromDb;
+  if (deletedDemo) return deletedDemo;
+  if (deletedMem) return { id: orderId, orderNumber: orderId };
 
   throw new Error("Order not found");
 }

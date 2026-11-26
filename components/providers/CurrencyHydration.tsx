@@ -1,16 +1,17 @@
 "use client";
 
 import { useEffect } from "react";
-import { useCurrencyStore } from "@/lib/currency/store";
 
 /**
- * Loads the persisted currency from localStorage after mount. The store starts
- * with `skipHydration: true` so server and client initial render match in USD,
- * then safely switches to the client's persisted currency without hydration mismatches.
+ * Clears any legacy multi-currency localStorage/cookie selection so all prices
+ * consistently display in the store's canonical USD ($) currency.
  */
 export function CurrencyHydration() {
   useEffect(() => {
-    void useCurrencyStore.persist.rehydrate();
+    try {
+      window.localStorage.removeItem("kstore-currency");
+      document.cookie = "kstore_currency=; path=/; max-age=0; SameSite=Lax";
+    } catch {}
   }, []);
 
   return null;

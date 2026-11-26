@@ -7,6 +7,12 @@ import { createAdminClient } from "@/lib/supabase/admin";
 
 type Params = { params: Promise<{ id: string }> };
 
+const colorVariantSchema = z.object({
+  name: z.string().trim().min(1),
+  hex: z.string().trim().regex(/^#[0-9a-fA-F]{3,8}$/, "Invalid color hex code").default("#D8C9B5"),
+  in_stock: z.boolean().default(true),
+});
+
 const bodySchema = z.object({
   name: z.string().min(2).optional(),
   slug: z.string().optional(),
@@ -32,6 +38,11 @@ const bodySchema = z.object({
     })
     .nullable()
     .optional(),
+  weight_kg: z.number().nonnegative().nullable().optional(),
+  color_variants: z.array(colorVariantSchema).optional(),
+  material_variants: z.array(z.string().trim().min(1)).optional(),
+  specifications: z.record(z.string(), z.string()).optional(),
+  care_instructions: z.string().nullable().optional(),
 });
 
 export async function PATCH(request: Request, { params }: Params) {
@@ -64,6 +75,11 @@ export async function PATCH(request: Request, { params }: Params) {
         delete (basePatch as Record<string, unknown>).room;
         delete (basePatch as Record<string, unknown>).sku;
         delete (basePatch as Record<string, unknown>).dimensions;
+        delete (basePatch as Record<string, unknown>).weight_kg;
+        delete (basePatch as Record<string, unknown>).color_variants;
+        delete (basePatch as Record<string, unknown>).material_variants;
+        delete (basePatch as Record<string, unknown>).specifications;
+        delete (basePatch as Record<string, unknown>).care_instructions;
         delete (basePatch as Record<string, unknown>).is_bestseller;
         res = await supabase
           .from("products")
@@ -73,11 +89,17 @@ export async function PATCH(request: Request, { params }: Params) {
           .single();
       }
 
-      if (!res.error && res.data) {
+      if (res.error) {
+        return NextResponse.json({ error: res.error.message }, { status: 400 });
+      }
+
+      if (res.data) {
         try {
           revalidatePath("/", "layout");
           revalidatePath("/shop", "layout");
+          revalidatePath("/fit-assistant", "page");
           revalidatePath("/admin/products", "page");
+          revalidatePath(`/admin/products/${res.data.id}`, "page");
           if (res.data.slug) revalidatePath(`/product/${res.data.slug}`, "page");
         } catch {}
         return NextResponse.json({ product: res.data, id: res.data.id });

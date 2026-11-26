@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { Sparkles, ArrowRight } from "lucide-react";
-import { CurrencySelector } from "./CurrencySelector";
 
 export function PromoBar({
   message = "Complimentary shipping on orders over $150.",
@@ -33,10 +32,10 @@ export function PromoBar({
         </div>
 
         {/* Center Infinitely Sliding Advertising Marquee */}
-        <div className="flex-1 overflow-hidden relative mx-2 sm:mx-4">
+        <div className="flex-1 min-w-0 overflow-hidden relative mx-1 sm:mx-4">
           {/* Subtle edge fade masks */}
-          <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-[#1A1C18] to-transparent z-10 pointer-events-none" />
-          <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-[#1A1C18] to-transparent z-10 pointer-events-none" />
+          <div className="absolute left-0 top-0 bottom-0 w-4 sm:w-8 bg-gradient-to-r from-[#1A1C18] to-transparent z-10 pointer-events-none" />
+          <div className="absolute right-0 top-0 bottom-0 w-4 sm:w-8 bg-gradient-to-l from-[#1A1C18] to-transparent z-10 pointer-events-none" />
 
           {/* Infinite sliding track */}
           <div
@@ -61,11 +60,6 @@ export function PromoBar({
               </Link>
             ))}
           </div>
-        </div>
-
-        {/* Right Currency Selector */}
-        <div className="flex items-center gap-2 shrink-0 z-20">
-          <CurrencySelector variant="header" />
         </div>
       </div>
     </div>
